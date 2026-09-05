@@ -3,7 +3,7 @@
 - 状态：已确认，已完成
 - 日期：2026-08-20
 - 决策者：大仙
-- 关联计划：[Admin 全面迁移 Ant Design Pro v6 计划](../../plans/2026-08-19_Admin升级AntDesign6计划.md)
+- 关联计划：母版历史计划《Admin 全面迁移 Ant Design Pro v6 计划》，已从当前工作树清理，可通过 `pinjie-fullstack-base` `v1.0.0` 与 Git 历史追溯
 
 ## 背景
 

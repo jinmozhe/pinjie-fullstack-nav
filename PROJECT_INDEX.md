@@ -1,4 +1,4 @@
-# pinjie-fullstack-base 项目索引
+# pinjie-fullstack-nav 项目索引
 
 本文件是项目身份、当前阶段、活动计划和权威入口。全部实施计划的永久登记见 [plans/INDEX.md](plans/INDEX.md)。
 
@@ -6,11 +6,12 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 项目角色 | 通用全栈 Monorepo 母版 |
-| 派生类型 | 无 |
-| 母版基线 | 当前仓库 |
-| 当前阶段 | v0.1.1 不可变发布与 1Panel 共享基础设施生产链路已建立；GitHub 默认严格、可显式快速的源码交接和 CNB 三端独立 TCR 发布已完成真实验证，生产已按固定 digest 完成三端部署和健康复验；旧版管理员确认端点限时保留至 2026-09-26 |
-| 业务范围 | 认证、用户、管理、系统等跨业务通用能力；具体业务进入蓝图或派生仓库 |
+| 项目角色 | 独立导航站全栈项目 |
+| 派生类型 | Nav |
+| 母版发布基线 | `pinjie-fullstack-base` `v1.0.0`，Commit `7f5f4ad28b73ffabe3c0fa9cc99b39875482ba18` |
+| 派生源码快照 | `00b409ae866b260854b75bef74c16cd4b9692c79`，即 `v1.0.0-1-g00b409a` |
+| 当前阶段 | 派生初始化已完成；母版继承计划已由用户人工清理，计划索引已重建；等待确认导航站业务需求并建立首个实施计划 |
+| 业务范围 | 导航站业务；具体目标用户、功能范围、运营流程和验收标准以当前项目 PRD 及后续计划为准 |
 
 ## 权威入口
 
@@ -19,7 +20,7 @@
 | 全仓库长期规则 | [AGENTS.md](AGENTS.md) 与三个应用级 `AGENTS.md` | 任务读取、工程边界、验证和交付规则 |
 | 项目身份与阶段导航 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | 项目身份、当前阶段、活动计划和权威入口 |
 | 详细实现状态 | 实际源码、配置、迁移、生成契约与对应架构文档 | 判断具体能力、接口和运行机制是否已经实现 |
-| 产品需求基线 | [docs/PROJECT_REQUIREMENTS.md](docs/PROJECT_REQUIREMENTS.md) | 母版目标用户、能力、非目标和验收边界 |
+| 产品需求基线 | [docs/PROJECT_REQUIREMENTS.md](docs/PROJECT_REQUIREMENTS.md) | Nav 项目身份、继承基线、当前需求边界和后续需求追踪规则 |
 | 计划规则 | [plans/README.md](plans/README.md) | 计划创建、格式、状态、完成和保护规则 |
 | 计划永久登记 | [plans/INDEX.md](plans/INDEX.md) | 全部实施计划的路径、状态、结果、范围和用途 |
 | 项目文档清单 | [docs/README.md](docs/README.md) | `docs/` 下全部项目文档导航 |
@@ -34,3 +35,4 @@
 
 | 计划 | 状态 |
 | --- | --- |
+| 暂无 | 派生初始化已完成，等待首个 Nav 业务计划 |

@@ -1,7 +1,7 @@
 # Admin 本地运行与验证排障手册
 
 > 适用范围：`apps/admin` 的 Umi Max、Ant Design Pro v6 本地开发、单元测试、浏览器冒烟和跨栈验证。
-> 相关计划：[Admin 升级 Ant Design 6 计划](../../plans/2026-08-19_Admin升级AntDesign6计划.md)
+> 相关计划：母版历史计划《Admin 升级 Ant Design 6 计划》，已从当前工作树清理，可通过 `pinjie-fullstack-base` `v1.0.0` 与 Git 历史追溯。
 
 ## 1. 标准运行基线
 
