@@ -3,7 +3,7 @@
 - 状态：已确认
 - 日期：2026-09-02
 - 决策者：大仙
-- 关联计划：[共享 PostgreSQL 与 Redis 生产编排改造计划](../../plans/2026-09-02_共享PostgreSQL与Redis生产编排改造计划.md)
+- 关联计划：母版历史计划《共享 PostgreSQL 与 Redis 生产编排改造计划》，已从当前工作树清理，可通过 `pinjie-fullstack-base` `v1.0.0` 与 Git 历史追溯
 - 操作手册：[1Panel 单机生产运行手册](../operations/1panel-production-runbook.md)
 
 ## 背景

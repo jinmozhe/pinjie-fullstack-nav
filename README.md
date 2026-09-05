@@ -1,8 +1,8 @@
-# Pinjie Fullstack Base
+# Pinjie Fullstack Nav
 
-> 通用全栈 Monorepo 母版 | FastAPI + Next.js + React + pnpm + Turborepo | 可派生为 CMS、管理平台、电商等业务仓库
+> 独立导航站全栈项目 | FastAPI + Next.js + React + pnpm + Turborepo | 派生自 Pinjie Fullstack Base
 
-通用全栈 Monorepo 项目母版，适用于 CMS、博客、企业站、管理平台、电商等项目的初始化和二次开发。
+`pinjie-fullstack-nav` 继承母版的认证、用户、管理、系统、契约生成和部署能力，用于继续开发独立导航站业务。具体业务范围由本项目产品需求基线和后续全栈计划确认。
 
 ## 技术栈
 
@@ -16,7 +16,7 @@
 
 阅读 [本地开发环境手册](docs/operations/local-dev-environment.md)了解完整环境搭建方式；环境变量分层、VS Code 工作区和 Backend 启动顺序见[环境变量分层与 Backend 本地运行手册](docs/operations/environment-variables-and-backend-local-run.md)。
 
-母版的目标用户、适用场景、目标能力、非目标和完成验收标准见 [产品需求基线](docs/PROJECT_REQUIREMENTS.md)。
+本项目的继承基线、当前需求边界、非目标和验收标准见 [产品需求基线](docs/PROJECT_REQUIREMENTS.md)。
 
 ## 项目结构
 
@@ -47,7 +47,7 @@ SECURITY.md             漏洞报告和安全响应规则
 
 - 项目身份、当前阶段、活动计划和权威入口见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
 - 全部实施计划的永久登记见 [plans/INDEX.md](plans/INDEX.md)。
-- 母版做什么、服务谁和如何验收见 [docs/PROJECT_REQUIREMENTS.md](docs/PROJECT_REQUIREMENTS.md)。
+- Nav 项目做什么、继承什么和如何验收见 [docs/PROJECT_REQUIREMENTS.md](docs/PROJECT_REQUIREMENTS.md)。
 - `docs/` 下的完整文档清单见 [docs/README.md](docs/README.md)。
 - 全栈计划格式和生命周期规则见 [plans/README.md](plans/README.md)。
 - 已交付变化见 [CHANGELOG.md](CHANGELOG.md)。
@@ -57,7 +57,7 @@ SECURITY.md             漏洞报告和安全响应规则
 - 所有任务先读取 `PROJECT_INDEX.md`，确认项目身份、当前阶段、活动计划和权威入口，再以实际文件确认详细实现状态
 - 新增功能或模块前，在 `plans/` 创建面向整个 Monorepo 的全栈实施计划，并同步登记到 `plans/INDEX.md`
 - 同一能力涉及 Backend、Admin 和 Web 时，在同一份计划中描述完整链路和联合验证
-- 母版已经存在的计划文档永久保留；独立派生仓库的初始化例外见 `plans/README.md`，AI 始终不得删除、移动或重命名计划
+- 本项目一次性派生计划清理已经结束；此后新增计划永久保留，AI 不得删除、移动或重命名计划
 - 新建、移动或修改专题项目文档后，同步更新 `docs/README.md` 中对应的登记；计划与根索引按各自规则单独同步
 - 新建或修改 Markdown 后，运行 `pnpm lint:md` 检查全仓库文档格式
 - 后端接口变更后，运行 `pnpm generate-api` 更新前端 SDK
@@ -73,16 +73,16 @@ SECURITY.md             漏洞报告和安全响应规则
 
 架构边界见 [模块与依赖边界](docs/architecture/module-boundaries.md)，发布和回滚步骤见 [发布与回滚手册](docs/operations/release-and-rollback.md)。
 
-## 母版边界
+## 继承基线与业务边界
 
-本仓库只包含通用能力，业务领域扩展通过派生仓库实现：
+本仓库继承母版通用能力，导航站业务在当前仓库中通过已确认计划扩展：
 
-| 应用 | 母版包含 | 派生仓库扩展 |
+| 应用 | 继承的通用能力 | Nav 后续扩展 |
 | --- | --- | --- |
-| `backend/domains/` | auth、users、admin、assets、settings、system | products、orders、payment 等 |
-| `web/features/` | auth、account、site、system、user | products、cart、checkout 等 |
-| `admin/features/` | auth、users、admins、roles、assets、security、settings、system、account、welcome | products、orders、promotions 等 |
+| `backend/domains/` | auth、users、admin、assets、settings、system | 导航站领域模型与接口，具体范围待计划确认 |
+| `web/features/` | auth、account、site、system、user | 导航站用户页面与交互，具体范围待计划确认 |
+| `admin/features/` | auth、users、admins、roles、assets、security、settings、system、account、welcome | 导航站运营与管理能力，具体范围待计划确认 |
 
-业务扩展参考 `docs/blueprints/` 目录下的蓝图文档。
+`docs/blueprints/` 是继承的参考资料，不构成本项目已确认需求。
 
-派生仓库应在 `PROJECT_INDEX.md` 中同时登记派生类型、母版不可变 Tag、完整 40 位 Commit SHA、当前阶段和业务范围。独立业务仓库可以在派生初始化阶段由用户人工一次性清理母版继承计划并重建 `plans/INDEX.md`；母版仓库中的计划永久保留，完整边界见 `plans/README.md` 和 ADR 0015。
+母版发布 Tag、对应完整 Commit SHA、实际派生源码快照、当前阶段和业务范围记录在 `PROJECT_INDEX.md`。母版继承计划已由用户在派生初始化阶段人工清理，`plans/INDEX.md` 已按当前文件重建；后续新增计划恢复永久保护，完整边界见 `plans/README.md` 和 ADR 0015。
