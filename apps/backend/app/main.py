@@ -106,10 +106,13 @@ def _register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def unknown_exception_handler(_: Request, exc: Exception) -> JSONResponse:
+    async def unknown_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         from loguru import logger
 
-        logger.opt(exception=exc).error("unhandled application exception")
+        if "/navigation" in request.url.path or "/nav-reader" in request.url.path:
+            logger.bind(error_type=type(exc).__name__).error("navigation request failed; sensitive exception omitted")
+        else:
+            logger.opt(exception=exc).error("unhandled application exception")
         return _error_response(
             request_id=current_request_id(),
             code=ErrorCode.INTERNAL_ERROR,

@@ -1,4 +1,4 @@
-import type { UploadScene } from "@pinjie/api-client";
+import type { AssetRead, UploadScene } from "@pinjie/api-client";
 import { UploadOutlined } from "@ant-design/icons";
 import { Alert, Button, Upload, message } from "antd";
 import type { UploadProps } from "antd";
@@ -10,6 +10,7 @@ import { errorMessage } from "@/lib/api/http";
 export type ImageUploaderProps = {
   value?: string | null;
   onChange?: (url: string) => void;
+  onAsset?: (asset: AssetRead) => void;
   scene?: UploadScene;
   disabled?: boolean;
   maxSizeMb?: number;
@@ -19,6 +20,7 @@ const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export function ImageUploader({
   onChange,
+  onAsset,
   scene = "avatar",
   disabled = false,
   maxSizeMb = 2,
@@ -45,6 +47,7 @@ export function ImageUploader({
     try {
       const asset = await adminApi.uploadAsset(file as globalThis.File, scene);
       onChange?.(asset.url);
+      onAsset?.(asset);
       onSuccess?.(asset);
       message.success("图片上传成功");
     } catch (caught) {

@@ -35,6 +35,9 @@ async def request_context_middleware(request: Request, call_next: Callable[[Requ
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        if "/navigation" in route_template or "/nav-reader" in route_template:
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         logger.bind(
             request_id=request_id,

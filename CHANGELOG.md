@@ -6,6 +6,8 @@
 
 ### Added
 
+- 增加导航管理与管理员只读查阅：一级分类、多标签站点、图标、发布下架和回收站、明文外网帐号资料、原子批量维护；Web 首页提供公开搜索与筛选，管理员通过一次性授权建立独立只读会话，两端退出互不影响。新增增量迁移、权限目录、生成契约和测试代码；本次仅完成轻量验证，真实迁移与重型测试未执行。
+
 - 增加面向人工操作人员的 GitHub Actions、CNB、TCR、1Panel 端到端发布手册，统一 `strict` 与 `fast` 选择、三端构建核对、单镜像证据、固定 digest 拉取、首次初始化、日常更新、健康检查、停止条件、发布记录和回滚步骤；现有专题文档收敛为工作流机制、账号权限、容器、生产基础设施和回滚决策入口。
 - 为 GitHub `Handoff Source to CNB` 增加默认 `strict`、可显式选择 `fast` 的双验证模式：严格模式完整核对同 SHA Full Validation Artifact，快速模式要求单行原因并记录 Commit、操作者和未执行完整验证的事实；四个轻量 Push 工作流、默认分支、应用状态、模块边界以及 CNB/TCR 供应链门禁在两种模式下继续强制执行。
 - 将 CNB 三镜像统一发布拆为 `backend-image`、`web-image` 和 `admin-image` 三条按真实 Docker 输入触发的独立 Pipeline：每端使用独立锁、Registry 缓存、扫描、SBOM、provenance、OCI 来源标签和 `pinjie-cnb-tcr-image-v1` 证据；`SOURCE_DATE_EPOCH` 使用 Git committer time，并增加仅在 `main` 可见的受控三端全量构建入口，生产继续通过 1Panel 按完整 digest 人工更新。

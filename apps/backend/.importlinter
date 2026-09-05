@@ -20,6 +20,11 @@ ignore_imports =
     app.domains.users.router -> app.api.dependencies
     app.domains.assets.router -> app.api.dependencies
     app.domains.settings.router -> app.api.dependencies
+    app.domains.navigation.router -> app.api.dependencies
+    app.domains.navigation.router -> app.api.navigation_dependencies
+    app.domains.navigation.reader_router -> app.api.dependencies
+    app.domains.navigation.reader_router -> app.api.navigation_dependencies
+    app.domains.navigation.reader_router -> app.services.nav_reader
 
 [importlinter:contract:core-is-independent]
 name = Core does not import application layers

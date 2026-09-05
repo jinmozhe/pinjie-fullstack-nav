@@ -51,6 +51,7 @@ services:
     environment:
       BACKEND_INTERNAL_URL: http://backend:8000
       WEB_PUBLIC_ORIGIN: ${WEB_PUBLIC_ORIGIN:?WEB_PUBLIC_ORIGIN must be set}
+      ADMIN_PUBLIC_ORIGIN: ${ADMIN_PUBLIC_ORIGIN:?ADMIN_PUBLIC_ORIGIN must be set}
     depends_on:
       backend:
         condition: service_healthy

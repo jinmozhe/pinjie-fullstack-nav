@@ -26,7 +26,7 @@
 
 ## 4. 客户端认证 Profile
 
-阶段 C 只开放 Web 与 Admin 的 Browser Cookie Profile：
+继承的 Web 用户与 Admin 使用以下 Browser Cookie Profile；导航新增的独立只读 Profile 见[导航认证机制](navigation.md)：
 
 - Access 与 Refresh 使用 `HttpOnly`、`SameSite=Lax` Cookie，生产必须启用 `Secure`，不设置 `Domain`。
 - C 端 Cookie 使用 `pinjie_web_*` 命名，B 端使用 `pinjie_admin_*` 命名。Access 路径为 `/`，Refresh 分别限制到 `/api/v1/auth` 与 `/api/v1/admin/auth`。
@@ -34,7 +34,7 @@
 - 登录响应只返回主体、Session 与过期时间，不返回 Access Token 或 Refresh Token。
 - Token 不进入 Zustand、`localStorage`、`sessionStorage`、URL、页面源码、日志或其他客户端可读持久化存储。
 - Web 与 Admin 分别配置 `WEB_ORIGINS` 和 `ADMIN_ORIGINS`，两组值必须是无路径的绝对 HTTP(S) Origin 且不得重叠。登录、注册、Refresh、Logout 与其他 Cookie 写请求按当前 Profile 精确校验，不能用统一 CORS 列表替代 Profile 隔离。
-- Web BFF 只允许已登记的方法与用户端路径，只转发 `pinjie_web_*` Cookie；Admin 反向代理只开放管理端路径和公共系统状态。代理过滤用于缩小攻击面，Backend 的 Profile、认证与授权检查仍是最终边界。
+- Web BFF 只允许已登记的方法与路径，原用户路径只转发 `pinjie_web_*` Cookie，导航只读路径只转发 `pinjie_reader_*` Cookie；Admin 反向代理另开放只读导航回调配置。代理过滤用于缩小攻击面，Backend 的 Profile、认证与授权检查仍是最终边界。
 
 小程序、原生 App 和其他无法可靠使用 Cookie 的客户端属于后续 Public Client Bearer Profile。该 Profile 必须独立定义端点、Session 类型、客户端证明、Token 存储、轮换、撤销和测试契约，禁止临时复用浏览器登录响应输出 JSON Token。
 

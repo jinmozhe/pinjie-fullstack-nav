@@ -24,4 +24,4 @@
 
 | 计划 | 状态 | 结果 | 影响范围 | 用途 |
 | --- | --- | --- | --- | --- |
-| `plans/2026-09-06_导航管理与管理员只读查阅计划.md` | 实施中 | 不适用 | Backend、Admin、Web、API Client、Database、Deployment、Documentation | 公开导航、后台统一凭据管理与管理员独立只读会话 |
+| `plans/2026-09-06_导航管理与管理员只读查阅计划.md` | 已结束 | 已完成；源码与轻量验证完成，真实迁移和重型验收未执行 | Backend、Admin、Web、API Client、Database、Deployment、Documentation | 公开导航、后台统一凭据管理与管理员独立只读会话 |

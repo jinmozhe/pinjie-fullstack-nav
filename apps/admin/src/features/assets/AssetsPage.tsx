@@ -21,6 +21,7 @@ import { errorMessage } from "@/lib/api/http";
 type Confirmation = { description: string; title: string; execute: () => Promise<unknown> };
 
 const sceneLabels: Record<UploadScene, string> = {
+  navigation_icon: "导航图标",
   avatar: "头像",
   article: "文章",
   product: "商品",

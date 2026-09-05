@@ -33,7 +33,8 @@ def _normalize_path(path: str) -> str:
 
 
 def is_sensitive_route(route_template: str) -> bool:
-    return _normalize_path(route_template) in _SENSITIVE_ROUTES
+    path = _normalize_path(route_template)
+    return path in _SENSITIVE_ROUTES or "/navigation" in path or "/nav-reader" in path
 
 
 def _sanitize_value(value: Any) -> Any:

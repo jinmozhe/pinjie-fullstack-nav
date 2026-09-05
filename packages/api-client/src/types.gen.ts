@@ -892,6 +892,291 @@ export type LoginEventRead = {
 };
 
 /**
+ * NavAccountIn
+ */
+export type NavAccountIn = {
+    /**
+     * Label
+     */
+    label?: string;
+    /**
+     * Username
+     *
+     * 登录用户名
+     */
+    username?: string;
+    /**
+     * Password
+     */
+    password?: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Is Active
+     *
+     * 资源当前是否启用
+     */
+    is_active?: boolean;
+};
+
+/**
+ * NavAccountRead
+ */
+export type NavAccountRead = {
+    /**
+     * Label
+     */
+    label?: string;
+    /**
+     * Username
+     *
+     * 登录用户名
+     */
+    username?: string;
+    /**
+     * Password
+     */
+    password?: string;
+    /**
+     * Notes
+     */
+    notes?: string;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Is Active
+     *
+     * 资源当前是否启用
+     */
+    is_active?: boolean;
+    /**
+     * Id
+     *
+     * 资源唯一标识
+     */
+    id: string;
+    /**
+     * Site Id
+     */
+    site_id: string;
+    /**
+     * Updated At
+     *
+     * 最近更新时间
+     */
+    updated_at: string;
+};
+
+/**
+ * NavBulkIn
+ */
+export type NavBulkIn = {
+    /**
+     * Ids
+     */
+    ids: Array<string>;
+    /**
+     * Action
+     *
+     * 操作代码
+     */
+    action: 'enable' | 'disable' | 'delete' | 'restore' | 'publish' | 'unpublish';
+};
+
+/**
+ * NavBulkRead
+ */
+export type NavBulkRead = {
+    /**
+     * Completed Count
+     */
+    completed_count: number;
+};
+
+/**
+ * NavSiteIn
+ */
+export type NavSiteIn = {
+    /**
+     * Name
+     *
+     * 资源名称
+     */
+    name: string;
+    /**
+     * Url
+     *
+     * 文件的公开访问 URL 或站内路径
+     */
+    url: string;
+    /**
+     * Description
+     *
+     * 资源说明文本
+     */
+    description?: string;
+    /**
+     * Category Id
+     */
+    category_id: string;
+    /**
+     * Tag Ids
+     */
+    tag_ids?: Array<string>;
+    /**
+     * Icon Asset Id
+     */
+    icon_asset_id?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Is Published
+     */
+    is_published?: boolean;
+};
+
+/**
+ * NavSiteRead
+ */
+export type NavSiteRead = {
+    /**
+     * Name
+     *
+     * 资源名称
+     */
+    name: string;
+    /**
+     * Url
+     *
+     * 文件的公开访问 URL 或站内路径
+     */
+    url: string;
+    /**
+     * Description
+     *
+     * 资源说明文本
+     */
+    description?: string;
+    /**
+     * Category Id
+     */
+    category_id: string;
+    /**
+     * Tag Ids
+     */
+    tag_ids?: Array<string>;
+    /**
+     * Icon Asset Id
+     */
+    icon_asset_id?: string | null;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Is Published
+     */
+    is_published?: boolean;
+    /**
+     * Id
+     *
+     * 资源唯一标识
+     */
+    id: string;
+    category: NavTaxonomyRead;
+    /**
+     * Tags
+     */
+    tags: Array<NavTaxonomyRead>;
+    /**
+     * Icon Url
+     */
+    icon_url: string | null;
+    /**
+     * Deleted At
+     */
+    deleted_at: string | null;
+    /**
+     * Updated At
+     *
+     * 最近更新时间
+     */
+    updated_at: string;
+};
+
+/**
+ * NavTaxonomyIn
+ */
+export type NavTaxonomyIn = {
+    /**
+     * Name
+     *
+     * 资源名称
+     */
+    name: string;
+    /**
+     * Description
+     *
+     * 资源说明文本
+     */
+    description?: string;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Is Active
+     *
+     * 资源当前是否启用
+     */
+    is_active?: boolean;
+};
+
+/**
+ * NavTaxonomyRead
+ */
+export type NavTaxonomyRead = {
+    /**
+     * Name
+     *
+     * 资源名称
+     */
+    name: string;
+    /**
+     * Description
+     *
+     * 资源说明文本
+     */
+    description?: string;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Is Active
+     *
+     * 资源当前是否启用
+     */
+    is_active?: boolean;
+    /**
+     * Id
+     *
+     * 资源唯一标识
+     */
+    id: string;
+};
+
+/**
  * PageResult[AdminRead]
  */
 export type PageResultAdminRead = {
@@ -1045,6 +1330,78 @@ export type PageResultLoginEventRead = {
      * 当前分页中的资源列表
      */
     items: Array<LoginEventRead>;
+    /**
+     * Page
+     *
+     * 当前页码，从 1 开始
+     */
+    page: number;
+    /**
+     * Page Size
+     *
+     * 每页资源数量
+     */
+    page_size: number;
+    /**
+     * Total
+     *
+     * 符合条件的资源总数
+     */
+    total: number;
+    /**
+     * Total Pages
+     *
+     * 符合条件的总页数
+     */
+    total_pages: number;
+};
+
+/**
+ * PageResult[NavSiteRead]
+ */
+export type PageResultNavSiteRead = {
+    /**
+     * Items
+     *
+     * 当前分页中的资源列表
+     */
+    items: Array<NavSiteRead>;
+    /**
+     * Page
+     *
+     * 当前页码，从 1 开始
+     */
+    page: number;
+    /**
+     * Page Size
+     *
+     * 每页资源数量
+     */
+    page_size: number;
+    /**
+     * Total
+     *
+     * 符合条件的资源总数
+     */
+    total: number;
+    /**
+     * Total Pages
+     *
+     * 符合条件的总页数
+     */
+    total_pages: number;
+};
+
+/**
+ * PageResult[PublicNavSiteRead]
+ */
+export type PageResultPublicNavSiteRead = {
+    /**
+     * Items
+     *
+     * 当前分页中的资源列表
+     */
+    items: Array<PublicNavSiteRead>;
     /**
      * Page
      *
@@ -1255,6 +1612,131 @@ export type PermissionRead = {
      * 该权限是否允许分配给普通角色
      */
     assignable_to_roles: boolean;
+};
+
+/**
+ * PublicNavSiteRead
+ */
+export type PublicNavSiteRead = {
+    /**
+     * Id
+     *
+     * 资源唯一标识
+     */
+    id: string;
+    /**
+     * Name
+     *
+     * 资源名称
+     */
+    name: string;
+    /**
+     * Url
+     *
+     * 文件的公开访问 URL 或站内路径
+     */
+    url: string;
+    /**
+     * Description
+     *
+     * 资源说明文本
+     */
+    description: string;
+    category: NavTaxonomyRead;
+    /**
+     * Tags
+     */
+    tags: Array<NavTaxonomyRead>;
+    /**
+     * Icon Url
+     */
+    icon_url: string | null;
+};
+
+/**
+ * ReaderAuthorizationRead
+ */
+export type ReaderAuthorizationRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+};
+
+/**
+ * ReaderAuthorizeIn
+ */
+export type ReaderAuthorizeIn = {
+    /**
+     * Challenge
+     */
+    challenge: string;
+    /**
+     * State
+     */
+    state: string;
+    /**
+     * Redirect Uri
+     */
+    redirect_uri: string;
+};
+
+/**
+ * ReaderConfigRead
+ */
+export type ReaderConfigRead = {
+    /**
+     * Callback Urls
+     */
+    callback_urls: Array<string>;
+};
+
+/**
+ * ReaderExchangeIn
+ */
+export type ReaderExchangeIn = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Verifier
+     */
+    verifier: string;
+    /**
+     * State
+     */
+    state: string;
+    /**
+     * Redirect Uri
+     */
+    redirect_uri: string;
+};
+
+/**
+ * ReaderIdentityRead
+ */
+export type ReaderIdentityRead = {
+    /**
+     * Admin Id
+     */
+    admin_id: string;
+    /**
+     * Display Name
+     *
+     * 展示名称
+     */
+    display_name: string;
+    /**
+     * Expires At
+     *
+     * 凭据过期时间
+     */
+    expires_at: string;
 };
 
 /**
@@ -1702,6 +2184,148 @@ export type ResponseModelBatchActionResult = {
 };
 
 /**
+ * ResponseModel[NavAccountRead]
+ */
+export type ResponseModelNavAccountRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: NavAccountRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[NavBulkRead]
+ */
+export type ResponseModelNavBulkRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: NavBulkRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[NavSiteRead]
+ */
+export type ResponseModelNavSiteRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: NavSiteRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[NavTaxonomyRead]
+ */
+export type ResponseModelNavTaxonomyRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: NavTaxonomyRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[NoneType]
+ */
+export type ResponseModelNoneType = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * Data
+     *
+     * 响应业务数据
+     */
+    data: null;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
  * ResponseModel[PageResult[AdminRead]]
  */
 export type ResponseModelPageResultAdminRead = {
@@ -1842,6 +2466,62 @@ export type ResponseModelPageResultLoginEventRead = {
 };
 
 /**
+ * ResponseModel[PageResult[NavSiteRead]]
+ */
+export type ResponseModelPageResultNavSiteRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: PageResultNavSiteRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[PageResult[PublicNavSiteRead]]
+ */
+export type ResponseModelPageResultPublicNavSiteRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: PageResultPublicNavSiteRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
  * ResponseModel[PageResult[RequestLogRead]]
  */
 export type ResponseModelPageResultRequestLogRead = {
@@ -1917,6 +2597,90 @@ export type ResponseModelPageResultSessionRead = {
      * 响应业务数据
      */
     data: PageResultSessionRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[ReaderAuthorizationRead]
+ */
+export type ResponseModelReaderAuthorizationRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: ReaderAuthorizationRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[ReaderConfigRead]
+ */
+export type ResponseModelReaderConfigRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: ReaderConfigRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[ReaderIdentityRead]
+ */
+export type ResponseModelReaderIdentityRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: ReaderIdentityRead;
     /**
      * Request Id
      *
@@ -2201,6 +2965,66 @@ export type ResponseModelListAdminRead = {
      * 响应业务数据
      */
     data: Array<AdminRead>;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[list[NavAccountRead]]
+ */
+export type ResponseModelListNavAccountRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * Data
+     *
+     * 响应业务数据
+     */
+    data: Array<NavAccountRead>;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[list[NavTaxonomyRead]]
+ */
+export type ResponseModelListNavTaxonomyRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * Data
+     *
+     * 响应业务数据
+     */
+    data: Array<NavTaxonomyRead>;
     /**
      * Request Id
      *
@@ -2784,7 +3608,7 @@ export type SystemTelemetryRead = {
 /**
  * UploadScene
  */
-export type UploadScene = 'avatar' | 'article' | 'product' | 'document' | 'attachment' | 'temp';
+export type UploadScene = 'navigation_icon' | 'avatar' | 'article' | 'product' | 'document' | 'attachment' | 'temp';
 
 /**
  * UploaderType
@@ -3042,6 +3866,588 @@ export type ValidationError = {
         [key: string]: unknown;
     };
 };
+
+export type ReaderConfigApiV1NavigationAuthConfigGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/navigation/auth-config';
+};
+
+export type ReaderConfigApiV1NavigationAuthConfigGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelReaderConfigRead;
+};
+
+export type ReaderConfigApiV1NavigationAuthConfigGetResponse = ReaderConfigApiV1NavigationAuthConfigGetResponses[keyof ReaderConfigApiV1NavigationAuthConfigGetResponses];
+
+export type AuthorizeReaderApiV1AdminNavReaderAuthorizePostData = {
+    body: ReaderAuthorizeIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/nav-reader/authorize';
+};
+
+export type AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type AuthorizeReaderApiV1AdminNavReaderAuthorizePostError = AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors[keyof AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors];
+
+export type AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelReaderAuthorizationRead;
+};
+
+export type AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponse = AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses[keyof AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses];
+
+export type ExchangeReaderApiV1NavReaderExchangePostData = {
+    body: ReaderExchangeIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/nav-reader/exchange';
+};
+
+export type ExchangeReaderApiV1NavReaderExchangePostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type ExchangeReaderApiV1NavReaderExchangePostError = ExchangeReaderApiV1NavReaderExchangePostErrors[keyof ExchangeReaderApiV1NavReaderExchangePostErrors];
+
+export type ExchangeReaderApiV1NavReaderExchangePostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelReaderIdentityRead;
+};
+
+export type ExchangeReaderApiV1NavReaderExchangePostResponse = ExchangeReaderApiV1NavReaderExchangePostResponses[keyof ExchangeReaderApiV1NavReaderExchangePostResponses];
+
+export type ReaderMeApiV1NavReaderMeGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/nav-reader/me';
+};
+
+export type ReaderMeApiV1NavReaderMeGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelReaderIdentityRead;
+};
+
+export type ReaderMeApiV1NavReaderMeGetResponse = ReaderMeApiV1NavReaderMeGetResponses[keyof ReaderMeApiV1NavReaderMeGetResponses];
+
+export type LogoutReaderApiV1NavReaderLogoutPostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/nav-reader/logout';
+};
+
+export type LogoutReaderApiV1NavReaderLogoutPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNoneType;
+};
+
+export type LogoutReaderApiV1NavReaderLogoutPostResponse = LogoutReaderApiV1NavReaderLogoutPostResponses[keyof LogoutReaderApiV1NavReaderLogoutPostResponses];
+
+export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetData = {
+    body?: never;
+    path: {
+        /**
+         * Kind
+         */
+        kind: 'categories' | 'tags';
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/taxonomy/{kind}';
+};
+
+export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetError = AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors[keyof AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors];
+
+export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelListNavTaxonomyRead;
+};
+
+export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponse = AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses[keyof AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses];
+
+export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostData = {
+    body: NavTaxonomyIn;
+    path: {
+        /**
+         * Kind
+         */
+        kind: 'categories' | 'tags';
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/taxonomy/{kind}';
+};
+
+export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostError = CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors[keyof CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors];
+
+export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavTaxonomyRead;
+};
+
+export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponse = CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses[keyof CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses];
+
+export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutData = {
+    body: NavTaxonomyIn;
+    path: {
+        /**
+         * Kind
+         */
+        kind: 'categories' | 'tags';
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/taxonomy/{kind}/{id}';
+};
+
+export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutError = UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors[keyof UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors];
+
+export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavTaxonomyRead;
+};
+
+export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponse = UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses[keyof UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses];
+
+export type BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostData = {
+    body: NavBulkIn;
+    path: {
+        /**
+         * Kind
+         */
+        kind: 'categories' | 'tags';
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/taxonomy/{kind}/bulk';
+};
+
+export type BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostError = BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors[keyof BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors];
+
+export type BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavBulkRead;
+};
+
+export type BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponse = BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses[keyof BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses];
+
+export type AdminSitesApiV1AdminNavigationSitesGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number;
+        /**
+         * Search
+         */
+        search?: string;
+        /**
+         * Category Id
+         */
+        category_id?: string | null;
+        /**
+         * Tag Id
+         */
+        tag_id?: string | null;
+        /**
+         * Deleted
+         */
+        deleted?: boolean;
+    };
+    url: '/api/v1/admin/navigation/sites';
+};
+
+export type AdminSitesApiV1AdminNavigationSitesGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type AdminSitesApiV1AdminNavigationSitesGetError = AdminSitesApiV1AdminNavigationSitesGetErrors[keyof AdminSitesApiV1AdminNavigationSitesGetErrors];
+
+export type AdminSitesApiV1AdminNavigationSitesGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelPageResultNavSiteRead;
+};
+
+export type AdminSitesApiV1AdminNavigationSitesGetResponse = AdminSitesApiV1AdminNavigationSitesGetResponses[keyof AdminSitesApiV1AdminNavigationSitesGetResponses];
+
+export type CreateSiteApiV1AdminNavigationSitesPostData = {
+    body: NavSiteIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/navigation/sites';
+};
+
+export type CreateSiteApiV1AdminNavigationSitesPostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type CreateSiteApiV1AdminNavigationSitesPostError = CreateSiteApiV1AdminNavigationSitesPostErrors[keyof CreateSiteApiV1AdminNavigationSitesPostErrors];
+
+export type CreateSiteApiV1AdminNavigationSitesPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavSiteRead;
+};
+
+export type CreateSiteApiV1AdminNavigationSitesPostResponse = CreateSiteApiV1AdminNavigationSitesPostResponses[keyof CreateSiteApiV1AdminNavigationSitesPostResponses];
+
+export type UpdateSiteApiV1AdminNavigationSitesIdPutData = {
+    body: NavSiteIn;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/sites/{id}';
+};
+
+export type UpdateSiteApiV1AdminNavigationSitesIdPutErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateSiteApiV1AdminNavigationSitesIdPutError = UpdateSiteApiV1AdminNavigationSitesIdPutErrors[keyof UpdateSiteApiV1AdminNavigationSitesIdPutErrors];
+
+export type UpdateSiteApiV1AdminNavigationSitesIdPutResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavSiteRead;
+};
+
+export type UpdateSiteApiV1AdminNavigationSitesIdPutResponse = UpdateSiteApiV1AdminNavigationSitesIdPutResponses[keyof UpdateSiteApiV1AdminNavigationSitesIdPutResponses];
+
+export type BulkSitesApiV1AdminNavigationSitesBulkPostData = {
+    body: NavBulkIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/navigation/sites/bulk';
+};
+
+export type BulkSitesApiV1AdminNavigationSitesBulkPostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type BulkSitesApiV1AdminNavigationSitesBulkPostError = BulkSitesApiV1AdminNavigationSitesBulkPostErrors[keyof BulkSitesApiV1AdminNavigationSitesBulkPostErrors];
+
+export type BulkSitesApiV1AdminNavigationSitesBulkPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavBulkRead;
+};
+
+export type BulkSitesApiV1AdminNavigationSitesBulkPostResponse = BulkSitesApiV1AdminNavigationSitesBulkPostResponses[keyof BulkSitesApiV1AdminNavigationSitesBulkPostResponses];
+
+export type AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Site Id
+         */
+        site_id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts';
+};
+
+export type AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetError = AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors[keyof AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors];
+
+export type AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelListNavAccountRead;
+};
+
+export type AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponse = AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses[keyof AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses];
+
+export type CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostData = {
+    body: NavAccountIn;
+    path: {
+        /**
+         * Site Id
+         */
+        site_id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts';
+};
+
+export type CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostError = CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors[keyof CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors];
+
+export type CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavAccountRead;
+};
+
+export type CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponse = CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses[keyof CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses];
+
+export type UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutData = {
+    body: NavAccountIn;
+    path: {
+        /**
+         * Site Id
+         */
+        site_id: string;
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts/{id}';
+};
+
+export type UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutError = UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors[keyof UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors];
+
+export type UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavAccountRead;
+};
+
+export type UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponse = UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses[keyof UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses];
+
+export type BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostData = {
+    body: NavBulkIn;
+    path: {
+        /**
+         * Site Id
+         */
+        site_id: string;
+    };
+    query?: never;
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts/bulk';
+};
+
+export type BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostError = BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors[keyof BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors];
+
+export type BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavBulkRead;
+};
+
+export type BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponse = BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses[keyof BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses];
+
+export type PublicTaxonomyApiV1NavigationTaxonomyKindGetData = {
+    body?: never;
+    path: {
+        /**
+         * Kind
+         */
+        kind: 'categories' | 'tags';
+    };
+    query?: never;
+    url: '/api/v1/navigation/taxonomy/{kind}';
+};
+
+export type PublicTaxonomyApiV1NavigationTaxonomyKindGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type PublicTaxonomyApiV1NavigationTaxonomyKindGetError = PublicTaxonomyApiV1NavigationTaxonomyKindGetErrors[keyof PublicTaxonomyApiV1NavigationTaxonomyKindGetErrors];
+
+export type PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelListNavTaxonomyRead;
+};
+
+export type PublicTaxonomyApiV1NavigationTaxonomyKindGetResponse = PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses[keyof PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses];
+
+export type PublicSitesApiV1NavigationSitesGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number;
+        /**
+         * Search
+         */
+        search?: string;
+        /**
+         * Category Id
+         */
+        category_id?: string | null;
+        /**
+         * Tag Id
+         */
+        tag_id?: string | null;
+    };
+    url: '/api/v1/navigation/sites';
+};
+
+export type PublicSitesApiV1NavigationSitesGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type PublicSitesApiV1NavigationSitesGetError = PublicSitesApiV1NavigationSitesGetErrors[keyof PublicSitesApiV1NavigationSitesGetErrors];
+
+export type PublicSitesApiV1NavigationSitesGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelPageResultPublicNavSiteRead;
+};
+
+export type PublicSitesApiV1NavigationSitesGetResponse = PublicSitesApiV1NavigationSitesGetResponses[keyof PublicSitesApiV1NavigationSitesGetResponses];
+
+export type ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Site Id
+         */
+        site_id: string;
+    };
+    query?: never;
+    url: '/api/v1/navigation/sites/{site_id}/accounts';
+};
+
+export type ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetError = ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors[keyof ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors];
+
+export type ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelListNavAccountRead;
+};
+
+export type ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponse = ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses[keyof ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses];
 
 export type RegisterApiV1AuthRegisterPostData = {
     body: UserRegisterIn;

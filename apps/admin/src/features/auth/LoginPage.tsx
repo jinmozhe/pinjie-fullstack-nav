@@ -13,6 +13,12 @@ import { navigate } from "@/lib/navigation";
 
 type LoginValues = { username: string; password: string };
 
+function loginDestination(): string {
+  const candidate = new URLSearchParams(window.location.search).get("redirect");
+  if (candidate?.startsWith("/") && !candidate.startsWith("//") && !candidate.includes("\\")) return candidate;
+  return "/welcome";
+}
+
 export function LoginPage({
   authenticated = false,
 }: {
@@ -21,14 +27,14 @@ export function LoginPage({
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (authenticated) navigate("/welcome");
+    if (authenticated) navigate(loginDestination());
   }, [authenticated]);
 
   const login = useMutation({
     mutationFn: (values: LoginValues) => adminApi.login(values),
     onSuccess: (session) => {
       queryClient.setQueryData(["admin-me"], session.principal);
-      navigate("/welcome");
+      navigate(loginDestination());
       if (process.env.NODE_ENV !== "test") window.location.reload();
     },
   });
