@@ -8,6 +8,7 @@ from app.core.pagination import PageResult
 
 
 class UploadScene(StrEnum):
+    NAVIGATION_ICON = "navigation_icon"
     AVATAR = "avatar"
     ARTICLE = "article"
     PRODUCT = "product"

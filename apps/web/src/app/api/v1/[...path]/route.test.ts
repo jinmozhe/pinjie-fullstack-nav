@@ -49,6 +49,19 @@ describe("Web API profile proxy", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("isolates reader cookies and rejects navigation write paths", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ data: [] }), { headers: { "content-type": "application/json" } }));
+    const response = await GET(new Request(`http://localhost:3000/api/v1/navigation/sites/${sessionId}/accounts`, {
+      headers: { cookie: "pinjie_reader_session=reader; pinjie_admin_access=admin; pinjie_web_access=user" },
+    }), context(["navigation", "sites", sessionId, "accounts"]));
+    expect(response.status).toBe(200);
+    expect(new Headers(fetchMock.mock.calls[0]?.[1]?.headers).get("cookie")).toBe("pinjie_reader_session=reader");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const rejected = await POST(new Request("http://localhost:3000/api/v1/navigation/sites", { method: "POST", headers: { origin: "http://localhost:3000" } }), context(["navigation", "sites"]));
+    expect(rejected.status).toBe(404);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
   it.each(browserApiRoutes)("forwards Web browser API $method $path", async ({ method, path, query = "" }) => {
     fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
     const routePath = [...path];

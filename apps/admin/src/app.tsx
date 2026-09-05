@@ -42,6 +42,7 @@ export type AdminInitialState = {
 export async function getInitialState(): Promise<AdminInitialState> {
   const settings = defaultSettings;
   if (history.location.pathname === "/login") return { settings };
+  if (history.location.pathname === "/navigation/authorize") return { settings };
   try {
     return { currentAdmin: await adminApi.me(), settings };
   } catch (error) {

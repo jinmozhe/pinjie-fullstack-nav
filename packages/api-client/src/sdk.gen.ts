@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { AssignAdminRolesApiV1AdminAdminsAdminIdRolesPutData, AssignAdminRolesApiV1AdminAdminsAdminIdRolesPutErrors, AssignAdminRolesApiV1AdminAdminsAdminIdRolesPutResponses, AssignRolePermissionsApiV1AdminRolesRoleIdPermissionsPutData, AssignRolePermissionsApiV1AdminRolesRoleIdPermissionsPutErrors, AssignRolePermissionsApiV1AdminRolesRoleIdPermissionsPutResponses, ChangePasswordApiV1AdminAuthPasswordPostData, ChangePasswordApiV1AdminAuthPasswordPostErrors, ChangePasswordApiV1AdminAuthPasswordPostResponses, ChangePasswordApiV1UsersMePasswordPostData, ChangePasswordApiV1UsersMePasswordPostErrors, ChangePasswordApiV1UsersMePasswordPostResponses, ConfirmApiV1AdminAuthConfirmPostData, ConfirmApiV1AdminAuthConfirmPostErrors, ConfirmApiV1AdminAuthConfirmPostResponses, CreateAdminApiV1AdminAdminsPostData, CreateAdminApiV1AdminAdminsPostErrors, CreateAdminApiV1AdminAdminsPostResponses, CreateRoleApiV1AdminRolesPostData, CreateRoleApiV1AdminRolesPostErrors, CreateRoleApiV1AdminRolesPostResponses, CreateUserApiV1AdminUsersPostData, CreateUserApiV1AdminUsersPostErrors, CreateUserApiV1AdminUsersPostResponses, DeleteAccountApiV1UsersMeDeleteData, DeleteAccountApiV1UsersMeDeleteErrors, DeleteAccountApiV1UsersMeDeleteResponses, DeleteAssetApiV1AssetsAssetIdDeleteData, DeleteAssetApiV1AssetsAssetIdDeleteErrors, DeleteAssetApiV1AssetsAssetIdDeleteResponses, DeleteAssetsBulkApiV1AssetsBatchDeleteData, DeleteAssetsBulkApiV1AssetsBatchDeleteErrors, DeleteAssetsBulkApiV1AssetsBatchDeleteResponses, DeleteRoleApiV1AdminRolesRoleIdDeleteData, DeleteRoleApiV1AdminRolesRoleIdDeleteErrors, DeleteRoleApiV1AdminRolesRoleIdDeleteResponses, DeleteRolesBulkApiV1AdminRolesBatchDeleteData, DeleteRolesBulkApiV1AdminRolesBatchDeleteErrors, DeleteRolesBulkApiV1AdminRolesBatchDeleteResponses, DeleteSiteLogoApiV1AdminSettingsSiteLogoDeleteData, DeleteSiteLogoApiV1AdminSettingsSiteLogoDeleteErrors, DeleteSiteLogoApiV1AdminSettingsSiteLogoDeleteResponses, DeleteUsersBulkApiV1AdminUsersBatchDeleteData, DeleteUsersBulkApiV1AdminUsersBatchDeleteErrors, DeleteUsersBulkApiV1AdminUsersBatchDeleteResponses, GetAdminApiV1AdminAdminsAdminIdGetData, GetAdminApiV1AdminAdminsAdminIdGetErrors, GetAdminApiV1AdminAdminsAdminIdGetResponses, GetMeApiV1AdminAuthMeGetData, GetMeApiV1AdminAuthMeGetErrors, GetMeApiV1AdminAuthMeGetResponses, GetMeApiV1UsersMeGetData, GetMeApiV1UsersMeGetErrors, GetMeApiV1UsersMeGetResponses, GetRegistrationSettingApiV1AdminSettingsRegistrationGetData, GetRegistrationSettingApiV1AdminSettingsRegistrationGetErrors, GetRegistrationSettingApiV1AdminSettingsRegistrationGetResponses, GetRoleApiV1AdminRolesRoleIdGetData, GetRoleApiV1AdminRolesRoleIdGetErrors, GetRoleApiV1AdminRolesRoleIdGetResponses, GetSiteProfileApiV1SystemSiteProfileGetData, GetSiteProfileApiV1SystemSiteProfileGetResponses, GetSiteSettingApiV1AdminSettingsSiteGetData, GetSiteSettingApiV1AdminSettingsSiteGetErrors, GetSiteSettingApiV1AdminSettingsSiteGetResponses, GetSystemCapabilitiesApiV1SystemCapabilitiesGetData, GetSystemCapabilitiesApiV1SystemCapabilitiesGetResponses, GetSystemOverviewApiV1AdminSystemOverviewGetData, GetSystemOverviewApiV1AdminSystemOverviewGetErrors, GetSystemOverviewApiV1AdminSystemOverviewGetResponses, GetSystemStatusApiV1SystemStatusGetData, GetSystemStatusApiV1SystemStatusGetResponses, GetUserApiV1AdminUsersUserIdGetData, GetUserApiV1AdminUsersUserIdGetErrors, GetUserApiV1AdminUsersUserIdGetResponses, HealthLiveHealthLiveGetData, HealthLiveHealthLiveGetResponses, HealthReadyHealthReadyGetData, HealthReadyHealthReadyGetResponses, ListAdminsApiV1AdminAdminsGetData, ListAdminsApiV1AdminAdminsGetErrors, ListAdminsApiV1AdminAdminsGetResponses, ListAdminSessionsApiV1AdminAdminsAdminIdSessionsGetData, ListAdminSessionsApiV1AdminAdminsAdminIdSessionsGetErrors, ListAdminSessionsApiV1AdminAdminsAdminIdSessionsGetResponses, ListAssetsApiV1AssetsGetData, ListAssetsApiV1AssetsGetErrors, ListAssetsApiV1AssetsGetResponses, ListAuditEventsApiV1AdminSecurityAuditEventsGetData, ListAuditEventsApiV1AdminSecurityAuditEventsGetErrors, ListAuditEventsApiV1AdminSecurityAuditEventsGetResponses, ListLoginEventsApiV1AdminSecurityLoginEventsGetData, ListLoginEventsApiV1AdminSecurityLoginEventsGetErrors, ListLoginEventsApiV1AdminSecurityLoginEventsGetResponses, ListPermissionsApiV1AdminPermissionsGetData, ListPermissionsApiV1AdminPermissionsGetErrors, ListPermissionsApiV1AdminPermissionsGetResponses, ListRequestLogsApiV1AdminSystemRequestLogsGetData, ListRequestLogsApiV1AdminSystemRequestLogsGetErrors, ListRequestLogsApiV1AdminSystemRequestLogsGetResponses, ListRolesApiV1AdminRolesGetData, ListRolesApiV1AdminRolesGetErrors, ListRolesApiV1AdminRolesGetResponses, ListSessionsApiV1UsersMeSessionsGetData, ListSessionsApiV1UsersMeSessionsGetErrors, ListSessionsApiV1UsersMeSessionsGetResponses, ListUsersApiV1AdminUsersGetData, ListUsersApiV1AdminUsersGetErrors, ListUsersApiV1AdminUsersGetResponses, ListUserSessionsApiV1AdminUsersUserIdSessionsGetData, ListUserSessionsApiV1AdminUsersUserIdSessionsGetErrors, ListUserSessionsApiV1AdminUsersUserIdSessionsGetResponses, LoginApiV1AdminAuthLoginPostData, LoginApiV1AdminAuthLoginPostErrors, LoginApiV1AdminAuthLoginPostResponses, LoginApiV1AuthLoginPostData, LoginApiV1AuthLoginPostErrors, LoginApiV1AuthLoginPostResponses, LogoutApiV1AdminAuthLogoutPostData, LogoutApiV1AdminAuthLogoutPostErrors, LogoutApiV1AdminAuthLogoutPostResponses, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostErrors, LogoutApiV1AuthLogoutPostResponses, RefreshApiV1AdminAuthRefreshPostData, RefreshApiV1AdminAuthRefreshPostErrors, RefreshApiV1AdminAuthRefreshPostResponses, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostErrors, RefreshApiV1AuthRefreshPostResponses, RegisterApiV1AuthRegisterPostData, RegisterApiV1AuthRegisterPostErrors, RegisterApiV1AuthRegisterPostResponses, ResetAdminPasswordApiV1AdminAdminsAdminIdCredentialsPasswordPutData, ResetAdminPasswordApiV1AdminAdminsAdminIdCredentialsPasswordPutErrors, ResetAdminPasswordApiV1AdminAdminsAdminIdCredentialsPasswordPutResponses, ResetUserPasswordApiV1AdminUsersUserIdCredentialsPasswordPutData, ResetUserPasswordApiV1AdminUsersUserIdCredentialsPasswordPutErrors, ResetUserPasswordApiV1AdminUsersUserIdCredentialsPasswordPutResponses, RestoreUserApiV1AdminUsersUserIdRestorePostData, RestoreUserApiV1AdminUsersUserIdRestorePostErrors, RestoreUserApiV1AdminUsersUserIdRestorePostResponses, RestoreUsersBulkApiV1AdminUsersRestoreBatchPostData, RestoreUsersBulkApiV1AdminUsersRestoreBatchPostErrors, RestoreUsersBulkApiV1AdminUsersRestoreBatchPostResponses, RevokeAllAdminSessionsApiV1AdminAdminsAdminIdSessionsRevokeAllPostData, RevokeAllAdminSessionsApiV1AdminAdminsAdminIdSessionsRevokeAllPostErrors, RevokeAllAdminSessionsApiV1AdminAdminsAdminIdSessionsRevokeAllPostResponses, RevokeAllUserSessionsApiV1AdminUsersUserIdSessionsRevokeAllPostData, RevokeAllUserSessionsApiV1AdminUsersUserIdSessionsRevokeAllPostErrors, RevokeAllUserSessionsApiV1AdminUsersUserIdSessionsRevokeAllPostResponses, RevokeOtherSessionsApiV1UsersMeSessionsRevokeOthersPostData, RevokeOtherSessionsApiV1UsersMeSessionsRevokeOthersPostErrors, RevokeOtherSessionsApiV1UsersMeSessionsRevokeOthersPostResponses, RevokeSessionApiV1UsersMeSessionsSessionIdDeleteData, RevokeSessionApiV1UsersMeSessionsSessionIdDeleteErrors, RevokeSessionApiV1UsersMeSessionsSessionIdDeleteResponses, RevokeUserSessionApiV1AdminUsersUserIdSessionsSessionIdDeleteData, RevokeUserSessionApiV1AdminUsersUserIdSessionsSessionIdDeleteErrors, RevokeUserSessionApiV1AdminUsersUserIdSessionsSessionIdDeleteResponses, SetAdminStatusApiV1AdminAdminsAdminIdStatusPatchData, SetAdminStatusApiV1AdminAdminsAdminIdStatusPatchErrors, SetAdminStatusApiV1AdminAdminsAdminIdStatusPatchResponses, SetAdminStatusBulkApiV1AdminAdminsStatusBatchPatchData, SetAdminStatusBulkApiV1AdminAdminsStatusBatchPatchErrors, SetAdminStatusBulkApiV1AdminAdminsStatusBatchPatchResponses, SetAdminSuperuserApiV1AdminAdminsAdminIdSuperuserPatchData, SetAdminSuperuserApiV1AdminAdminsAdminIdSuperuserPatchErrors, SetAdminSuperuserApiV1AdminAdminsAdminIdSuperuserPatchResponses, SetRoleStatusBulkApiV1AdminRolesStatusBatchPatchData, SetRoleStatusBulkApiV1AdminRolesStatusBatchPatchErrors, SetRoleStatusBulkApiV1AdminRolesStatusBatchPatchResponses, SetUserStatusApiV1AdminUsersUserIdStatusPatchData, SetUserStatusApiV1AdminUsersUserIdStatusPatchErrors, SetUserStatusApiV1AdminUsersUserIdStatusPatchResponses, SetUserStatusBulkApiV1AdminUsersStatusBatchPatchData, SetUserStatusBulkApiV1AdminUsersStatusBatchPatchErrors, SetUserStatusBulkApiV1AdminUsersStatusBatchPatchResponses, UpdateAdminApiV1AdminAdminsAdminIdPatchData, UpdateAdminApiV1AdminAdminsAdminIdPatchErrors, UpdateAdminApiV1AdminAdminsAdminIdPatchResponses, UpdateAvatarApiV1UsersMeAvatarPutData, UpdateAvatarApiV1UsersMeAvatarPutErrors, UpdateAvatarApiV1UsersMeAvatarPutResponses, UpdateMeApiV1UsersMePatchData, UpdateMeApiV1UsersMePatchErrors, UpdateMeApiV1UsersMePatchResponses, UpdateProfileApiV1AdminAuthProfilePatchData, UpdateProfileApiV1AdminAuthProfilePatchErrors, UpdateProfileApiV1AdminAuthProfilePatchResponses, UpdateRegistrationSettingApiV1AdminSettingsRegistrationPatchData, UpdateRegistrationSettingApiV1AdminSettingsRegistrationPatchErrors, UpdateRegistrationSettingApiV1AdminSettingsRegistrationPatchResponses, UpdateRoleApiV1AdminRolesRoleIdPatchData, UpdateRoleApiV1AdminRolesRoleIdPatchErrors, UpdateRoleApiV1AdminRolesRoleIdPatchResponses, UpdateSiteLogoApiV1AdminSettingsSiteLogoPutData, UpdateSiteLogoApiV1AdminSettingsSiteLogoPutErrors, UpdateSiteLogoApiV1AdminSettingsSiteLogoPutResponses, UpdateSiteSettingApiV1AdminSettingsSitePatchData, UpdateSiteSettingApiV1AdminSettingsSitePatchErrors, UpdateSiteSettingApiV1AdminSettingsSitePatchResponses, UpdateUserApiV1AdminUsersUserIdPatchData, UpdateUserApiV1AdminUsersUserIdPatchErrors, UpdateUserApiV1AdminUsersUserIdPatchResponses, UploadAssetApiV1AssetsUploadPostData, UploadAssetApiV1AssetsUploadPostErrors, UploadAssetApiV1AssetsUploadPostResponses } from './types.gen';
+import type { AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetData, AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors, AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses, AdminSitesApiV1AdminNavigationSitesGetData, AdminSitesApiV1AdminNavigationSitesGetErrors, AdminSitesApiV1AdminNavigationSitesGetResponses, AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetData, AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors, AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses, AssignAdminRolesApiV1AdminAdminsAdminIdRolesPutData, AssignAdminRolesApiV1AdminAdminsAdminIdRolesPutErrors, AssignAdminRolesApiV1AdminAdminsAdminIdRolesPutResponses, AssignRolePermissionsApiV1AdminRolesRoleIdPermissionsPutData, AssignRolePermissionsApiV1AdminRolesRoleIdPermissionsPutErrors, AssignRolePermissionsApiV1AdminRolesRoleIdPermissionsPutResponses, AuthorizeReaderApiV1AdminNavReaderAuthorizePostData, AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors, AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses, BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostData, BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors, BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses, BulkSitesApiV1AdminNavigationSitesBulkPostData, BulkSitesApiV1AdminNavigationSitesBulkPostErrors, BulkSitesApiV1AdminNavigationSitesBulkPostResponses, BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostData, BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors, BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses, ChangePasswordApiV1AdminAuthPasswordPostData, ChangePasswordApiV1AdminAuthPasswordPostErrors, ChangePasswordApiV1AdminAuthPasswordPostResponses, ChangePasswordApiV1UsersMePasswordPostData, ChangePasswordApiV1UsersMePasswordPostErrors, ChangePasswordApiV1UsersMePasswordPostResponses, ConfirmApiV1AdminAuthConfirmPostData, ConfirmApiV1AdminAuthConfirmPostErrors, ConfirmApiV1AdminAuthConfirmPostResponses, CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostData, CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors, CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses, CreateAdminApiV1AdminAdminsPostData, CreateAdminApiV1AdminAdminsPostErrors, CreateAdminApiV1AdminAdminsPostResponses, CreateRoleApiV1AdminRolesPostData, CreateRoleApiV1AdminRolesPostErrors, CreateRoleApiV1AdminRolesPostResponses, CreateSiteApiV1AdminNavigationSitesPostData, CreateSiteApiV1AdminNavigationSitesPostErrors, CreateSiteApiV1AdminNavigationSitesPostResponses, CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostData, CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors, CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses, CreateUserApiV1AdminUsersPostData, CreateUserApiV1AdminUsersPostErrors, CreateUserApiV1AdminUsersPostResponses, DeleteAccountApiV1UsersMeDeleteData, DeleteAccountApiV1UsersMeDeleteErrors, DeleteAccountApiV1UsersMeDeleteResponses, DeleteAssetApiV1AssetsAssetIdDeleteData, DeleteAssetApiV1AssetsAssetIdDeleteErrors, DeleteAssetApiV1AssetsAssetIdDeleteResponses, DeleteAssetsBulkApiV1AssetsBatchDeleteData, DeleteAssetsBulkApiV1AssetsBatchDeleteErrors, DeleteAssetsBulkApiV1AssetsBatchDeleteResponses, DeleteRoleApiV1AdminRolesRoleIdDeleteData, DeleteRoleApiV1AdminRolesRoleIdDeleteErrors, DeleteRoleApiV1AdminRolesRoleIdDeleteResponses, DeleteRolesBulkApiV1AdminRolesBatchDeleteData, DeleteRolesBulkApiV1AdminRolesBatchDeleteErrors, DeleteRolesBulkApiV1AdminRolesBatchDeleteResponses, DeleteSiteLogoApiV1AdminSettingsSiteLogoDeleteData, DeleteSiteLogoApiV1AdminSettingsSiteLogoDeleteErrors, DeleteSiteLogoApiV1AdminSettingsSiteLogoDeleteResponses, DeleteUsersBulkApiV1AdminUsersBatchDeleteData, DeleteUsersBulkApiV1AdminUsersBatchDeleteErrors, DeleteUsersBulkApiV1AdminUsersBatchDeleteResponses, ExchangeReaderApiV1NavReaderExchangePostData, ExchangeReaderApiV1NavReaderExchangePostErrors, ExchangeReaderApiV1NavReaderExchangePostResponses, GetAdminApiV1AdminAdminsAdminIdGetData, GetAdminApiV1AdminAdminsAdminIdGetErrors, GetAdminApiV1AdminAdminsAdminIdGetResponses, GetMeApiV1AdminAuthMeGetData, GetMeApiV1AdminAuthMeGetErrors, GetMeApiV1AdminAuthMeGetResponses, GetMeApiV1UsersMeGetData, GetMeApiV1UsersMeGetErrors, GetMeApiV1UsersMeGetResponses, GetRegistrationSettingApiV1AdminSettingsRegistrationGetData, GetRegistrationSettingApiV1AdminSettingsRegistrationGetErrors, GetRegistrationSettingApiV1AdminSettingsRegistrationGetResponses, GetRoleApiV1AdminRolesRoleIdGetData, GetRoleApiV1AdminRolesRoleIdGetErrors, GetRoleApiV1AdminRolesRoleIdGetResponses, GetSiteProfileApiV1SystemSiteProfileGetData, GetSiteProfileApiV1SystemSiteProfileGetResponses, GetSiteSettingApiV1AdminSettingsSiteGetData, GetSiteSettingApiV1AdminSettingsSiteGetErrors, GetSiteSettingApiV1AdminSettingsSiteGetResponses, GetSystemCapabilitiesApiV1SystemCapabilitiesGetData, GetSystemCapabilitiesApiV1SystemCapabilitiesGetResponses, GetSystemOverviewApiV1AdminSystemOverviewGetData, GetSystemOverviewApiV1AdminSystemOverviewGetErrors, GetSystemOverviewApiV1AdminSystemOverviewGetResponses, GetSystemStatusApiV1SystemStatusGetData, GetSystemStatusApiV1SystemStatusGetResponses, GetUserApiV1AdminUsersUserIdGetData, GetUserApiV1AdminUsersUserIdGetErrors, GetUserApiV1AdminUsersUserIdGetResponses, HealthLiveHealthLiveGetData, HealthLiveHealthLiveGetResponses, HealthReadyHealthReadyGetData, HealthReadyHealthReadyGetResponses, ListAdminsApiV1AdminAdminsGetData, ListAdminsApiV1AdminAdminsGetErrors, ListAdminsApiV1AdminAdminsGetResponses, ListAdminSessionsApiV1AdminAdminsAdminIdSessionsGetData, ListAdminSessionsApiV1AdminAdminsAdminIdSessionsGetErrors, ListAdminSessionsApiV1AdminAdminsAdminIdSessionsGetResponses, ListAssetsApiV1AssetsGetData, ListAssetsApiV1AssetsGetErrors, ListAssetsApiV1AssetsGetResponses, ListAuditEventsApiV1AdminSecurityAuditEventsGetData, ListAuditEventsApiV1AdminSecurityAuditEventsGetErrors, ListAuditEventsApiV1AdminSecurityAuditEventsGetResponses, ListLoginEventsApiV1AdminSecurityLoginEventsGetData, ListLoginEventsApiV1AdminSecurityLoginEventsGetErrors, ListLoginEventsApiV1AdminSecurityLoginEventsGetResponses, ListPermissionsApiV1AdminPermissionsGetData, ListPermissionsApiV1AdminPermissionsGetErrors, ListPermissionsApiV1AdminPermissionsGetResponses, ListRequestLogsApiV1AdminSystemRequestLogsGetData, ListRequestLogsApiV1AdminSystemRequestLogsGetErrors, ListRequestLogsApiV1AdminSystemRequestLogsGetResponses, ListRolesApiV1AdminRolesGetData, ListRolesApiV1AdminRolesGetErrors, ListRolesApiV1AdminRolesGetResponses, ListSessionsApiV1UsersMeSessionsGetData, ListSessionsApiV1UsersMeSessionsGetErrors, ListSessionsApiV1UsersMeSessionsGetResponses, ListUsersApiV1AdminUsersGetData, ListUsersApiV1AdminUsersGetErrors, ListUsersApiV1AdminUsersGetResponses, ListUserSessionsApiV1AdminUsersUserIdSessionsGetData, ListUserSessionsApiV1AdminUsersUserIdSessionsGetErrors, ListUserSessionsApiV1AdminUsersUserIdSessionsGetResponses, LoginApiV1AdminAuthLoginPostData, LoginApiV1AdminAuthLoginPostErrors, LoginApiV1AdminAuthLoginPostResponses, LoginApiV1AuthLoginPostData, LoginApiV1AuthLoginPostErrors, LoginApiV1AuthLoginPostResponses, LogoutApiV1AdminAuthLogoutPostData, LogoutApiV1AdminAuthLogoutPostErrors, LogoutApiV1AdminAuthLogoutPostResponses, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostErrors, LogoutApiV1AuthLogoutPostResponses, LogoutReaderApiV1NavReaderLogoutPostData, LogoutReaderApiV1NavReaderLogoutPostResponses, PublicSitesApiV1NavigationSitesGetData, PublicSitesApiV1NavigationSitesGetErrors, PublicSitesApiV1NavigationSitesGetResponses, PublicTaxonomyApiV1NavigationTaxonomyKindGetData, PublicTaxonomyApiV1NavigationTaxonomyKindGetErrors, PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses, ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetData, ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors, ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses, ReaderConfigApiV1NavigationAuthConfigGetData, ReaderConfigApiV1NavigationAuthConfigGetResponses, ReaderMeApiV1NavReaderMeGetData, ReaderMeApiV1NavReaderMeGetResponses, RefreshApiV1AdminAuthRefreshPostData, RefreshApiV1AdminAuthRefreshPostErrors, RefreshApiV1AdminAuthRefreshPostResponses, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostErrors, RefreshApiV1AuthRefreshPostResponses, RegisterApiV1AuthRegisterPostData, RegisterApiV1AuthRegisterPostErrors, RegisterApiV1AuthRegisterPostResponses, ResetAdminPasswordApiV1AdminAdminsAdminIdCredentialsPasswordPutData, ResetAdminPasswordApiV1AdminAdminsAdminIdCredentialsPasswordPutErrors, ResetAdminPasswordApiV1AdminAdminsAdminIdCredentialsPasswordPutResponses, ResetUserPasswordApiV1AdminUsersUserIdCredentialsPasswordPutData, ResetUserPasswordApiV1AdminUsersUserIdCredentialsPasswordPutErrors, ResetUserPasswordApiV1AdminUsersUserIdCredentialsPasswordPutResponses, RestoreUserApiV1AdminUsersUserIdRestorePostData, RestoreUserApiV1AdminUsersUserIdRestorePostErrors, RestoreUserApiV1AdminUsersUserIdRestorePostResponses, RestoreUsersBulkApiV1AdminUsersRestoreBatchPostData, RestoreUsersBulkApiV1AdminUsersRestoreBatchPostErrors, RestoreUsersBulkApiV1AdminUsersRestoreBatchPostResponses, RevokeAllAdminSessionsApiV1AdminAdminsAdminIdSessionsRevokeAllPostData, RevokeAllAdminSessionsApiV1AdminAdminsAdminIdSessionsRevokeAllPostErrors, RevokeAllAdminSessionsApiV1AdminAdminsAdminIdSessionsRevokeAllPostResponses, RevokeAllUserSessionsApiV1AdminUsersUserIdSessionsRevokeAllPostData, RevokeAllUserSessionsApiV1AdminUsersUserIdSessionsRevokeAllPostErrors, RevokeAllUserSessionsApiV1AdminUsersUserIdSessionsRevokeAllPostResponses, RevokeOtherSessionsApiV1UsersMeSessionsRevokeOthersPostData, RevokeOtherSessionsApiV1UsersMeSessionsRevokeOthersPostErrors, RevokeOtherSessionsApiV1UsersMeSessionsRevokeOthersPostResponses, RevokeSessionApiV1UsersMeSessionsSessionIdDeleteData, RevokeSessionApiV1UsersMeSessionsSessionIdDeleteErrors, RevokeSessionApiV1UsersMeSessionsSessionIdDeleteResponses, RevokeUserSessionApiV1AdminUsersUserIdSessionsSessionIdDeleteData, RevokeUserSessionApiV1AdminUsersUserIdSessionsSessionIdDeleteErrors, RevokeUserSessionApiV1AdminUsersUserIdSessionsSessionIdDeleteResponses, SetAdminStatusApiV1AdminAdminsAdminIdStatusPatchData, SetAdminStatusApiV1AdminAdminsAdminIdStatusPatchErrors, SetAdminStatusApiV1AdminAdminsAdminIdStatusPatchResponses, SetAdminStatusBulkApiV1AdminAdminsStatusBatchPatchData, SetAdminStatusBulkApiV1AdminAdminsStatusBatchPatchErrors, SetAdminStatusBulkApiV1AdminAdminsStatusBatchPatchResponses, SetAdminSuperuserApiV1AdminAdminsAdminIdSuperuserPatchData, SetAdminSuperuserApiV1AdminAdminsAdminIdSuperuserPatchErrors, SetAdminSuperuserApiV1AdminAdminsAdminIdSuperuserPatchResponses, SetRoleStatusBulkApiV1AdminRolesStatusBatchPatchData, SetRoleStatusBulkApiV1AdminRolesStatusBatchPatchErrors, SetRoleStatusBulkApiV1AdminRolesStatusBatchPatchResponses, SetUserStatusApiV1AdminUsersUserIdStatusPatchData, SetUserStatusApiV1AdminUsersUserIdStatusPatchErrors, SetUserStatusApiV1AdminUsersUserIdStatusPatchResponses, SetUserStatusBulkApiV1AdminUsersStatusBatchPatchData, SetUserStatusBulkApiV1AdminUsersStatusBatchPatchErrors, SetUserStatusBulkApiV1AdminUsersStatusBatchPatchResponses, UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutData, UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors, UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses, UpdateAdminApiV1AdminAdminsAdminIdPatchData, UpdateAdminApiV1AdminAdminsAdminIdPatchErrors, UpdateAdminApiV1AdminAdminsAdminIdPatchResponses, UpdateAvatarApiV1UsersMeAvatarPutData, UpdateAvatarApiV1UsersMeAvatarPutErrors, UpdateAvatarApiV1UsersMeAvatarPutResponses, UpdateMeApiV1UsersMePatchData, UpdateMeApiV1UsersMePatchErrors, UpdateMeApiV1UsersMePatchResponses, UpdateProfileApiV1AdminAuthProfilePatchData, UpdateProfileApiV1AdminAuthProfilePatchErrors, UpdateProfileApiV1AdminAuthProfilePatchResponses, UpdateRegistrationSettingApiV1AdminSettingsRegistrationPatchData, UpdateRegistrationSettingApiV1AdminSettingsRegistrationPatchErrors, UpdateRegistrationSettingApiV1AdminSettingsRegistrationPatchResponses, UpdateRoleApiV1AdminRolesRoleIdPatchData, UpdateRoleApiV1AdminRolesRoleIdPatchErrors, UpdateRoleApiV1AdminRolesRoleIdPatchResponses, UpdateSiteApiV1AdminNavigationSitesIdPutData, UpdateSiteApiV1AdminNavigationSitesIdPutErrors, UpdateSiteApiV1AdminNavigationSitesIdPutResponses, UpdateSiteLogoApiV1AdminSettingsSiteLogoPutData, UpdateSiteLogoApiV1AdminSettingsSiteLogoPutErrors, UpdateSiteLogoApiV1AdminSettingsSiteLogoPutResponses, UpdateSiteSettingApiV1AdminSettingsSitePatchData, UpdateSiteSettingApiV1AdminSettingsSitePatchErrors, UpdateSiteSettingApiV1AdminSettingsSitePatchResponses, UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutData, UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors, UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses, UpdateUserApiV1AdminUsersUserIdPatchData, UpdateUserApiV1AdminUsersUserIdPatchErrors, UpdateUserApiV1AdminUsersUserIdPatchResponses, UploadAssetApiV1AssetsUploadPostData, UploadAssetApiV1AssetsUploadPostErrors, UploadAssetApiV1AssetsUploadPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,230 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * Reader Config
+ */
+export const readerConfigApiV1NavigationAuthConfigGet = <ThrowOnError extends boolean = false>(options?: Options<ReaderConfigApiV1NavigationAuthConfigGetData, ThrowOnError>): RequestResult<ReaderConfigApiV1NavigationAuthConfigGetResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ReaderConfigApiV1NavigationAuthConfigGetResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/navigation/auth-config',
+    ...options
+});
+
+/**
+ * Authorize Reader
+ */
+export const authorizeReaderApiV1AdminNavReaderAuthorizePost = <ThrowOnError extends boolean = false>(options: Options<AuthorizeReaderApiV1AdminNavReaderAuthorizePostData, ThrowOnError>): RequestResult<AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses, AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors, ThrowOnError> => (options.client ?? client).post<AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses, AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/nav-reader/authorize',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Exchange Reader
+ */
+export const exchangeReaderApiV1NavReaderExchangePost = <ThrowOnError extends boolean = false>(options: Options<ExchangeReaderApiV1NavReaderExchangePostData, ThrowOnError>): RequestResult<ExchangeReaderApiV1NavReaderExchangePostResponses, ExchangeReaderApiV1NavReaderExchangePostErrors, ThrowOnError> => (options.client ?? client).post<ExchangeReaderApiV1NavReaderExchangePostResponses, ExchangeReaderApiV1NavReaderExchangePostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/nav-reader/exchange',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Reader Me
+ */
+export const readerMeApiV1NavReaderMeGet = <ThrowOnError extends boolean = false>(options?: Options<ReaderMeApiV1NavReaderMeGetData, ThrowOnError>): RequestResult<ReaderMeApiV1NavReaderMeGetResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ReaderMeApiV1NavReaderMeGetResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/nav-reader/me',
+    ...options
+});
+
+/**
+ * Logout Reader
+ */
+export const logoutReaderApiV1NavReaderLogoutPost = <ThrowOnError extends boolean = false>(options?: Options<LogoutReaderApiV1NavReaderLogoutPostData, ThrowOnError>): RequestResult<LogoutReaderApiV1NavReaderLogoutPostResponses, unknown, ThrowOnError> => (options?.client ?? client).post<LogoutReaderApiV1NavReaderLogoutPostResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/nav-reader/logout',
+    ...options
+});
+
+/**
+ * Admin Taxonomy
+ */
+export const adminTaxonomyApiV1AdminNavigationTaxonomyKindGet = <ThrowOnError extends boolean = false>(options: Options<AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetData, ThrowOnError>): RequestResult<AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses, AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors, ThrowOnError> => (options.client ?? client).get<AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses, AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/taxonomy/{kind}',
+    ...options
+});
+
+/**
+ * Create Taxonomy
+ */
+export const createTaxonomyApiV1AdminNavigationTaxonomyKindPost = <ThrowOnError extends boolean = false>(options: Options<CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostData, ThrowOnError>): RequestResult<CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses, CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors, ThrowOnError> => (options.client ?? client).post<CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses, CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/taxonomy/{kind}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Update Taxonomy
+ */
+export const updateTaxonomyApiV1AdminNavigationTaxonomyKindIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutData, ThrowOnError>): RequestResult<UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses, UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors, ThrowOnError> => (options.client ?? client).put<UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses, UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/taxonomy/{kind}/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Bulk Taxonomy
+ */
+export const bulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPost = <ThrowOnError extends boolean = false>(options: Options<BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostData, ThrowOnError>): RequestResult<BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses, BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors, ThrowOnError> => (options.client ?? client).post<BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses, BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/taxonomy/{kind}/bulk',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Admin Sites
+ */
+export const adminSitesApiV1AdminNavigationSitesGet = <ThrowOnError extends boolean = false>(options?: Options<AdminSitesApiV1AdminNavigationSitesGetData, ThrowOnError>): RequestResult<AdminSitesApiV1AdminNavigationSitesGetResponses, AdminSitesApiV1AdminNavigationSitesGetErrors, ThrowOnError> => (options?.client ?? client).get<AdminSitesApiV1AdminNavigationSitesGetResponses, AdminSitesApiV1AdminNavigationSitesGetErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites',
+    ...options
+});
+
+/**
+ * Create Site
+ */
+export const createSiteApiV1AdminNavigationSitesPost = <ThrowOnError extends boolean = false>(options: Options<CreateSiteApiV1AdminNavigationSitesPostData, ThrowOnError>): RequestResult<CreateSiteApiV1AdminNavigationSitesPostResponses, CreateSiteApiV1AdminNavigationSitesPostErrors, ThrowOnError> => (options.client ?? client).post<CreateSiteApiV1AdminNavigationSitesPostResponses, CreateSiteApiV1AdminNavigationSitesPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Update Site
+ */
+export const updateSiteApiV1AdminNavigationSitesIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateSiteApiV1AdminNavigationSitesIdPutData, ThrowOnError>): RequestResult<UpdateSiteApiV1AdminNavigationSitesIdPutResponses, UpdateSiteApiV1AdminNavigationSitesIdPutErrors, ThrowOnError> => (options.client ?? client).put<UpdateSiteApiV1AdminNavigationSitesIdPutResponses, UpdateSiteApiV1AdminNavigationSitesIdPutErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Bulk Sites
+ */
+export const bulkSitesApiV1AdminNavigationSitesBulkPost = <ThrowOnError extends boolean = false>(options: Options<BulkSitesApiV1AdminNavigationSitesBulkPostData, ThrowOnError>): RequestResult<BulkSitesApiV1AdminNavigationSitesBulkPostResponses, BulkSitesApiV1AdminNavigationSitesBulkPostErrors, ThrowOnError> => (options.client ?? client).post<BulkSitesApiV1AdminNavigationSitesBulkPostResponses, BulkSitesApiV1AdminNavigationSitesBulkPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites/bulk',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Admin Accounts
+ */
+export const adminAccountsApiV1AdminNavigationSitesSiteIdAccountsGet = <ThrowOnError extends boolean = false>(options: Options<AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetData, ThrowOnError>): RequestResult<AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses, AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors, ThrowOnError> => (options.client ?? client).get<AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses, AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts',
+    ...options
+});
+
+/**
+ * Create Account
+ */
+export const createAccountApiV1AdminNavigationSitesSiteIdAccountsPost = <ThrowOnError extends boolean = false>(options: Options<CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostData, ThrowOnError>): RequestResult<CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses, CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors, ThrowOnError> => (options.client ?? client).post<CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses, CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Update Account
+ */
+export const updateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutData, ThrowOnError>): RequestResult<UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses, UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors, ThrowOnError> => (options.client ?? client).put<UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses, UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Bulk Accounts
+ */
+export const bulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPost = <ThrowOnError extends boolean = false>(options: Options<BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostData, ThrowOnError>): RequestResult<BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses, BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors, ThrowOnError> => (options.client ?? client).post<BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses, BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/admin/navigation/sites/{site_id}/accounts/bulk',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Public Taxonomy
+ */
+export const publicTaxonomyApiV1NavigationTaxonomyKindGet = <ThrowOnError extends boolean = false>(options: Options<PublicTaxonomyApiV1NavigationTaxonomyKindGetData, ThrowOnError>): RequestResult<PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses, PublicTaxonomyApiV1NavigationTaxonomyKindGetErrors, ThrowOnError> => (options.client ?? client).get<PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses, PublicTaxonomyApiV1NavigationTaxonomyKindGetErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/navigation/taxonomy/{kind}',
+    ...options
+});
+
+/**
+ * Public Sites
+ */
+export const publicSitesApiV1NavigationSitesGet = <ThrowOnError extends boolean = false>(options?: Options<PublicSitesApiV1NavigationSitesGetData, ThrowOnError>): RequestResult<PublicSitesApiV1NavigationSitesGetResponses, PublicSitesApiV1NavigationSitesGetErrors, ThrowOnError> => (options?.client ?? client).get<PublicSitesApiV1NavigationSitesGetResponses, PublicSitesApiV1NavigationSitesGetErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/navigation/sites',
+    ...options
+});
+
+/**
+ * Reader Accounts
+ */
+export const readerAccountsApiV1NavigationSitesSiteIdAccountsGet = <ThrowOnError extends boolean = false>(options: Options<ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetData, ThrowOnError>): RequestResult<ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses, ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors, ThrowOnError> => (options.client ?? client).get<ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses, ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/navigation/sites/{site_id}/accounts',
+    ...options
+});
 
 /**
  * 注册用户账户

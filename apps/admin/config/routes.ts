@@ -1,5 +1,7 @@
 export default [
   { path: "/login", component: "../features/auth/LoginPage", layout: false },
+  { path: "/navigation/authorize", component: "../features/navigation/AuthorizePage", layout: false },
+  { path: "/navigation", name: "导航管理", icon: "GlobalOutlined", component: "../features/navigation/NavigationPage", access: "canNavigation" },
   { path: "/", redirect: "/welcome" },
   { path: "/welcome", name: "欢迎", icon: "HomeOutlined", component: "../features/welcome/WelcomePage" },
   { path: "/users", name: "用户", icon: "UserOutlined", component: "../features/users/UsersPage", access: "canUsers" },

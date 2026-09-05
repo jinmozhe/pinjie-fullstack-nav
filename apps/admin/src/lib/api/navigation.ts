@@ -1,0 +1,19 @@
+import type { NavAccountIn, NavAccountRead, NavBulkIn, NavBulkRead, NavSiteIn, NavSiteRead, NavTaxonomyIn, NavTaxonomyRead, PageResultNavSiteRead, ReaderAuthorizationRead, ReaderAuthorizeIn } from "@pinjie/api-client";
+import { apiRequest, jsonBody } from "./http";
+import type { ReaderConfigRead } from "@pinjie/api-client";
+
+export type TaxonomyKind = "categories" | "tags";
+const root = "/api/v1/admin/navigation";
+export const navigationApi = {
+  readerConfig: () => apiRequest<ReaderConfigRead>("/api/v1/navigation/auth-config"),
+  authorize: (input: ReaderAuthorizeIn) => apiRequest<ReaderAuthorizationRead>("/api/v1/admin/nav-reader/authorize", { method: "POST", body: jsonBody(input), cache: "no-store" }),
+  taxonomy: (kind: TaxonomyKind) => apiRequest<NavTaxonomyRead[]>(`${root}/taxonomy/${kind}`),
+  saveTaxonomy: (kind: TaxonomyKind, input: NavTaxonomyIn, id?: string) => apiRequest<NavTaxonomyRead>(`${root}/taxonomy/${kind}${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: jsonBody(input) }),
+  bulkTaxonomy: (kind: TaxonomyKind, input: NavBulkIn) => apiRequest<NavBulkRead>(`${root}/taxonomy/${kind}/bulk`, { method: "POST", body: jsonBody(input) }),
+  sites: (page: number, search: string, deleted: boolean) => apiRequest<PageResultNavSiteRead>(`${root}/sites?${new URLSearchParams({ page: String(page), page_size: "20", search, deleted: String(deleted) })}`),
+  saveSite: (input: NavSiteIn, id?: string) => apiRequest<NavSiteRead>(`${root}/sites${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: jsonBody(input) }),
+  bulkSites: (input: NavBulkIn) => apiRequest<NavBulkRead>(`${root}/sites/bulk`, { method: "POST", body: jsonBody(input) }),
+  accounts: (site: string) => apiRequest<NavAccountRead[]>(`${root}/sites/${site}/accounts`, { cache: "no-store" }),
+  saveAccount: (site: string, input: NavAccountIn, id?: string) => apiRequest<NavAccountRead>(`${root}/sites/${site}/accounts${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: jsonBody(input), cache: "no-store" }),
+  bulkAccounts: (site: string, input: NavBulkIn) => apiRequest<NavBulkRead>(`${root}/sites/${site}/accounts/bulk`, { method: "POST", body: jsonBody(input) }),
+};

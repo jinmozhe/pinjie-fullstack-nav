@@ -64,23 +64,24 @@ export async function webRequest<T>(
 ): Promise<T> {
   throwIfCancelled(cancellationSignal);
   const method = (init.method ?? "GET").toUpperCase();
+  const reader = path.startsWith("/api/v1/nav-reader/") || path.startsWith("/api/v1/navigation/") || path.startsWith("/api/navigation/");
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
   const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
   if (init.body && !isFormData && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   if (!SAFE_METHODS.has(method)) {
-    const csrf = readCookie("pinjie_web_csrf");
+    const csrf = readCookie(reader ? "pinjie_reader_csrf" : "pinjie_web_csrf");
     if (csrf) headers.set("X-CSRF-Token", csrf);
   }
   const response = await fetch(new URL(path, window.location.origin), { ...init, method, headers, credentials: "include" });
   throwIfCancelled(cancellationSignal);
-  if (response.status === 401 && retryAuth && !path.startsWith("/api/v1/auth/")) {
+  if (response.status === 401 && !reader && retryAuth && !path.startsWith("/api/v1/auth/")) {
     const refreshed = await refreshSession();
     throwIfCancelled(cancellationSignal);
     if (refreshed) return webRequest<T>(path, init, false, cancellationSignal);
   }
   if (response.status === 401 && !path.startsWith("/api/v1/auth/")) {
-    window.dispatchEvent(new Event("pinjie:session-expired"));
+    window.dispatchEvent(new Event(reader ? "pinjie:reader-expired" : "pinjie:session-expired"));
   }
   if (!response.ok) throw await parseError(response);
   return ((await response.json()) as ApiEnvelope<T>).data;

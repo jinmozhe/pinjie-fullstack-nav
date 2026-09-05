@@ -6,10 +6,13 @@ export const dynamic = "force-dynamic";
 const FORWARDED_HEADERS = ["accept", "content-type", "cookie", "origin", "user-agent", "x-csrf-token", "x-request-id"];
 const SAFE_METHODS = new Set(["GET", "HEAD"]);
 const WEB_COOKIE_NAMES = new Set(["pinjie_web_access", "pinjie_web_refresh", "pinjie_web_csrf"]);
+const READER_COOKIE_NAMES = new Set(["pinjie_reader_session", "pinjie_reader_csrf"]);
 const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isAllowedRoute(method: string, path: string[]): boolean {
   const route = path.join("/");
+  if (method === "GET" && /^(nav-reader\/me|navigation\/sites|navigation\/taxonomy\/(categories|tags))$/.test(route)) return true;
+  if (method === "GET" && path.length === 4 && path[0] === "navigation" && path[1] === "sites" && SESSION_ID.test(path[2] ?? "") && path[3] === "accounts") return true;
   if (method === "GET" && route === "system/site-profile") return true;
   if (method === "POST" && /^(auth\/(register|login|refresh|logout)|users\/me\/(password|sessions\/revoke-others))$/.test(route)) return true;
   if (method === "POST" && route === "assets/upload") return true;
@@ -19,11 +22,11 @@ function isAllowedRoute(method: string, path: string[]): boolean {
   return method === "DELETE" && path.length === 4 && path.slice(0, 3).join("/") === "users/me/sessions" && SESSION_ID.test(path[3] ?? "");
 }
 
-function webCookies(cookieHeader: string): string {
+function webCookies(cookieHeader: string, reader: boolean): string {
   return cookieHeader
     .split(";")
     .map((item) => item.trim())
-    .filter((item) => WEB_COOKIE_NAMES.has(item.split("=", 1)[0] ?? ""))
+    .filter((item) => (reader ? READER_COOKIE_NAMES : WEB_COOKIE_NAMES).has(item.split("=", 1)[0] ?? ""))
     .join("; ");
 }
 
@@ -45,6 +48,7 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
   const backendURL = process.env.BACKEND_INTERNAL_URL;
   if (!backendURL) return NextResponse.json({ code: "SERVICE_UNAVAILABLE", message: "后端服务尚未配置", request_id: request.headers.get("x-request-id") ?? "" }, { status: 503 });
   const { path } = await context.params;
+  const reader = path[0] === "nav-reader" || path[0] === "navigation";
   const source = new URL(request.url);
   if (!isAllowedRoute(request.method, path)) {
     return NextResponse.json(
@@ -69,7 +73,7 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
   const headers = new Headers();
   for (const name of FORWARDED_HEADERS) {
     const value = request.headers.get(name);
-    if (value) headers.set(name, name === "cookie" ? webCookies(value) : value);
+    if (value) headers.set(name, name === "cookie" ? webCookies(value, reader) : value);
   }
   try {
     const requestInit: RequestInit & { duplex?: "half" } = {
@@ -82,6 +86,7 @@ async function proxy(request: Request, context: { params: Promise<{ path: string
     if (requestInit.body) requestInit.duplex = "half";
     const response = await fetch(target, requestInit);
     const outgoing = new Headers();
+    if (reader) outgoing.set("Cache-Control", "no-store");
     for (const name of ["cache-control", "content-type", "retry-after", "x-request-id", "x-trace-id"]) {
       const value = response.headers.get(name);
       if (value) outgoing.set(name, value);

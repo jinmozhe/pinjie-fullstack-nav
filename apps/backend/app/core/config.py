@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     web_token_hmac_key: str | None = Field(default=None, validation_alias="WEB_TOKEN_HMAC_KEY")
     admin_token_hmac_key: str | None = Field(default=None, validation_alias="ADMIN_TOKEN_HMAC_KEY")
     auth_cookie_secure: bool = Field(default=False, validation_alias="AUTH_COOKIE_SECURE")
+    nav_reader_ttl_seconds: int = Field(default=604800, ge=300, le=2592000, validation_alias="NAV_READER_TTL_SECONDS")
     web_access_ttl_seconds: int = Field(default=900, validation_alias="WEB_ACCESS_TTL_SECONDS", ge=300, le=1800)
     admin_access_ttl_seconds: int = Field(
         default=600,

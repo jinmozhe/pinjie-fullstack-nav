@@ -45,6 +45,7 @@ class ScenePolicy:
 
 _IMAGE_MIMES = frozenset({"image/jpeg", "image/png", "image/webp"})
 _SCENE_POLICIES = {
+    UploadScene.NAVIGATION_ICON: ScenePolicy(2 * 1024 * 1024, frozenset({"jpg", "jpeg", "png", "webp"}), _IMAGE_MIMES),
     UploadScene.AVATAR: ScenePolicy(2 * 1024 * 1024, frozenset({"jpg", "jpeg", "png", "webp"}), _IMAGE_MIMES),
     UploadScene.ARTICLE: ScenePolicy(
         5 * 1024 * 1024,
@@ -254,6 +255,10 @@ class AssetService:
             if len(assets) != len(asset_ids):
                 raise AppException(status_code=404, code=ErrorCode.ASSET_NOT_FOUND, message=missing_message)
             for asset in assets:
+                if await self._assets.is_referenced_by_navigation(asset.id):
+                    raise AppException(
+                        status_code=409, code=ErrorCode.STATE_CONFLICT, message="导航图标正在被使用，无法删除"
+                    )
                 if await self._assets.is_referenced_by_avatar(asset.url):
                     raise AppException(
                         status_code=409, code=ErrorCode.STATE_CONFLICT, message="头像资产正在被使用，无法删除"

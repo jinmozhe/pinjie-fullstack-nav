@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.models import Admin, Asset, User
+from app.db.models.navigation import NavSite
 
 
 class AssetRepository:
@@ -81,6 +82,11 @@ class AssetRepository:
             return True
         admin_reference = await self._session.scalar(select(Admin.id).where(Admin.avatar == url).limit(1))
         return admin_reference is not None
+
+    async def is_referenced_by_navigation(self, asset_id: uuid.UUID) -> bool:
+        return (
+            await self._session.scalar(select(NavSite.id).where(NavSite.icon_asset_id == asset_id).limit(1)) is not None
+        )
 
 
 __all__ = ["AssetRepository"]

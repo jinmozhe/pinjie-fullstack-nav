@@ -6,7 +6,15 @@ from sqlalchemy import delete, func, or_, select
 
 from app.core.config import get_settings
 from app.core.resources import create_resources
-from app.db.models import AdminSession, AuditEvent, RequestLog, SecurityLoginEvent, UserSession
+from app.db.models import (
+    AdminSession,
+    AuditEvent,
+    NavAuthorizationCode,
+    NavReaderSession,
+    RequestLog,
+    SecurityLoginEvent,
+    UserSession,
+)
 from app.db.transaction import transaction_scope
 from scripts._database_target import validate_database_target
 
@@ -72,10 +80,35 @@ async def _run(args: argparse.Namespace) -> None:
                 f"login_events={login_count} audit_events={audit_count} request_logs={request_count} "
                 f"user_sessions={user_session_count} admin_sessions={admin_session_count}"
             )
+            reader_count = int(
+                (
+                    await session.scalar(
+                        select(func.count())
+                        .select_from(NavReaderSession)
+                        .where(NavReaderSession.expires_at < session_cutoff)
+                    )
+                )
+                or 0
+            )
+            code_count = int(
+                (
+                    await session.scalar(
+                        select(func.count())
+                        .select_from(NavAuthorizationCode)
+                        .where(NavAuthorizationCode.expires_at < session_cutoff)
+                    )
+                )
+                or 0
+            )
+            print(f"navigation_reader_sessions={reader_count} navigation_authorization_codes={code_count}")
             if not args.apply:
                 print("Dry run only; no rows deleted")
                 return
             async with transaction_scope(session):
+                await session.execute(delete(NavReaderSession).where(NavReaderSession.expires_at < session_cutoff))
+                await session.execute(
+                    delete(NavAuthorizationCode).where(NavAuthorizationCode.expires_at < session_cutoff)
+                )
                 await session.execute(
                     delete(SecurityLoginEvent).where(SecurityLoginEvent.occurred_at < security_cutoff)
                 )

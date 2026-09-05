@@ -106,8 +106,10 @@ class AdminRepository:
         statement = select(Role).where(Role.code == code).options(selectinload(Role.permissions))
         return (await self.session.execute(statement)).scalar_one_or_none()
 
-    async def get(self, admin_id: uuid.UUID, *, for_update: bool = False) -> Admin | None:
+    async def get(self, admin_id: uuid.UUID, *, for_update: bool = False, refresh: bool = False) -> Admin | None:
         statement = select(Admin).where(Admin.id == admin_id).options(self._with_permissions())
+        if refresh:
+            statement = statement.execution_options(populate_existing=True)
         if for_update:
             statement = statement.with_for_update()
         return (await self.session.execute(statement)).scalar_one_or_none()
