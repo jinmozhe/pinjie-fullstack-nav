@@ -63,8 +63,8 @@ apps/web/src/features/system :: SystemStatusCard.test.tsx, SystemStatusCard.tsx
 apps/web/src/lib/api :: client.ts, http.ts, server.test.ts, server.ts
 apps/web/src/test :: server.ts, setup.ts
 docs :: PROJECT_REQUIREMENTS.md, README.md
-docs/adr :: 0001-全栈Monorepo架构决策.md, 0002-Codex与Antigravity指令兼容决策.md, 0003-本地开发环境架构决策.md, 0004-全项目索引与计划生命周期决策.md, 0005-GitHub Wiki停用与文档单一来源决策.md, 0006-模块化单体与领域依赖边界决策.md, 0007-受控迁移兼容策略决策.md, 0008-不可变发布与生产追溯决策.md, 0009-Python运行时基线决策.md, 0010-浏览器认证会话RBAC与审计决策.md, 0011-Admin采用AntDesignProV6与UmiMax决策.md
-docs/architecture :: 全栈Monorepo架构规划原始方案.md, admin-engineering-standard.md, authentication-authorization.md, backend-engineering-standard.md, error-model.md, module-boundaries.md, observability-reliability.md, project-structure.md, testing-strategy.md
+docs/adr :: 0001-全栈Monorepo架构决策.md, 0002-Codex与Antigravity指令兼容决策.md, 0003-本地开发环境架构决策.md, 0004-全项目索引与计划生命周期决策.md, 0005-GitHub Wiki停用与文档单一来源决策.md, 0006-模块化单体与领域依赖边界决策.md, 0007-受控迁移兼容策略决策.md, 0008-不可变发布与生产追溯决策.md, 0009-Python运行时基线决策.md, 0010-浏览器认证会话RBAC与审计决策.md, 0011-Admin采用AntDesignProV6与UmiMax决策.md, 0012-统一文件资产采用可补偿本地存储决策.md, 0013-全局系统设置与配置媒体决策.md, 0014-共享PostgreSQL与Redis生产基础设施决策.md, 0015-派生项目计划基线重建决策.md
+docs/architecture :: 全栈Monorepo架构规划原始方案.md, admin-engineering-standard.md, authentication-authorization.md, backend-engineering-standard.md, error-model.md, file-asset-storage.md, module-boundaries.md, observability-reliability.md, project-structure.md, system-settings.md, testing-strategy.md
 docs/blueprints/commerce :: README.md
 docs/operations :: 1panel-production-runbook.md, admin-local-development-and-validation-troubleshooting.md, ai-assisted-development-workflow.md, codex-windows-config-acl-governance.md, container-build-and-run.md, database-backup-restore.md, docker-desktop-redis使用指南.md, environment-variables-and-backend-local-run.md, github-actions-workflows.md, incident-response.md, local-dev-environment.md, pnpm使用指南.md, release-and-rollback.md, uv使用指南.md
 e2e :: helpers.ts, stage-c.spec.ts, system-status.spec.ts
@@ -109,7 +109,7 @@ scripts/operations :: test-postgres-backup-restore.ps1
 - `plans/*.md` 保存全栈实施方案和结果。
 - `CHANGELOG.md` 保存已经交付的变化。
 
-派生仓库继承根索引和计划永久登记，并更新项目角色、派生类型、母版标签或提交 SHA、当前阶段和业务范围。完整决策见 `docs/adr/0004-全项目索引与计划生命周期决策.md`。
+派生仓库继承根索引和计划治理机制，并更新项目角色、派生类型、母版不可变 Tag、完整 40 位 Commit SHA、当前阶段和业务范围。独立业务仓库可以在派生初始化阶段由用户人工一次性清理母版继承计划并重建计划索引；完整决策见 ADR 0004 和 ADR 0015。
 
 ### 为什么建立 `plans/INDEX.md`
 
@@ -127,7 +127,7 @@ scripts/operations :: test-postgres-backup-restore.ps1
 
 `plans/` 属于整个全栈 Monorepo，计划以完整业务能力或工程目标为单位。涉及 Backend、Admin、Web、API Client 或 Database 的同一能力在同一份计划中描述完整链路、实施顺序、契约同步和联合验证。
 
-计划文件直接放在 `plans/` 下，不创建 `active/`、`archive/` 或按应用拆分的子目录。稳定路径能够保证长期引用有效。已经存在的计划文档及其在 `plans/INDEX.md` 中的登记永久保留，AI 不得删除、移动、重命名、替换或自动归档；相关文件操作只能由用户人工处理。
+计划文件直接放在 `plans/` 下，不创建 `active/`、`archive/` 或按应用拆分的子目录。稳定路径能够保证长期引用有效。母版和完成初始化后的派生项目永久保留本仓库计划及其在 `plans/INDEX.md` 中的登记，AI 不得删除、移动、重命名、替换或自动归档。独立派生仓库的一次性人工初始化例外见 ADR 0015。
 
 ### 为什么 `.env.example` 分四层
 
@@ -258,7 +258,7 @@ Next.js 有三种输出模式：
 | 目录 | 当前内容 | 扩展条件 |
 | --- | --- | --- |
 | `docs/` | 产品需求基线和完整文档索引 | 产品文档达到至少三份且职责独立时再评估 `docs/product/` |
-| `docs/adr/` | `0001` 至 `0009` 架构决策记录 | 出现新的重大且长期技术取舍时新增 ADR |
+| `docs/adr/` | `0001` 至 `0015` 架构决策记录 | 出现新的重大且长期技术取舍时新增 ADR |
 | `docs/architecture/` | 项目结构、Backend/Admin 工程标准、模块边界、错误、认证授权、测试、可靠性和原始规划 | 当前系统机制变化时就地更新对应文档 |
 | `docs/blueprints/commerce/` | Commerce 派生蓝图入口 | 真实派生需求确认后增加领域模型和业务流程设计 |
 | `docs/operations/` | AI 协作、本地环境、依赖、容器、发布回滚、备份恢复和事故响应手册 | 出现可执行的新运维流程时就地增加或更新手册 |

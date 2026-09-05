@@ -57,7 +57,7 @@ SECURITY.md             漏洞报告和安全响应规则
 - 所有任务先读取 `PROJECT_INDEX.md`，确认项目身份、当前阶段、活动计划和权威入口，再以实际文件确认详细实现状态
 - 新增功能或模块前，在 `plans/` 创建面向整个 Monorepo 的全栈实施计划，并同步登记到 `plans/INDEX.md`
 - 同一能力涉及 Backend、Admin 和 Web 时，在同一份计划中描述完整链路和联合验证
-- 已经存在的计划文档永久保留；删除、移动和重命名只能由用户人工处理
+- 母版已经存在的计划文档永久保留；独立派生仓库的初始化例外见 `plans/README.md`，AI 始终不得删除、移动或重命名计划
 - 新建、移动或修改专题项目文档后，同步更新 `docs/README.md` 中对应的登记；计划与根索引按各自规则单独同步
 - 新建或修改 Markdown 后，运行 `pnpm lint:md` 检查全仓库文档格式
 - 后端接口变更后，运行 `pnpm generate-api` 更新前端 SDK
@@ -85,4 +85,4 @@ SECURITY.md             漏洞报告和安全响应规则
 
 业务扩展参考 `docs/blueprints/` 目录下的蓝图文档。
 
-派生仓库应在 `PROJECT_INDEX.md` 中登记派生类型、母版标签或提交 SHA、当前阶段和业务范围，并保留母版已有计划原文及其在 `plans/INDEX.md` 中的登记记录。
+派生仓库应在 `PROJECT_INDEX.md` 中同时登记派生类型、母版不可变 Tag、完整 40 位 Commit SHA、当前阶段和业务范围。独立业务仓库可以在派生初始化阶段由用户人工一次性清理母版继承计划并重建 `plans/INDEX.md`；母版仓库中的计划永久保留，完整边界见 `plans/README.md` 和 ADR 0015。

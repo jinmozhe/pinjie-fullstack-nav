@@ -17,6 +17,7 @@
 
 | 路径 | 状态 | 结果 | 影响范围 | 用途 |
 | --- | --- | --- | --- | --- |
+| `plans/2026-09-05_派生项目计划基线重建规则计划.md` | 已结束 | 已完成；母版与派生项目计划保护边界、人工初始化例外和 Tag 与完整 SHA 追溯要求已同步并通过治理门禁 | Documentation、Developer Workflow | 允许独立派生业务仓库在初始化阶段由用户人工清理母版继承计划并重建计划基线 |
 | `plans/2026-09-05_GitHub到1Panel端到端人工发布手册计划.md` | 已结束 | 已完成；现有发布专题文档已同步真实流程，新增从 GitHub Actions 经 CNB、TCR 到 1Panel 的人工端到端操作手册 | Deployment、Documentation | 同步真实发布状态并建立从 GitHub Actions 经 CNB、TCR 到 1Panel 的人工端到端操作手册 |
 | `plans/2026-09-04_GitHub源码交接双验证模式计划.md` | 已结束 | 已完成；双验证模式已进入 main，严格模式已完成真实 Full Validation Artifact 校验和 CNB 源码交接，快速模式未执行真实发布验证 | Deployment、Documentation | 为 GitHub 到 CNB 源码交接增加默认严格、可显式快速的 Full Validation 双模式和审计记录 |
 | `plans/2026-09-04_CNB三端独立镜像构建与发布证据改造计划.md` | 已结束 | 已完成；三端独立 CNB Pipeline 已完成真实 TCR 发布并通过 1Panel 固定 digest 更新和三端健康复验 | Deployment、Documentation | 将 CNB 三镜像统一发布拆为按真实构建输入触发的三端独立构建、单镜像证据和 TCR 不可变发布 |

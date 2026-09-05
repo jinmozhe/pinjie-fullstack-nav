@@ -397,7 +397,7 @@ flowchart TD
 | 镜像发布 | 根规则、发布手册、ADR 0008、活动计划 | SECURITY、Workflow | 必须且单独授权 | 完整 SHA、SBOM、证明和 digest |
 | 生产部署或回滚 | 根规则、发布手册、ADR 0008、活动计划、当前部署事实 | 备份恢复、事故手册、SECURITY | 必须且单独授权 | 固定 digest、审批、探针、回滚和记录 |
 | 事故处理 | 根规则、SECURITY、事故手册、当前运行证据 | 发布、备份、可靠性 | 记录到相应计划或事故材料 | 先止损，再恢复和验证；生产动作单独授权 |
-| 派生项目或业务蓝图 | 根规则、PRD、相关蓝图、`PROJECT_INDEX.md` | ADR、架构、母版基线 Git 事实 | 必须 | 记录母版 Tag 或完整 SHA 和偏离范围 |
+| 派生项目或业务蓝图 | 根规则、PRD、相关蓝图、`PROJECT_INDEX.md` | ADR 0015、架构、母版基线 Git 事实 | 必须 | 同时记录母版 Tag 和完整 SHA；人工清理继承计划后重建索引并记录偏离范围 |
 | 文档治理或交接 | 根规则、`PROJECT_INDEX.md`、`plans/INDEX.md`、`docs/README.md`、活动计划、Changelog | 相关权威文档、Git 历史 | 影响治理结构时必须 | Markdown、链接、文本、计划登记和事实一致性 |
 | 普通提交、推送、PR 或合并 | 根规则、当前计划、Git 差异 | Changelog、PR 模板 | 使用现有任务计划 | 只执行用户文字明确授权的动作 |
 | 显式调用 `$git-sync` | 根规则、当前计划、Git 差异、PR 模板 | Actions 运维文档 | 使用现有任务计划 | 完成分支、提交、推送、PR、rebase 自动合并、删分支和同步 `main`；失败时停止 |
