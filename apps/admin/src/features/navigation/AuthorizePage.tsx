@@ -3,6 +3,7 @@ import { Alert, Button, Spin } from "antd";
 import { adminApi } from "@/lib/api/admin";
 import { navigationApi } from "@/lib/api/navigation";
 import { ApiError, errorMessage } from "@/lib/api/http";
+import { navigationCallbackOrigin } from "@/lib/navigation-callback";
 
 export default function AuthorizePage() {
   const started = useRef(false);
@@ -17,7 +18,11 @@ export default function AuthorizePage() {
     // The backend supplies the exact callback allowlist; failures never navigate to caller input.
     const authorize = async () => {
       const config = await navigationApi.readerConfig();
-      if (!config.callback_urls.includes(redirect_uri)) throw new Error("Web 回调地址未配置或不匹配");
+      const callbackOrigin = navigationCallbackOrigin(config.callback_urls, redirect_uri);
+      // Only the allowlisted origin and fixed path select the destination; caller data stays in the fragment.
+      const returnToWeb = (fragment: Record<string, string>) => {
+        window.location.replace(`${callbackOrigin}/navigation/callback#${new URLSearchParams(fragment)}`);
+      };
       try {
         await adminApi.me();
       } catch (cause) {
@@ -26,9 +31,7 @@ export default function AuthorizePage() {
           return;
         }
         if (cause instanceof ApiError && cause.status === 401 && params.get("silent") === "1") {
-          const target = new window.URL(redirect_uri);
-          target.hash = new URLSearchParams({ state, error: "login_required" }).toString();
-          window.location.replace(target.toString());
+          returnToWeb({ state, error: "login_required" });
           return;
         }
         throw cause;
@@ -37,16 +40,12 @@ export default function AuthorizePage() {
       try { result = await navigationApi.authorize({ state, challenge, redirect_uri }); }
       catch (cause) {
         if (cause instanceof ApiError && cause.status === 403 && params.get("silent") === "1") {
-          const target = new window.URL(redirect_uri);
-          target.hash = new URLSearchParams({ state, error: "access_denied" }).toString();
-          window.location.replace(target.toString());
+          returnToWeb({ state, error: "access_denied" });
           return;
         }
         throw cause;
       }
-      const target = new window.URL(redirect_uri);
-      target.hash = new URLSearchParams({ state, code: result.code }).toString();
-      window.location.replace(target.toString());
+      returnToWeb({ state, code: result.code });
     };
     void authorize().catch((cause: unknown) => setError(errorMessage(cause)));
   }, []);
