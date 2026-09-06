@@ -12,6 +12,7 @@
 - 1Panel OpenResty 独占公网 80/443，应用端口只绑定 `127.0.0.1`。
 - Backend、Web、Admin 镜像已经过对应 Commit SHA 的质量门禁、SBOM 和安全扫描。
 - 三张应用镜像使用完整 `@sha256:` digest，禁止使用 `latest`、分支标签或缺失版本回退。
+- 按当前单维护者流程，人工核对 CNB 单镜像发布清单与 TCR digest，并确认服务器根 `.env` 和 1Panel 编排环境变量一致；不要求候选镜像验收工作流或自动预检清单。服务器保持纯拉镜像，不安装验证工具链，完整顺序见[端到端人工发布手册](github-cnb-tcr-1panel-release-runbook.md)。
 - 生产服务器使用独立 `tcr-puller` CAM 子用户登录 TCR 个人版，只允许拉取指定三个仓库；账号创建、三仓只读 JSON、凭证初始化和权限验收见[腾讯云 CAM 子账号与 TCR 个人版最小权限操作手册](tencent-tcr-personal-cam-accounts.md)。
 - 1Panel 已管理 PostgreSQL 18.4 与 Redis 8.10.0 共享实例，并把二者接入外部网络 `1panel-network`；宿主机端口只允许绑定环回地址。
 - 共享 PostgreSQL 为每个项目配置独立数据库、登录角色和密码；共享 Redis 至少启用密码，并为各项目分配独立逻辑库编号。隔离要求更高时配置独立 ACL 用户或独立实例。

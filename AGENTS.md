@@ -5,12 +5,12 @@
 - 本文件适用于整个仓库。
 - 所有任务开始前必须读取 `PROJECT_INDEX.md`，再按索引和任务范围读取相关规则、计划和文档。
 - 修改 `apps/backend/**`、`apps/admin/**`、`apps/web/**` 前，必须同时遵守对应目录的 `AGENTS.md`；已处于活动指令中时不重复读取。
-- 冲突优先级依次为：平台安全规则和用户当前明确要求、距离目标文件最近的 `AGENTS.md`、本文件、个人全局规则。
+- 冲突优先级依次为：平台指令、用户当前明确要求、距离目标文件最近的 `AGENTS.md`、本文件、个人全局规则。
 
 ## 任务读取与计划路由
 
 - 实现类任务必须继续读取 `plans/README.md`。存在与任务匹配的活动计划时，必须读取并维护同一份计划。
-- 任务触发计划创建条件但尚无计划时，先创建计划、登记 `plans/INDEX.md`、把活动计划同步到 `PROJECT_INDEX.md` 并取得用户确认，再开始实施。
+- 计划创建条件、体量和授权判定以 `plans/README.md` 为准。需要新计划时先登记计划和两个索引；现有用户授权覆盖范围且无关键未决问题时直接实施，不因新建计划重复确认。
 - `plans/` 面向整个全栈 Monorepo。跨 Backend、Admin、Web 或共享契约的能力使用同一份全栈计划，不按应用拆成互不关联的计划目录。
 - 只读检查、解释和验证无需新增计划，但仍需通过 `PROJECT_INDEX.md` 确认项目身份、当前阶段、活动计划和权威入口，再以实际文件确认详细实现状态。
 - 文档、规则、目录职责和权威来源发生变化时，按职责同步对应索引；项目身份、当前阶段和活动计划进入 `PROJECT_INDEX.md`，全部计划的状态与结果进入 `plans/INDEX.md`。
@@ -47,6 +47,12 @@
 - 未决事项只保留在相关活动计划中并标明状态。临时推测、普通问答、完整聊天记录和没有长期参考价值的已否决方案不进入项目文档。
 - 只有独立调研周期较长、证据需要被多个计划复用且尚未达到正式决策条件时，才评估创建 `docs/research/`；不得提前创建空目录或占位文档。
 
+## 自主执行、澄清与授权
+
+- 明确修复、实现或优化请求授权范围内修改、必要文档及默认轻量验证。只读评审不修改。先从会话和文件补足信息，只有无法推断且实质影响目标、验收、安全或外部动作的问题才提问。
+- 同一任务授权跨计划登记、续接、Skill 切换和重试有效；只确认新增范围或副作用。业务授权与环境审批分开，已授权动作直接申请准确工具审批，不重复询问或绕过限制；撤回授权立即停止相关动作。
+- 阻塞只暂停依赖项，其余工作继续。本任务引入的可控失败先修复再验证，无新证据不盲目重试或绕过门禁。文档、抽象、测试和 Skills 按影响选择，局部修复不扩为全仓治理或新功能。操作步骤见 `docs/operations/ai-assisted-development-workflow.md`。
+
 ## 工程治理基线
 
 - 错误和依赖失败必须明确传播，禁止吞错、假成功、弱默认值和静默降级。允许的超时、有限重试、熔断、背压和只读状态必须具有契约、观测、恢复条件和测试，完整模型见 `docs/architecture/error-model.md`。
@@ -73,7 +79,6 @@
 - 链接和图片统一使用行内语法 `[文本](https://example.com)` 与 `![替代文本](https://example.com/image.png)`；禁止引用式、折叠式、快捷式、尖括号自动链接及以 URL 自身作为链接文本的写法。
 - 中文段落不强制按固定字符数硬换行，不同章节允许出现同名子标题；其他 markdownlint 默认规则继续生效。
 - 项目级 `markdownlint-cli2` 必须在根 `package.json` 中固定具体版本并通过根 `pnpm-lock.yaml` 锁定；版本升级需同步验证 VS Code 插件使用的 markdownlint 规则兼容性。
-- Markdown 已纳入仓库治理 CI。修改 Markdown 后仍必须在本地运行 `pnpm lint:md`，CI 不能替代本地复读和文本卫生检查。
 
 ## 修改原则
 
@@ -106,11 +111,10 @@
 
 ## 本地检查点与高风险编辑
 
-- 完成一个可独立验证的功能单元并通过受影响范围的轻量门禁后，AI 必须主动询问是否创建本地检查点提交。用户已经明确授权当前任务分阶段本地提交时，应在该功能单元验证完成后立即精确暂存当前任务文件并提交；实现授权本身不包含 Git 提交授权。
+- 未获提交授权时继续完成实现和验证，不在每个功能单元后询问提交；确有恢复需要时可在交付时建议一次。已获当前任务分阶段本地提交授权时，在已验证单元后精确暂存并提交；实现授权本身不包含 Git 提交授权。
 - 本地检查点只允许包含当前任务中已经复读和验证的文件，禁止混入用户修改或其他任务内容。提交、推送、Pull Request、发布和部署继续分别授权，本地检查点提交不授权任何远端动作。
-- 目标文件含有未提交修改且尚无可恢复基线时，禁止通过脚本批量覆盖、整文件重写或跨文件机械写入。应改用逐文件 `apply_patch`；确需批量写入时，必须先取得本地检查点提交授权并建立恢复基线。
-- 批量机械写入必须启用严格错误处理，先在内存或临时文件中计算全部结果，校验预期非空、长度和关键内容后再替换目标。PowerShell 必须使用 `Set-StrictMode -Version Latest` 和 `$ErrorActionPreference = "Stop"`，禁止在发生非终止错误后继续调用写入方法。
-- 每个目标文件写入后必须立即复读，检查编码、末尾换行、长度、关键签名和具体修改行；任一文件校验失败时立即停止后续写入，优先从最近检查点恢复并报告影响范围。检查点提交不能替代安全写入、差异复核和验证门禁。
+- 目标文件含有未提交修改且尚无可恢复基线时，禁止通过脚本批量覆盖、整文件重写或跨文件机械写入。优先使用逐文件 `apply_patch`；确需批量写入时，先保存并校验本次文件原字节副本或使用已授权的检查点，写入前再次确认原文未变化。不为建立恢复基线强制要求 Git 提交。
+- 批量写入按 `docs/operations/ai-assisted-development-workflow.md` 的高风险编辑步骤执行：严格错误处理、写前全量校验、逐文件替换和立即复读。失败时停止后续写入，只修复本次差异，禁止整文件恢复覆盖用户新修改；备份不能替代验证。
 
 ## 生成文件与契约
 
@@ -124,7 +128,7 @@
 
 - Git 历史是普通提交 Commit SHA、父提交、文件快照和逐行差异的权威来源；使用 `git log`、`git show`、`git diff` 和 `git blame` 查询。
 - 普通提交的 Commit SHA 不重复写入 `CHANGELOG.md`、`plans/*.md`、`plans/INDEX.md` 或 `PROJECT_INDEX.md`。这些文档分别记录已交付变化、实施背景与验证、计划永久登记、项目身份与阶段导航。
-- 用户显式调用 `$git-sync` 时，该次调用授权完成当前任务的完整 Git 交付闭环：创建或使用功能分支、精确暂存、提交、推送、创建或更新目标为 `main` 的 Pull Request、设置 rebase 自动合并、等待必需检查、合并后删除功能分支并同步本地 `main`。检查失败、缺失或无法合并时必须停止，保留 PR 和分支并报告原因，禁止绕过 Ruleset。
+- 用户显式调用 `$git-sync` 时，该次调用授权完成当前任务的完整 Git 交付闭环：创建或使用功能分支、精确暂存、提交、推送、创建或更新目标为 `main` 的 Pull Request、设置 rebase 自动合并、等待必需检查、合并后删除功能分支并同步本地 `main`。检查失败、缺失或无法合并时暂停后续交付动作，保留 PR 和分支，先诊断并修复授权范围内的问题；无法在范围内解决时报告阻塞，禁止绕过 Ruleset。
 - 普通“提交”“推送”“创建 PR”或“合并”请求只授权文字明确包含的动作，不自动扩展为 `$git-sync` 完整闭环。`$git-sync` 不授权 Tag、Release、GHCR、`workflow_dispatch`、部署、回滚、生产变更或 Ruleset 修改，这些动作继续分别取得用户明确授权。
 - `git-sync` 完成后只在交付回复中报告提交 SHA、PR、合并、分支清理和同步结果，不得为了回写刚产生的 SHA 再创建后续提交。
 - 正式发布、生产部署、派生项目基线、安全审计、故障回滚和阶段性交接属于跨系统追溯场景，必须在对应记录中保存完整 40 位 Commit SHA 或受保护的不可变 Git Tag；部署、审计和回滚记录优先使用完整 SHA。
@@ -134,11 +138,8 @@
 ## 本地环境
 
 - Windows 本地开发采用纯 uv、pnpm、本机 PostgreSQL 和 Docker Desktop Redis，具体步骤以 `docs/operations/local-dev-environment.md` 为准。
-- Windows 原生 Codex 使用 `elevated + Custom (config.toml)`、`workspace-write` 和默认联网；网络开启不扩大文件权限，也不授权提交、推送、发布、部署或其他外部副作用。完整边界以 `docs/operations/codex-windows-config-acl-governance.md` 为准。
-- 沙箱内 Windows `curl.exe` 或 PowerShell HTTPS 返回 `SEC_E_NO_CREDENTIALS` 时，必须先与 Node/Python HTTPS 对照分类。确认属于 Schannel 兼容边界后，只能按任务需要升级准确宿主命令；禁止直接修改沙箱账户、Profile、注册表 Hive、证书、凭据或 TLS 校验。
-- 当前 Windows 原生 Codex 环境中，沙箱身份无法读取宿主用户通过 Windows Keyring 保存的有效 GitHub CLI 凭据。所有依赖当前 `gh` 登录态或 Windows Keyring 的命令，包括 `gh auth status`、认证型 `gh api`、私有仓库和 GitHub Actions 查询，禁止先在沙箱内验证，必须通过 Codex 审批机制直接以宿主用户 PowerShell 身份执行准确的单条命令。
-- `gh` 宿主升级只解决凭据读取边界，不构成远端副作用授权。`gh auth login/logout`、提交、推送、工作流触发、发布、部署、删除和权限修改仍需分别取得用户明确授权；禁止把全部 `gh` 或宽泛 `gh api` 配置为长期自动放行。
-- 禁止通过 `GH_TOKEN`、仓库文件、`config.toml`、命令参数或日志明文保存 GitHub Token 来绕过 Windows Keyring 隔离。
+- Windows Codex 配置和 HTTPS 排障遵守 `docs/operations/codex-windows-config-acl-governance.md`。`SEC_E_NO_CREDENTIALS` 先与 Node/Python HTTPS 对照；只升级准确命令，禁止修改沙箱账户、Profile、注册表、证书、凭据或 TLS 校验。
+- 当前 Windows Keyring 认证型 `gh` 命令直接经工具审批以宿主 PowerShell 执行准确单条命令，禁止先在沙箱探测登录态。联网和宿主升级不扩大业务授权；登录变更和远端副作用仍需对应授权，不为全部 `gh` 或宽泛 `gh api` 永久放行，禁止用环境变量、配置、参数或日志明文传递 Token 绕过隔离。
 - 后端统一在 `apps/backend` 中使用 `uv sync`、`uv add` 和 `uv run`。项目流程不要求 `conda activate`。
 - 前端依赖统一从仓库根目录用 pnpm workspace 管理，不在子应用中生成独立锁文件。
 - 本地数据与生产数据隔离，数据库结构只通过 Alembic 迁移同步。
@@ -150,15 +151,14 @@
 - 未经用户在当前任务中明确点名，禁止在本地或 GitHub Actions 自动执行 Admin/Web production build、任何 Vitest、任何 pytest、Playwright、浏览器自动化、测试数据库迁移或其他全量测试。普通“提交”“推送”和 `$git-sync` 均不包含这些重型验证的隐式授权，也不得通过定时任务或其他 Workflow 间接触发。
 - 用户明确授权重型验证时，只执行被点名的应用、命令和范围；授权不延续到后续任务。用户自行进行本地人工验收不受此限制，未提供可核验证据时只记录为“用户自行验收，自动验证未执行”。
 - 按策略未执行的重型验证记录为“未执行”，不再记录为“待 `$git-sync` 执行”，也不得表述为测试通过、完整跨栈验收完成或生产可用。
-- 只运行仓库已配置的命令。尚未配置的检查项应明确写为缺口，禁止伪装成通过。
+- 正式质量门禁只使用仓库已配置的命令；允许范围内只读诊断、搜索和一次性辅助核验，不能将其冒充正式门禁。尚未配置的检查项明确记录为缺口。
 - 治理和架构变更必须运行 `pnpm check:workspace` 与 `pnpm check:boundaries`。安全、依赖、文本、工作区、模块边界、OpenAPI Breaking Change 和生成契约漂移继续按实际影响执行，但不得隐式启动上述重型验证。
 - 交付前复读修改文件，检查 `git diff` 或等价差异，并清理本次验证产生的缓存和临时产物。
 - 最终回复说明修改内容、验证结果、未执行项和剩余风险。
+- 当前授权目标实现、适用轻量门禁通过、相关文档和临时资源收尾完成后即可交付；按策略未执行的重型验证不自动阻塞本地完成。用户明确要求的验证、发布或部署尚未完成时必须报告为部分完成或阻塞，不能以计划、补丁或已触发工作流代替结果。
 - 提交、推送、发布 GHCR、部署和生产变更是独立动作，分别需要用户明确授权；禁止因完成本地修改而自动执行。
 
 ## Admin 本地运行与验证补充
 
-- Admin 日常启动使用 `pnpm --filter @pinjie/admin dev`；直接调用 Umi 时工作目录必须是 `apps/admin`，端口通过项目包装器设置的 `PORT=3001` 管理，不使用 `max dev --port` 作为端口契约。
-- Umi 修改路由、插件或配置后，遇到生成缓存导致的异常时必须清理 `apps/admin/src/.umi` 和 `apps/admin/src/.umi-production`，并确认这些目录未被提交。
-- Admin 默认只自动运行 typecheck 与 lint。Vitest、production build、浏览器冒烟和真实跨栈 E2E 仅在用户明确授权后执行并分项记录；Docker Desktop、Backend、PostgreSQL 或 Redis 未就绪时，不得把局部冒烟或 MSW 测试表述为完整跨栈通过。
-- Windows 验证结束后只清理本次启动且已核对 PID、命令行和端口归属的服务、进程与浏览器标签，禁止误杀 Codex 或浏览器运行时。
+- Admin 启动、Umi 缓存、端口与验证规则以 `apps/admin/AGENTS.md` 和 `docs/operations/admin-local-development-and-validation-troubleshooting.md` 为准，默认命令为 `pnpm --filter @pinjie/admin dev`。
+- Windows 验证后只清理已核对 PID、命令行和端口归属的本次临时资源；禁止结束 Codex、node_repl、MCP、浏览器运行时及其父进程，禁止 Browser Use finalize。不确定归属时保留并说明。

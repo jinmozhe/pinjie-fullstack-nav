@@ -31,7 +31,16 @@ const AUTH_RETRY_EXCLUDED = new Set([
   "/api/v1/admin/auth/refresh",
   "/api/v1/admin/auth/logout",
 ]);
-let refreshPromise: Promise<boolean> | null = null;
+const SESSION_ERROR_CODES = new Set([
+  "AUTH_REQUIRED", "AUTH_TOKEN_INVALID", "AUTH_SESSION_REVOKED",
+  "AUTH_SESSION_EXPIRED", "AUTH_REFRESH_REUSE_DETECTED",
+]);
+
+export function isSessionError(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.status === 401 && SESSION_ERROR_CODES.has(error.code);
+}
+
+let refreshPromise: Promise<void> | null = null;
 
 function readCookie(name: string): string | undefined {
   const prefix = `${encodeURIComponent(name)}=`;
@@ -55,7 +64,7 @@ async function parseError(response: Response): Promise<ApiError> {
   );
 }
 
-async function refreshSession(): Promise<boolean> {
+async function refreshSession(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       const csrf = readCookie("pinjie_admin_csrf");
@@ -64,7 +73,7 @@ async function refreshSession(): Promise<boolean> {
         credentials: "include",
         headers: csrf ? { "X-CSRF-Token": csrf } : undefined,
       });
-      return response.ok;
+      if (!response.ok) throw await parseError(response);
     })().finally(() => {
       refreshPromise = null;
     });
@@ -87,10 +96,14 @@ export async function apiRequest<T>(
     if (csrf) headers.set("X-CSRF-Token", csrf);
   }
   const response = await fetch(`${API_BASE}${path}`, { ...init, method, headers, credentials: "include" });
-  if (response.status === 401 && options.retryAuth !== false && !AUTH_RETRY_EXCLUDED.has(path)) {
-    if (await refreshSession()) return apiRequest<T>(path, init, { ...options, retryAuth: false });
+  if (!response.ok) {
+    const error = await parseError(response);
+    if (isSessionError(error) && options.retryAuth !== false && !AUTH_RETRY_EXCLUDED.has(path)) {
+      await refreshSession();
+      return apiRequest<T>(path, init, { ...options, retryAuth: false });
+    }
+    throw error;
   }
-  if (!response.ok) throw await parseError(response);
   const payload = (await response.json()) as ApiEnvelope<T>;
   return payload.data;
 }

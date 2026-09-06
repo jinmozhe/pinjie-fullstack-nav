@@ -1,11 +1,13 @@
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { createServer } from "node:net";
+import { startAdminPreview } from "./admin-preview.mjs";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const backendURL = process.env.E2E_BACKEND_URL ?? "http://127.0.0.1:8000";
 const webServer = resolve(root, "apps", "web", ".next", "standalone", "apps", "web", "server.js");
-const adminCLI = resolve(root, "apps", "admin", "node_modules", "@umijs", "max", "bin", "max.js");
+const adminCLI = resolve(root, "scripts", "e2e", "admin-preview.mjs");
 const playwrightCLI = resolve(root, "node_modules", "@playwright", "test", "cli.js");
 const ownedServices = [];
 
@@ -51,8 +53,19 @@ async function waitForService(name, url, child, expectedContentType) {
 }
 
 async function ensureService(name, url, args, cwd, env, expectedContentType) {
-  if (await isAvailable(url, expectedContentType)) return;
-  const child = startService(name, args, cwd, env);
+  await new Promise((done, reject) => {
+    const probe = createServer();
+    probe.once("error", () => reject(new Error(`${name} port is occupied; stop the existing service explicitly.`)));
+    probe.listen(Number(new URL(url).port), "127.0.0.1", () => probe.close(done));
+  });
+  let child;
+  if (name === "Admin production Nginx") {
+    const service = startAdminPreview();
+    ownedServices.push(service);
+    child = service.child;
+  } else {
+    child = startService(name, args, cwd, env);
+  }
   await waitForService(name, url, child, expectedContentType);
 }
 
@@ -67,7 +80,8 @@ async function waitForExit(child, timeoutMs) {
   });
 }
 
-async function stopService({ child }) {
+async function stopService({ child, cleanup: cleanupOwnedContainer }) {
+  cleanupOwnedContainer?.();
   if (child.exitCode !== null || child.signalCode !== null) return;
   child.kill();
   if (await waitForExit(child, 5_000)) return;
@@ -117,11 +131,11 @@ try {
     },
   );
   await ensureService(
-    "Admin preview server",
+    "Admin production Nginx",
     "http://127.0.0.1:3001/umi.js",
-    [adminCLI, "dev", "--host", "127.0.0.1"],
+    [adminCLI],
     resolve(root, "apps", "admin"),
-    { BACKEND_INTERNAL_URL: backendURL, E2E_DISABLE_MFSU: "1", PORT: "3001" },
+    { E2E_BACKEND_URL: backendURL },
     /javascript/i,
   );
 

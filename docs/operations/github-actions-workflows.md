@@ -36,8 +36,10 @@ flowchart TD
     H --> I["固定 SHA 快进交接到 CNB main"]
     I --> J["CNB 按路径构建、扫描并发布受影响端"]
     J --> M["每端独立发布证据和 TCR digest"]
-    M --> K["人工授权生产部署"]
+    M --> Q["人工核对 CNB/TCR 证据并记录回滚 digest"]
+    Q --> K["人工授权生产部署并同步 1Panel 变量"]
     K --> L["1Panel 按固定 digest 更新目标端"]
+    L --> O["核对运行版本、健康与关键业务"]
 ```
 
 流程坚持四项边界：
@@ -45,7 +47,7 @@ flowchart TD
 1. 功能分支 push 不运行整套检查；目标为 `main` 的 Pull Request 和 `main` push 触发轻量静态、契约、治理与安全检查，不运行应用测试或前端生产构建，不发布镜像，不接触生产服务器。
 2. 完整验证只允许人工按需触发，不随 Push、Pull Request 或定时任务自动运行；它对输入 Commit SHA 执行 pytest、Vitest、production build 和 Chromium Playwright，并在全部成功后生成 30 天保留的 Artifact。
 3. 源码交接必须人工触发，默认 `strict` 要求四个自动 Push 工作流和同 SHA 完整验证证据；显式 `fast` 仍要求四个自动 Push 工作流，并记录未执行完整验证的原因。CNB 只在受控 `main` Push 后构建并发布镜像。
-4. 生产部署必须再次人工触发，并固定三个已经验证的镜像 digest。
+4. 生产部署由维护者在 1Panel 人工执行，固定三个已经核验的镜像 digest；当前流程不使用候选镜像验收工作流。纯文档且无运行影响的提交完成 Git 交付即可，不需要继续源码交接和部署。
 
 ## 3. 触发条件总表
 
@@ -266,19 +268,22 @@ Web 和 Admin 当前均为 `ready`，两个质量 Job 可以并行执行。
 ### 8.2 执行步骤
 
 1. 校验输入 SHA 格式、工作流分支、检出结果和默认分支祖先关系。
-2. 启动 PostgreSQL 18.4 和 Redis 8.10.0 服务容器。
-3. 使用固定 uv `0.11.32` 和标准 CPython 3.14 安装 Backend 锁定依赖。
-4. 升级隔离测试数据库并运行包含 90% 覆盖率门禁的 Backend pytest。
-5. 准备权限、注册设置和初始管理员，在 Runner 后台启动 Uvicorn，并轮询 `/health/live`。
-6. 安装固定 pnpm 11.17.0、Node.js 24 和根锁文件依赖。
-7. 运行 Admin 与 Web Vitest 及各自 80% 覆盖率门禁。
-8. 执行 Admin 与 Web production build。
-9. 安装 Chromium 及其系统依赖并运行 `pnpm test:e2e`。
-10. 写入 Commit SHA、Workflow Run ID 和验证集合，上传 `full-validation-<完整 SHA>` Artifact，保留 30 天。
+2. Backend Job 启动独立 PostgreSQL 18.4、Redis 8.10.0，使用固定 uv `0.11.32` 与 CPython 3.14 同步依赖、迁移并执行 90% 覆盖率门禁的 pytest。
+3. 与 Backend 并行的 Admin、Web 矩阵 Job 各自安装固定 pnpm 11.17.0、Node.js 24 和锁定依赖，执行 80% 覆盖率门禁的 Vitest，再构建并上传生产产物。
+4. 三端成功后，E2E Job 在自己的独立数据库中准备权限、注册设置和管理员，启动 Uvicorn，并下载同一 Run 的前端产物。
+5. 安装 Chromium，执行 `pnpm test:e2e`。Web 运行 standalone，Admin 用固定 Nginx 镜像挂载 dist 和生产 nginx.conf，端口已占用时拒绝复用未知服务。
+6. 全部成功后上传 `full-validation-<完整 SHA>`，内容为 `pinjie-full-validation-v2`，保留 30 天；旧 v1 不再作为修正后的生产产物证明。
+7. 成功或失败均保留可用的阶段耗时、退出码与脱敏浏览器结果 14 天。前端传递产物保留 3 天，CI 不上传会话、Trace、Video、HTML 或原始服务日志。
 
 ### 8.3 资源特征
 
 该工作流会下载浏览器、启动数据库和 Redis，并运行三端重型测试与两个前端构建，耗时和资源占用较高，因此只能在用户明确授权后人工触发。任一步失败都不会上传成功证据；Artifact 过期后必须重新运行完整验证，不能通过修改输入或文本说明绕过。
+
+### 8.4 交接证据与 Nav 范围
+
+Nav 未接入母版可选的候选镜像组合验收工作流与工具。既有发布配置仍含母版 CNB/TCR 模板，启用前必须按独立 Nav 环境核对并适配；本手册描述继承的操作机制，不证明发布环境已就绪。
+
+Handoff 使用 `cnb-source-handoff-main` 统一串行组，避免两个不同 SHA 同时推进同一 CNB 分支；GitHub concurrency 不承诺 FIFO，尚在等待的运行可能被更新的等待项替换，操作人员应核对最终 Run 状态。交接成功后保存模式、快速模式理由、Full Validation Run、目标 SHA 和 attempt 的结构化 Artifact。
 
 ## 9. Security
 
@@ -333,7 +338,7 @@ Semgrep 检查仓库自己编写的 Python、JavaScript、TypeScript、Shell、Y
 当前配置：
 
 ```text
-semgrep scan --config p/default --error --strict --metrics off
+semgrep scan --config p/default --error --strict --metrics off --verbose
 ```
 
 参数含义：
@@ -342,6 +347,7 @@ semgrep scan --config p/default --error --strict --metrics off
 - `--error`：发现规则命中时返回失败退出码。
 - `--strict`：规则、解析警告和内部错误同样失败关闭。
 - `--metrics off`：关闭使用指标上报。
+- `--verbose`：在日志中显示解析警告的位置和规则，避免只有失败退出码而无法定位。
 
 CI 固定安装 Semgrep CE `1.173.0`，不配置 Semgrep Token，不创建云端项目，也不上传源码或扫描结果。
 

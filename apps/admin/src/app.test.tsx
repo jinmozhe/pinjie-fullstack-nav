@@ -82,6 +82,20 @@ describe("admin runtime lifecycle", () => {
     await expect(getInitialState()).resolves.toMatchObject({ bootstrapError: "管理服务暂不可用" });
   });
 
+  it.each([429, 503])("keeps the current route when refresh returns %s during bootstrap", async (status) => {
+    history.push("/users");
+    server.use(
+      http.get("http://localhost:3000/api/v1/admin/auth/me", () =>
+        HttpResponse.json({ code: "AUTH_REQUIRED" }, { status: 401 }),
+      ),
+      http.post("http://localhost:3000/api/v1/admin/auth/refresh", () =>
+        HttpResponse.json({ code: status === 429 ? "RATE_LIMITED" : "SERVICE_UNAVAILABLE", message: "会话服务暂不可用" }, { status }),
+      ),
+    );
+    await expect(getInitialState()).resolves.toMatchObject({ bootstrapError: "会话服务暂不可用" });
+    expect(history.location.pathname).toBe("/users");
+  });
+
   it("navigates to account settings from dropdown menu", async () => {
     const user = userEvent.setup();
     const runtime = layout({ initialState: { settings: defaultSettings, currentAdmin } });

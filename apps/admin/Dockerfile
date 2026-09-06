@@ -5,9 +5,12 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .pnpmfile.cjs ./
 COPY apps/admin/package.json apps/admin/package.json
 COPY apps/web/package.json apps/web/package.json
-COPY packages packages
+COPY packages/api-client/package.json packages/api-client/package.json
+COPY packages/eslint-config/package.json packages/eslint-config/package.json
+COPY packages/typescript-config/package.json packages/typescript-config/package.json
 COPY patches patches
 RUN pnpm install --frozen-lockfile
+COPY packages packages
 COPY apps/admin apps/admin
 RUN pnpm --filter @pinjie/admin build
 

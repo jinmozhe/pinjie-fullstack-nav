@@ -21,6 +21,7 @@ from app.db.transaction import transaction_scope
 from app.domains.admin.schemas import AdminConfirmIn, AdminConfirmOut, AdminProfileUpdateIn
 from app.domains.assets.schemas import UploaderType, UploadScene
 from app.domains.users.schemas import AccountDeleteIn, PasswordChangeIn, UserAvatarUpdateIn, UserUpdateIn
+from app.services.assets import resolve_admin_avatar
 from app.services.authentication import SessionArtifacts
 from app.services.security_events import login_event
 
@@ -238,7 +239,9 @@ class AdminAccountService:
             if "display_name" in payload.model_fields_set:
                 locked.display_name = payload.display_name.strip() if payload.display_name else None
             if "avatar" in payload.model_fields_set:
-                locked.avatar = payload.avatar.strip() if payload.avatar else None
+                locked.avatar = await resolve_admin_avatar(
+                    session=self.session, settings=self.settings, avatar=payload.avatar
+                )
         return locked
 
     async def change_password(

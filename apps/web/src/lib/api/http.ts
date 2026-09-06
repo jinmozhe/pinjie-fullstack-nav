@@ -16,7 +16,16 @@ export class ApiError extends Error {
   }
 }
 
-let refreshPromise: Promise<boolean> | null = null;
+const SESSION_ERROR_CODES = new Set([
+  "AUTH_REQUIRED", "AUTH_TOKEN_INVALID", "AUTH_SESSION_REVOKED",
+  "AUTH_SESSION_EXPIRED", "AUTH_REFRESH_REUSE_DETECTED",
+]);
+
+export function isSessionError(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.status === 401 && SESSION_ERROR_CODES.has(error.code);
+}
+
+let refreshPromise: Promise<void> | null = null;
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 function throwIfCancelled(signal?: globalThis.AbortSignal): void {
@@ -41,7 +50,7 @@ async function parseError(response: Response): Promise<ApiError> {
   );
 }
 
-async function refreshSession(): Promise<boolean> {
+async function refreshSession(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       const csrf = readCookie("pinjie_web_csrf");
@@ -50,7 +59,7 @@ async function refreshSession(): Promise<boolean> {
         credentials: "include",
         headers: csrf ? { "X-CSRF-Token": csrf } : undefined,
       });
-      return response.ok;
+      if (!response.ok) throw await parseError(response);
     })().finally(() => { refreshPromise = null; });
   }
   return refreshPromise;
@@ -75,15 +84,26 @@ export async function webRequest<T>(
   }
   const response = await fetch(new URL(path, window.location.origin), { ...init, method, headers, credentials: "include" });
   throwIfCancelled(cancellationSignal);
-  if (response.status === 401 && !reader && retryAuth && !path.startsWith("/api/v1/auth/")) {
-    const refreshed = await refreshSession();
-    throwIfCancelled(cancellationSignal);
-    if (refreshed) return webRequest<T>(path, init, false, cancellationSignal);
+  if (!response.ok) {
+    const error = await parseError(response);
+    if (reader) {
+      if (response.status === 401) window.dispatchEvent(new Event("pinjie:reader-expired"));
+    } else if (isSessionError(error) && !path.startsWith("/api/v1/auth/")) {
+      if (retryAuth) {
+        try {
+          await refreshSession();
+        } catch (refreshError) {
+          throwIfCancelled(cancellationSignal);
+          if (isSessionError(refreshError)) window.dispatchEvent(new Event("pinjie:session-expired"));
+          throw refreshError;
+        }
+        throwIfCancelled(cancellationSignal);
+        return webRequest<T>(path, init, false, cancellationSignal);
+      }
+      window.dispatchEvent(new Event("pinjie:session-expired"));
+    }
+    throw error;
   }
-  if (response.status === 401 && !path.startsWith("/api/v1/auth/")) {
-    window.dispatchEvent(new Event(reader ? "pinjie:reader-expired" : "pinjie:session-expired"));
-  }
-  if (!response.ok) throw await parseError(response);
   return ((await response.json()) as ApiEnvelope<T>).data;
 }
 

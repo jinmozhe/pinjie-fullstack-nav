@@ -22,7 +22,7 @@ import defaultSettings from "../config/defaultSettings";
 import { AdminAvatar } from "./components/AdminAvatar";
 import { AdminContext } from "./features/auth/auth-context";
 import { adminApi } from "./lib/api/admin";
-import { ApiError, errorMessage } from "./lib/api/http";
+import { errorMessage, isSessionError } from "./lib/api/http";
 import logoSvg from "./assets/logo.svg";
 import "./styles.css";
 
@@ -46,7 +46,7 @@ export async function getInitialState(): Promise<AdminInitialState> {
   try {
     return { currentAdmin: await adminApi.me(), settings };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
+    if (isSessionError(error)) {
       const { pathname, search, hash } = history.location;
       history.replace(
         `/login?redirect=${encodeURIComponent(pathname + search + hash)}`,

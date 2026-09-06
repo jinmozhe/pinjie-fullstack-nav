@@ -64,6 +64,8 @@
 
 登录后的用户资料通过 `GET/PATCH /api/v1/users/me` 读取和更新；头像使用独立的 `PUT /api/v1/users/me/avatar`，只接受当前用户自己上传的 `avatar` 资产 ID，传 `null` 解除绑定。头像更新受 Web 会话、精确 Origin 和 CSRF 保护，不改变凭据版本或会话。
 
+管理员本人资料和管理员管理资料入口继续接受头像 URL。站内上传路径及已配置 Web/Admin Origin 下的上传地址先归一化为资产公开路径，移除查询参数和片段，再按唯一文件键校验并锁定资产；资产已删除时拒绝保存。绑定与资产删除共用资产行锁，事务结束前保持锁定，已提交头像引用阻止删除。其他外部 URL 和非资产静态路径保持原有行为，清空头像解除引用。
+
 公共端点 `GET /api/v1/system/capabilities` 只返回 `registration_enabled`。Web 在能力关闭时隐藏注册入口并把 `/register` 重定向到登录页；查询失败时按未知且不开放处理，并显示服务不可用状态。Backend 的公开注册端点始终执行权威开关校验，前端隐藏不承担安全控制。
 
 系统设置使用四项独立权限：`settings:site:read`、`settings:site:update`、`settings:registration:read` 和 `settings:registration:update`。Admin 设置写接口同时要求管理员会话、准确权限、CSRF、revision 校验和审计；LOGO 上传与删除归站点更新权限，不复用文件资产权限。
@@ -73,14 +75,18 @@
 - Cookie 身份的 `POST`、`PUT`、`PATCH` 和 `DELETE` 请求必须同时通过精确 Origin allowlist 与 `X-CSRF-Token` 校验。
 - Refresh 与 Logout 使用 Refresh Cookie 和同一 Session 的 CSRF 对，普通受保护写请求使用 Access Cookie 对应的当前 Session。
 - 登录和注册尚无 Session，仍执行 Origin 校验，并结合 `SameSite=Lax` Cookie 与 Redis 原子限流。
-- 401 清理对应 Profile 的认证 Cookie。前端只允许一次受控 Refresh 和一次原请求重放，Refresh 端点本身不得递归重试；失败后才清理会话状态并进入登录失效流程。
+- Backend 仅在认证校验明确标记失效时清理对应 Profile 的认证 Cookie。前端仅将 HTTP 401 且错误码为 `AUTH_REQUIRED`、`AUTH_TOKEN_INVALID`、`AUTH_SESSION_REVOKED`、`AUTH_SESSION_EXPIRED` 或 `AUTH_REFRESH_REUSE_DETECTED` 的响应视为会话错误；最多执行一次 Refresh 和一次原请求重放，Refresh 端点本身不得递归重试。
+- `AUTH_INVALID_CREDENTIALS` 等业务失败和未知错误码原样返回，不触发刷新、请求重放或登录失效。刷新接口的错误状态、错误码、请求标识与 `Retry-After` 继续向上传播；429、503 和网络失败不清理客户端会话状态。Web SSR 恢复遇到非会话故障时显示错误并提供手动重试，仅在明确会话失效时跳转登录。
 - Logout 只有在服务端明确成功后才进入未认证页面；失败必须保留当前页面并展示可重试错误，不能把失败伪装为本地退出成功。
+- Nav reader 路径保留独立 CSRF Cookie 和 401 失效事件，不进入普通用户 Refresh；只读会话的 401 仅清理查阅状态，临时故障不清理两类客户端会话。普通用户的错误码白名单不改变 reader 既有认证契约。
 
 ## 7. 权限模型边界
 
 母版提供规范化 RBAC 基础，不预设复杂 ABAC、组织树和多租户数据权限。`PermissionCode` 与 `PERMISSION_CATALOG` 是权限目录源码，数据库通过显式 `scripts.sync_permissions --check/--apply` 同步；应用启动不自动修改权限表。
 
 管理员、角色、权限及关联关系使用规范化表和外键。Admin 导航由前端代码维护，并按服务端返回的权限过滤，不建立动态菜单表。Dependency 校验端点权限，Service 在事务内读取权威资源状态并执行最终授权。超级管理员仍经过 Session、CSRF、最后超级管理员保护和审计链；会减少有效超级管理员数量的写操作在同一 PostgreSQL 事务内取得固定 advisory lock，串行执行计数和修改。
+
+最终授权使用的单个管理员锁定读取显式设置 `populate_existing=True`，刷新同一 AsyncSession 中在认证阶段已加载的属性和关联。数据库行锁与 ORM 状态刷新共同保证事务内校验读取最新状态，避免并发停用或降权后复用旧身份。
 
 `admins:update` 只负责管理员资料与状态修改，不接受 `is_superuser`。超级管理员身份统一通过 `PATCH /api/v1/admin/admins/{admin_id}/superuser` 和系统权限 `admins:superuser:change` 变更；该权限在权限目录中可见，但标记为不可分配给角色，角色权限写接口拒绝保存。独立端点同时校验管理员会话、CSRF、准确权限和当前超级管理员身份，Service 在事务内重新读取操作者权威状态；创建管理员时提交 `is_superuser=true` 也执行同一权威校验，防止从创建入口绕过。Admin 只向当前超级管理员提供身份切换入口，界面控制不替代服务端授权。
 
