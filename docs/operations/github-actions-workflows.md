@@ -71,26 +71,15 @@ flowchart TD
 
 ### 3.1 远端仓库治理基线
 
-截至 2026-08-24，GitHub 远端按单维护者基线配置：
+截至 2026-09-07，Nav 仓库 `jinmozhe/pinjie-fullstack-nav` 的已核验配置如下：
 
-- Dependabot vulnerability alerts、Secret Scanning、Push Protection 和 Private
-  Vulnerability Reporting 已启用；Dependabot security updates 按人工依赖 PR 决策保持关闭。
-- 2026-08-22 的 Medium/Low 治理已通过锁文件修复 `@babel/core`、`@babel/runtime`、
-  `esbuild` 和 `send` 四条告警，推送后由 Dependabot 重扫自动关闭。React Router 告警
-  `#4`、`#7` 与 `elliptic` 告警 `#5` 因当前没有受 Umi 支持的安全升级路径，已使用
-  `tolerable_risk` 记录依赖链、不可达性证据、负责人和 2026-09-21 复核日期；这三条属于
-  限时风险接受，不属于漏洞修复。完成时 GitHub Dependabot 为 0 Open、7 Closed。
-- Actions 只允许 GitHub-owned Actions、仓库所有者 `jinmozhe` 下的 Actions，以及仓库现有
-  工作流使用的 11 条明确第三方匹配规则；`sha_pinning_required=true`，所有 Action 必须固定
-  完整 Commit SHA。
-- active Ruleset `Protect main`（ID `21152538`）作用于默认分支，禁止删除和非快进更新，
-  要求 Pull Request、会话解决和 13 个自动状态检查。
-- Ruleset 审批数为 0，不要求第二维护者批准，但不保留个人、管理员或日常维护 bypass。
-  `current_user_can_bypass=never`，维护者只能在必需检查满足后自行合并 Pull Request。
-  紧急恢复如需临时调整 Ruleset，必须单独授权、保留审计记录并在恢复后立即撤销。
-- 仓库启用 Auto-merge、rebase merge 和合并后自动删除功能分支。Auto-merge 只在 Ruleset 和必需检查满足后执行，不改变保护规则。
-- `production` Environment（ID `20337656537`）只允许受保护分支，必要 Reviewer 为
-  `jinmozhe`，`prevent_self_review=false`，当前 Secrets 和 Variables 均为 0。
+- Dependabot vulnerability alerts 与 Dependency graph 已启用，依赖比较接口可用；Secret Scanning 和 Push Protection 已启用。Dependabot security updates 保持关闭。
+- active Ruleset `Nav main pull request and light checks`（ID `22393975`）仅作用于 `refs/heads/main`，禁止删除和非快进更新，要求线性历史、Pull Request、会话解决和 13 项现有轻量检查。
+- 必需检查绑定 GitHub Actions（App ID `15368`），采用严格分支更新检查；具体名称以本节下方工作流检查表和远端 Ruleset 为准。
+- Ruleset 审批数为 0，不要求第二维护者批准，bypass 列表为空；PR 仅允许 rebase 合并。仓库启用 Auto-merge 和合并后自动删除功能分支。
+- 母版的漏洞编号、风险接受结果、Ruleset ID、Actions 权限设置和生产 Environment 不能作为 Nav 配置事实；生产发布环境仍需独立配置和核验。
+
+Dependency review 报告依赖图不可用时，应先检查仓库安全设置。GitHub 会在启用 Dependabot 时自动启用依赖图，见[官方 Dependabot 入门说明](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/dependabot-quickstart)。不得通过跳过依赖审查解决配置缺失。
 
 单维护者基线没有独立审批职责分离，但 Pull Request 和自动检查仍是默认分支的强制门禁。
 普通提交、分支推送和合并按用户文字分别授权。用户显式调用 `$git-sync` 时，该次调用覆盖当前任务的分支、提交、推送、PR、rebase 自动合并、分支清理和本地 `main` 同步；镜像发布和生产部署继续分别取得明确授权，并保留不可变发布和审计记录。
