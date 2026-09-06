@@ -48,7 +48,7 @@ write_scan_failure() {
 }
 
 digest_file="$EVIDENCE_ROOT/$IMAGE_KEY-digest.txt"
-json_report="$EVIDENCE_ROOT/$IMAGE_KEY-trivy.json"
+json_report="$EVIDENCE_ROOT/$IMAGE_KEY-trivy-full.json"
 table_report="$EVIDENCE_ROOT/$IMAGE_KEY-trivy-table.txt"
 digest="$(tr -d '\r\n' < "$digest_file")"
 if ! printf '%s' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
@@ -61,8 +61,8 @@ if ! trivy image \
     --cache-dir /root/.cache/trivy \
     --timeout 20m \
     --exit-code 0 \
-    --ignore-unfixed \
-    --severity HIGH,CRITICAL \
+    --list-all-pkgs \
+    --ignorefile /dev/null \
     --scanners vuln \
     --format json \
     --output "$json_report" \
@@ -71,29 +71,27 @@ if ! trivy image \
   exit 1
 fi
 
-if trivy image \
-    --cache-dir /root/.cache/trivy \
-    --timeout 20m \
-    --exit-code 1 \
-    --ignore-unfixed \
+if trivy convert \
+    --exit-code 0 \
     --severity HIGH,CRITICAL \
     --scanners vuln \
     --format table \
     --output "$table_report" \
-    "$image_ref"; then
-  rm -f "$table_report"
+    "$json_report"; then
+  test -s "$table_report"
 else
   scan_status="$?"
   write_scan_failure "$image_ref" "blocking-vulnerability-or-scan-error" "$table_report"
   exit "$scan_status"
 fi
 
-trivy image \
-  --cache-dir /root/.cache/trivy \
-  --timeout 20m \
+if ! trivy convert \
   --format cyclonedx \
   --output "$EVIDENCE_ROOT/$IMAGE_KEY-sbom.cdx.json" \
-  "$image_ref"
+  "$json_report"; then
+  write_scan_failure "$image_ref" "sbom-conversion-error"
+  exit 1
+fi
 
 test -s "$json_report"
 test -s "$EVIDENCE_ROOT/$IMAGE_KEY-sbom.cdx.json"

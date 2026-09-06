@@ -24,4 +24,5 @@
 
 | 计划 | 状态 | 结果 | 影响范围 | 用途 |
 | --- | --- | --- | --- | --- |
+| `plans/2026-09-06_母版90644f5累计更新计划.md` | 已结束 | 已完成；选择性迁移并通过轻量门禁，排除母版身份绑定工具 | Backend、Admin、Web、API Client、Deployment、Documentation | 从原派生快照累计吸收母版通用修复，保留 Nav 并登记排除项 |
 | `plans/2026-09-06_导航管理与管理员只读查阅计划.md` | 已结束 | 已完成；源码与轻量验证完成，真实迁移和重型验收未执行 | Backend、Admin、Web、API Client、Database、Deployment、Documentation | 公开导航、后台统一凭据管理与管理员独立只读会话 |

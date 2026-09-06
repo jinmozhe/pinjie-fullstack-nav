@@ -18,10 +18,89 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  full-validation:
-    name: Tests, builds, and browser E2E
+  source:
     runs-on: ubuntu-latest
-    services:
+    outputs:
+      commit_sha: ${{ steps.input.outputs.commit_sha }}
+    steps:
+      - name: Validate immutable input
+        id: input
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          [[ "$COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH"
+          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.input.outputs.commit_sha }}
+      - name: Require default branch ancestry
+        env:
+          EXPECTED_SHA: ${{ steps.input.outputs.commit_sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          git merge-base --is-ancestor "$EXPECTED_SHA" "origin/$DEFAULT_BRANCH"
+
+  frontend:
+    name: Validate and build ${{ matrix.app }}
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [admin, web]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.source.outputs.commit_sha }}
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 11.17.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: node scripts/ci/run-timed.mjs install pnpm install --frozen-lockfile
+      - run: node scripts/ci/run-timed.mjs unit pnpm --filter "@pinjie/$APP" test
+        env:
+          APP: ${{ matrix.app }}
+      - run: node scripts/ci/run-timed.mjs build pnpm --filter "@pinjie/$APP" build
+        env:
+          APP: ${{ matrix.app }}
+      - name: Package production output
+        env:
+          APP: ${{ matrix.app }}
+        run: |
+          if [[ "$APP" = "web" ]]; then
+            tar -czf "$RUNNER_TEMP/frontend-output.tar.gz" apps/web/.next/standalone
+          else
+            tar -czf "$RUNNER_TEMP/frontend-output.tar.gz" apps/admin/dist
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: production-${{ matrix.app }}-${{ github.run_id }}
+          overwrite: true
+          path: ${{ runner.temp }}/frontend-output.tar.gz
+          retention-days: 3
+          if-no-files-found: error
+      - name: Save phase timing on success or failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: metrics-${{ matrix.app }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/validation-metrics/*.json
+          retention-days: 14
+
+  backend:
+    name: Backend pytest
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services: &test-services
       postgres:
         image: postgres:18.4-alpine
         env:
@@ -44,7 +123,7 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-    env:
+    env: &test-environment
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/pinjie_e2e_test
       TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/pinjie_e2e_test
       ENVIRONMENT: test
@@ -118,7 +197,37 @@ jobs:
 
       - name: Run Backend pytest
         working-directory: apps/backend
-        run: uv run pytest
+        run: node ../../scripts/ci/run-timed.mjs pytest uv run pytest
+
+      - name: Save Backend timing on success or failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: metrics-backend-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/validation-metrics/*.json
+          retention-days: 14
+
+  full-validation:
+    name: Production browser E2E and aggregate evidence
+    needs: [source, backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services: *test-services
+    env: *test-environment
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.source.outputs.commit_sha }}
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          enable-cache: true
+          python-version: "3.14"
+          version: "0.11.32"
+      - name: Prepare isolated Backend runtime
+        working-directory: apps/backend
+        run: |
+          uv sync --locked --python 3.14
+          uv run alembic upgrade head
 
       - name: Prepare Stage C database and administrator
         working-directory: apps/backend
@@ -156,35 +265,37 @@ jobs:
       - name: Install locked workspace dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Admin Vitest
-        run: pnpm --filter @pinjie/admin test
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: production-*-${{ github.run_id }}
+          path: ${{ runner.temp }}/production-output
 
-      - name: Run Web Vitest
-        run: pnpm --filter @pinjie/web test
-
-      - name: Build frontend applications
-        run: pnpm --filter @pinjie/admin build && pnpm --filter @pinjie/web build
+      - name: Restore verified production outputs
+        run: |
+          for app in admin web; do
+            tar -xzf "$RUNNER_TEMP/production-output/production-$app-$GITHUB_RUN_ID/frontend-output.tar.gz"
+          done
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run browser E2E
-        run: pnpm test:e2e
+        run: node scripts/ci/run-timed.mjs playwright pnpm test:e2e
 
       - name: Write full validation evidence
         shell: bash
         env:
-          COMMIT_SHA: ${{ steps.input.outputs.commit_sha }}
+          COMMIT_SHA: ${{ needs.source.outputs.commit_sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/full-validation-evidence"
           {
-            printf 'schema=pinjie-full-validation-v1\n'
+            printf 'schema=pinjie-full-validation-v2\n'
             printf 'commit_sha=%s\n' "$COMMIT_SHA"
             printf 'workflow_run_id=%s\n' "$GITHUB_RUN_ID"
             printf 'workflow_run_attempt=%s\n' "$GITHUB_RUN_ATTEMPT"
             printf 'backend=pytest\n'
-            printf 'admin=vitest,production-build\n'
-            printf 'web=vitest,production-build\n'
+            printf 'admin=vitest,production-build,nginx-dist\n'
+            printf 'web=vitest,production-build,standalone\n'
             printf 'browser=playwright-chromium\n'
             printf 'database=postgresql-18.4-alpine\n'
             printf 'cache=redis-8.10.0-alpine\n'
@@ -193,7 +304,18 @@ jobs:
       - name: Upload full validation evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: full-validation-${{ steps.input.outputs.commit_sha }}
+          name: full-validation-${{ needs.source.outputs.commit_sha }}
+          overwrite: true
           path: ${{ runner.temp }}/full-validation-evidence/full-validation.env
           if-no-files-found: error
           retention-days: 30
+
+      - name: Save sanitized diagnostics on success or failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: diagnostics-full-validation-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/validation-metrics/*.json
+            test-results/e2e-summary.json
+          retention-days: 14

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import builtins
+import posixpath
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import PurePosixPath
 from typing import BinaryIO
+from urllib.parse import unquote, urlsplit
 
 from loguru import logger
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -371,4 +373,30 @@ class AssetService:
             logger.bind(file_key=file_key).opt(exception=exc).critical("failed to compensate committed asset file")
 
 
-__all__ = ["AssetService", "AssetUploader"]
+async def resolve_admin_avatar(*, session: AsyncSession, settings: Settings, avatar: str | None) -> str | None:
+    value = avatar.strip() if avatar else None
+    if not value:
+        return None
+    try:
+        parsed = urlsplit(value)
+    except ValueError as exc:
+        raise AppException(status_code=422, code=ErrorCode.VALIDATION_ERROR, message="头像地址无效") from exc
+    if parsed.netloc or parsed.scheme:
+        origins = [urlsplit(origin) for origin in settings.cors_origins]
+        if not any(
+            parsed.netloc.lower() == origin.netloc.lower() and (not parsed.scheme or parsed.scheme == origin.scheme)
+            for origin in origins
+        ):
+            return value
+    path = posixpath.normpath(unquote(parsed.path))
+    prefix = settings.upload_base_url.rstrip("/") + "/"
+    if not path.startswith(prefix):
+        return value
+    # The caller owns the transaction; deletion holds this same asset row lock.
+    asset = await AssetRepository(session).get_by_file_key(path[len(prefix) :], for_update=True)
+    if asset is None or asset.url != path:
+        raise AppException(status_code=404, code=ErrorCode.ASSET_NOT_FOUND, message="头像资产不存在或已删除")
+    return asset.url
+
+
+__all__ = ["AssetService", "AssetUploader", "resolve_admin_avatar"]

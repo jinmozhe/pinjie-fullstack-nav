@@ -108,7 +108,7 @@ class AdminRepository:
 
     async def get(self, admin_id: uuid.UUID, *, for_update: bool = False, refresh: bool = False) -> Admin | None:
         statement = select(Admin).where(Admin.id == admin_id).options(self._with_permissions())
-        if refresh:
+        if refresh or for_update:
             statement = statement.execution_options(populate_existing=True)
         if for_update:
             statement = statement.with_for_update()

@@ -73,6 +73,7 @@ from app.domains.admin.schemas import (
     UserRestoreBatchIn,
 )
 from app.domains.users.schemas import UserUpdateIn
+from app.services.assets import resolve_admin_avatar
 from app.services.security_events import AuditCoordinator
 
 _FASTAPI_VERSION = version("fastapi")
@@ -476,7 +477,9 @@ class AdminManagementService:
             if "display_name" in payload.model_fields_set:
                 admin.display_name = payload.display_name.strip() if payload.display_name else None
             if "avatar" in payload.model_fields_set:
-                admin.avatar = payload.avatar.strip() if payload.avatar else None
+                admin.avatar = await resolve_admin_avatar(
+                    session=self.session, settings=self.settings, avatar=payload.avatar
+                )
             return admin
 
         return await self.audit.execute(

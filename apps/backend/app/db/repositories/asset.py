@@ -21,6 +21,12 @@ class AssetRepository:
             statement = statement.with_for_update()
         return (await self._session.execute(statement)).scalar_one_or_none()
 
+    async def get_by_file_key(self, file_key: str, *, for_update: bool = False) -> Asset | None:
+        statement = select(Asset).where(Asset.file_key == file_key)
+        if for_update:
+            statement = statement.with_for_update()
+        return (await self._session.execute(statement)).scalar_one_or_none()
+
     async def get_many(self, asset_ids: list[uuid.UUID], *, for_update: bool = False) -> list[Asset]:
         if not asset_ids:
             return []

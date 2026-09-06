@@ -68,13 +68,13 @@ ProComponents 是提高标准管理场景效率的首选，不是形式上的强
 
 标准列表使用 `ProTable` 时，空数据展示以 `ProTable` 内建空态为唯一来源。页面外层 `QueryState` 只负责加载、失败和重试，不传 `empty`，也不额外渲染 Ant Design `Empty`，避免同一请求产生两个“暂无数据”。未使用 `ProTable` 的列表、抽屉和面板继续由 `QueryState empty` 或 Ant Design `Empty` 提供空态。
 
-管理端保持紧凑、可扫描和适合重复操作。所有 Ant Design `Table` 或 `ProTable` 表格的表头和单元格统一设置 `white-space: nowrap`，优先通过 `onHeaderCell`、`onCell` 或 Admin 公共表格样式实现，避免空数据或列宽自适应时出现换行；长文本通过列宽、Tooltip 或明确的溢出处理解决。存在操作列时沿用现有 `width: "1%"` 和按钮布局，并保持表头、单元格及按钮容器单行。标准桌面列表保持弹性宽度，不在全局 `.ant-table-container` 上覆盖 `overflow`；真实宽表和窄屏横向溢出由具体 `Table` 或 `ProTable` 的 `scroll.x` 管理，避免重复滚动容器和异常纵向滚动条。危险操作必须有清晰文案、确认、Loading 和失败恢复。图标按钮使用 Ant Design Icons，并为不熟悉的图标提供 Tooltip。
+管理端保持紧凑、可扫描和适合重复操作。所有 Ant Design `Table` 或 `ProTable` 表格的表头和单元格统一设置 `white-space: nowrap`，优先通过 `onHeaderCell`、`onCell` 或 Admin 公共表格样式实现，避免空数据或列宽自适应时出现换行；长文本通过列宽、Tooltip 或明确的溢出处理解决。存在操作列时沿用现有 `width: "1%"` 和按钮布局，并保持表头、单元格及按钮容器单行。标准桌面列表保持弹性宽度，不在全局 `.ant-table-container` 上覆盖 `overflow`；真实宽表和窄屏横向溢出由具体 `Table` 或 `ProTable` 的 `scroll.x` 管理，避免重复滚动容器和异常纵向滚动条。危险操作必须有清晰文案、Loading 和失败恢复；二次确认只用于下节规定的物理硬删除。图标按钮使用 Ant Design Icons，并为不熟悉的图标提供 Tooltip。
 
 桌面展开态由 Umi Max ProLayout 统一使用 `256px` 侧栏，PageContainer 保持流式内容区，不设置固定最大宽度。`1440px` 及以上视口使用 `40px` 页面水平内边距，较窄桌面回落为 `24px`，移动端回落为 `16px`；标题区与正文使用同一水平边界。移动端侧栏折叠和抽屉继续使用 ProLayout 官方响应式行为，页面不得产生 document 级横向溢出。
 
 ## 列表分类与批量操作
 
-列表页面在设计和评审时先按数据语义分类：
+新增列表或调整列表操作能力时先按数据语义分类；局部样式、文案和缺陷修复保留既有能力，不自动扩大为批量功能建设：
 
 | 列表类型 | 选择与批量操作 | 删除语义 | 当前示例 |
 | --- | --- | --- | --- |

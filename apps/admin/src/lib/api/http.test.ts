@@ -15,7 +15,7 @@ describe("admin HTTP authentication boundary", () => {
     server.use(
       http.get("http://localhost:3000/api/v1/admin/auth/me", () => {
         protectedCalls += 1;
-        return protectedCalls === 1 ? HttpResponse.json({ message: "登录已失效" }, { status: 401 }) : ok({ id: "admin" });
+        return protectedCalls === 1 ? HttpResponse.json({ code: "AUTH_REQUIRED", message: "登录已失效" }, { status: 401 }) : ok({ id: "admin" });
       }),
       http.post("http://localhost:3000/api/v1/admin/auth/refresh", ({ request }) => {
         refreshCalls += 1;
@@ -48,19 +48,52 @@ describe("admin HTTP authentication boundary", () => {
     expect(refreshCalls).toBe(0);
   });
 
-  it("surfaces the original 401 when refresh fails", async () => {
+  it("surfaces the refresh error when the session cannot be renewed", async () => {
     server.use(
       http.get("http://localhost:3000/api/v1/admin/auth/me", () =>
         HttpResponse.json({ code: "AUTH_REQUIRED", message: "需要登录", request_id: "auth-request" }, { status: 401 }),
       ),
       http.post("http://localhost:3000/api/v1/admin/auth/refresh", () =>
-        HttpResponse.json({ code: "AUTH_REQUIRED", message: "需要登录" }, { status: 401 }),
+        HttpResponse.json({ code: "AUTH_SESSION_REVOKED", message: "会话已撤销", request_id: "refresh-request" }, { status: 401 }),
       ),
     );
 
     await expect(apiRequest("/api/v1/admin/auth/me")).rejects.toEqual(
-      new ApiError(401, "AUTH_REQUIRED", "需要登录", "auth-request"),
+      new ApiError(401, "AUTH_SESSION_REVOKED", "会话已撤销", "refresh-request"),
     );
+  });
+
+  it.each(["AUTH_INVALID_CREDENTIALS", "UNKNOWN_ERROR"])("does not refresh a business or unknown 401: %s", async (code) => {
+    let refreshCalls = 0;
+    let passwordCalls = 0;
+    server.use(
+      http.post("http://localhost:3000/api/v1/admin/auth/password", () => {
+        passwordCalls += 1;
+        return HttpResponse.json({ code, message: "当前密码错误" }, { status: 401 });
+      }),
+      http.post("http://localhost:3000/api/v1/admin/auth/refresh", () => {
+        refreshCalls += 1;
+        return ok({});
+      }),
+    );
+    await expect(apiRequest("/api/v1/admin/auth/password", { method: "POST" })).rejects.toMatchObject({ status: 401, code });
+    expect(passwordCalls).toBe(1);
+    expect(refreshCalls).toBe(0);
+  });
+
+  it.each([[429, "RATE_LIMITED"], [503, "SERVICE_UNAVAILABLE"]] as const)("preserves refresh failure %s and its retry metadata", async (status, code) => {
+    let protectedCalls = 0;
+    server.use(
+      http.get("http://localhost:3000/api/v1/admin/auth/me", () => {
+        protectedCalls += 1;
+        return HttpResponse.json({ code: "AUTH_REQUIRED" }, { status: 401 });
+      }),
+      http.post("http://localhost:3000/api/v1/admin/auth/refresh", () =>
+        HttpResponse.json({ code, message: "稍后重试", request_id: "refresh-request" }, { status, headers: { "Retry-After": "5" } }),
+      ),
+    );
+    await expect(apiRequest("/api/v1/admin/auth/me")).rejects.toMatchObject({ status, code, requestId: "refresh-request", retryAfter: "5" });
+    expect(protectedCalls).toBe(1);
   });
 
   it("adds JSON and CSRF headers to unsafe requests", async () => {

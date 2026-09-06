@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: cnb-source-handoff-${{ inputs.commit_sha }}
+  group: cnb-source-handoff-main
   cancel-in-progress: false
 
 jobs:
@@ -40,6 +40,7 @@ jobs:
     outputs:
       commit_sha: ${{ steps.input.outputs.commit_sha }}
       validation_mode: ${{ steps.release-mode.outputs.validation_mode }}
+      validation_run_id: ${{ steps.full-validation.outputs.validation_run_id }}
     steps:
       - name: Validate commit SHA
         id: input
@@ -174,6 +175,9 @@ jobs:
             unzip -q "$candidate_dir/evidence.zip" -d "$candidate_dir/content"
             evidence="$candidate_dir/content/full-validation.env"
             if [[ ! -f "$evidence" ]]; then
+              continue
+            fi
+            if ! grep -Fxq 'schema=pinjie-full-validation-v2' "$evidence"; then
               continue
             fi
 
@@ -313,3 +317,25 @@ jobs:
             echo "CNB branch: $CNB_RELEASE_BRANCH"
             echo "CNB build logs: $CNB_REPOSITORY_URL/-/build/logs"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write durable handoff evidence
+        env:
+          EXPECTED_SHA: ${{ needs.validate.outputs.commit_sha }}
+          VALIDATION_MODE: ${{ needs.validate.outputs.validation_mode }}
+          VALIDATION_RUN_ID: ${{ needs.validate.outputs.validation_run_id }}
+          FAST_MODE_REASON: ${{ inputs.fast_mode_reason }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/handoff-evidence"
+          jq -n --arg sha "$EXPECTED_SHA" --arg mode "$VALIDATION_MODE" \
+            --arg reason "$FAST_MODE_REASON" --arg validation "$VALIDATION_RUN_ID" \
+            --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
+            '{schema:"pinjie-source-handoff-v1",commit_sha:$sha,mode:$mode,reason:$reason,full_validation_run_id:$validation,run_id:$run,run_attempt:$attempt}' \
+            > "$RUNNER_TEMP/handoff-evidence/handoff.json"
+
+      - name: Upload durable handoff evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: source-handoff-${{ needs.validate.outputs.commit_sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/handoff-evidence/handoff.json
+          if-no-files-found: error
+          retention-days: 90

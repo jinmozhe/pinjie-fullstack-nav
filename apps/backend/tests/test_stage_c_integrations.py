@@ -24,6 +24,7 @@ from app.db.models import (
     Admin,
     AdminRefreshToken,
     AdminSession,
+    Asset,
     AuditEvent,
     Permission,
     RequestLog,
@@ -394,6 +395,9 @@ async def test_admin_avatar_and_bulk_status_are_atomic_and_audited() -> None:
     protected_ids = [new_uuid7(), new_uuid7()]
     session_ids = [new_uuid7(), new_uuid7()]
     missing_id = new_uuid7()
+    avatar_id = new_uuid7()
+    avatar_key = f"avatar/{avatar_id.hex}.png"
+    avatar_url = f"{settings.upload_base_url}/{avatar_key}"
     request_ids: list[str] = []
     existing_superusers: list[tuple[uuid.UUID, int, datetime]] = []
     now = datetime.now(UTC)
@@ -481,13 +485,30 @@ async def test_admin_avatar_and_bulk_status_are_atomic_and_audited() -> None:
                     )
                 )
 
+        async with resources.session_factory() as session, transaction_scope(session):
+            session.add(
+                Asset(
+                    id=avatar_id,
+                    uploader_type="admin",
+                    uploader_id=actor_id,
+                    storage_driver="local",
+                    file_key=avatar_key,
+                    original_name="avatar.png",
+                    mime_type="image/png",
+                    file_size=16,
+                    file_hash="a" * 64,
+                    url=avatar_url,
+                    scene="avatar",
+                )
+            )
+
         async with resources.session_factory() as current_session:
             updated = await service(current_session).update_admin(
                 target_ids[0],
-                AdminUpdateIn(display_name=" Updated Target ", avatar=" /static/uploads/avatar/example.png "),
+                AdminUpdateIn(display_name=" Updated Target ", avatar=f" {avatar_url} "),
             )
             assert updated.display_name == "Updated Target"
-            assert updated.avatar == "/static/uploads/avatar/example.png"
+            assert updated.avatar == avatar_url
 
         async with resources.session_factory() as current_session:
             cleared = await service(current_session).update_admin(target_ids[0], AdminUpdateIn(avatar=None))
@@ -562,6 +583,7 @@ async def test_admin_avatar_and_bulk_status_are_atomic_and_audited() -> None:
         async with resources.session_factory() as session, transaction_scope(session):
             await session.execute(delete(AdminSession).where(AdminSession.id.in_(session_ids)))
             await session.execute(delete(AuditEvent).where(AuditEvent.actor_id == actor_id))
+            await session.execute(delete(Asset).where(Asset.id == avatar_id))
             await session.execute(delete(Admin).where(Admin.id.in_([actor_id, *target_ids, *protected_ids])))
             for admin_id, credential_version, updated_at in existing_superusers:
                 await session.execute(

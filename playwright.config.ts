@@ -1,19 +1,20 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const backendURL = process.env.E2E_BACKEND_URL ?? "http://127.0.0.1:8000";
-const reuseExistingServer = process.env.E2E_MANAGED_SERVERS === "1" || !process.env.CI;
+const reuseExistingServer = false;
 
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
+  failOnFlakyTests: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  reporter: [["list"], ["html", { open: "never" }]],
+  reporter: [["list"], ["html", { open: "never" }], ["./scripts/e2e/summary-reporter.mjs"]],
   use: {
-    trace: "retain-on-failure",
+    trace: process.env.CI ? "off" : "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: process.env.CI ? "off" : "retain-on-failure",
   },
   projects: [
     {
@@ -33,7 +34,7 @@ export default defineConfig({
       use: { ...devices["Pixel 7"], baseURL: "http://127.0.0.1:3001" },
     },
   ],
-  webServer: [
+  webServer: process.env.E2E_MANAGED_SERVERS === "1" ? undefined : [
     {
       command: "node apps/web/.next/standalone/apps/web/server.js",
       url: "http://127.0.0.1:3000",
@@ -47,11 +48,11 @@ export default defineConfig({
       },
     },
     {
-      command: "pnpm --filter @pinjie/admin preview --host 127.0.0.1",
+      command: "node scripts/e2e/admin-preview.mjs",
       url: "http://127.0.0.1:3001",
       reuseExistingServer,
       timeout: 120_000,
-      env: { BACKEND_INTERNAL_URL: backendURL },
+      env: { E2E_BACKEND_URL: backendURL },
     },
   ],
 });

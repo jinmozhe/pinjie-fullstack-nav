@@ -1,7 +1,38 @@
+import assert from "node:assert/strict";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import YAML from "yaml";
+import { filterScan } from "./cnb-check-scan-evidence.mjs";
+
+const report = { SchemaVersion: 2, ArtifactType: "container_image", Results: [{ Target: "alpine", Class: "os-pkgs",
+  Packages: [{ Name: "openssl" }], Vulnerabilities: [
+    { VulnerabilityID: "CVE-2099-0001", Severity: "HIGH", FixedVersion: "1.2" },
+    { VulnerabilityID: "CVE-2099-0002", Severity: "CRITICAL" },
+    { VulnerabilityID: "CVE-2099-0003", Severity: "LOW", FixedVersion: "1.3" },
+  ] }] };
+const mutate = (value, change) => { const copy = structuredClone(value); change(copy); return copy; };
+assert.equal(filterScan(report).Results[0].Vulnerabilities.length, 1);
+assert.equal(report.Results[0].Vulnerabilities.length, 3);
+for (const invalid of [{}, { ...report, Results: [] }, mutate(report, (r) => { r.Results[0].Packages = []; }),
+  mutate(report, (r) => { r.Results[0].Vulnerabilities[0].Severity = "invalid"; })]) assert.throws(() => filterScan(invalid));
+
+const full = YAML.parse(readFileSync(".github/workflows/ci-e2e.yml", "utf8"));
+assert.deepEqual(Object.keys(full.on), ["workflow_dispatch"]);
+assert.deepEqual(full.jobs.frontend.strategy.matrix.app, ["admin", "web"]);
+assert.deepEqual(full.jobs["full-validation"].needs, ["source", "backend", "frontend"]);
+assert.equal(full.jobs.backend.needs, "source");
+assert.equal(full.jobs.frontend.needs, "source");
+const cnb = YAML.parse(readFileSync(".cnb.yml", "utf8"), { merge: true });
+for (const app of ["backend", "web", "admin"]) {
+  const stages = cnb.main.push[`${app}-image`].stages.map((stage) => stage.name);
+  assert(stages.includes("Enforce structured vulnerability gate"));
+  assert(stages.indexOf("Enforce structured vulnerability gate") < stages.indexOf("Publish immutable SHA tag"));
+}
+const handoffWorkflow = YAML.parse(readFileSync(".github/workflows/publish-images.yml", "utf8"));
+assert.equal(handoffWorkflow.concurrency.group, "cnb-source-handoff-main");
+assert(handoffWorkflow.jobs.handoff.steps.some((step) => step.name === "Upload durable handoff evidence"));
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const scanScript = path.join(scriptDirectory, "cnb-scan-images.sh");
@@ -39,6 +70,7 @@ function runScan(imageKey, blocked = false) {
   const evidenceRoot = path.join(fixtureRoot, ".cnb", "evidence", imageKey);
   rmSync(evidenceRoot, { recursive: true, force: true });
   mkdirSync(evidenceRoot, { recursive: true });
+  writeFileSync(path.join(fixtureRoot, "trivy-calls.txt"), "", "utf8");
   writeFileSync(path.join(evidenceRoot, `${imageKey}-digest.txt`), `${digest}\n`, "utf8");
   const environment = [
     `PATH="${shellPath(mockBin)}:$PATH"`,
@@ -74,6 +106,7 @@ try {
     mockTrivy,
     `#!/bin/sh
 set -eu
+printf '%s\\n' "$1" >> trivy-calls.txt
 format=""
 output=""
 while [ "$#" -gt 0 ]; do
@@ -117,8 +150,9 @@ esac
   for (const imageKey of ["backend", "web", "admin"]) {
     const { evidenceRoot, result } = runScan(imageKey);
     requireCondition(result.status === 0, `Expected ${imageKey} scan to pass.`, result);
-    requireCondition(existsSync(path.join(evidenceRoot, `${imageKey}-trivy.json`)), `Expected ${imageKey} JSON evidence.`, result);
+    requireCondition(existsSync(path.join(evidenceRoot, `${imageKey}-trivy-full.json`)), `Expected ${imageKey} complete JSON evidence.`, result);
     requireCondition(existsSync(path.join(evidenceRoot, `${imageKey}-sbom.cdx.json`)), `Expected ${imageKey} SBOM evidence.`, result);
+    requireCondition(readFileSync(path.join(fixtureRoot, "trivy-calls.txt"), "utf8").trim() === "image\nconvert\nconvert", "Expected one image scan and two offline conversions.", result);
   }
 
   const { evidenceRoot: blockedRoot, result: blockedResult } = runScan("admin", true);

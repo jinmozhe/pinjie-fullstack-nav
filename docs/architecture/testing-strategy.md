@@ -88,13 +88,14 @@ Jest、Cypress、Storybook 和 Vitest Browser Mode 不属于阶段 B 默认测�
 
 ### 6.3 Playwright 跨栈 E2E
 
-- E2E 默认针对生产构建运行：Web 使用 `next build` 后的 standalone server，Admin 使用 `max build`，开发/预览通过 `apps/admin/scripts/run-umi.mjs` 设置 `PORT=3001`。Web 构建脚本同时把静态资源准备到 standalone 目录。
-- Windows 和 CI 统一通过 `scripts/e2e/run-e2e.mjs` 启动并回收本次拥有的 Web、Admin 进程，再调用 Playwright。脚本会复用已经存在的受管服务，退出时只终止自己启动的进程，避免 Playwright `webServer` 在 Windows 上回收挂起。
+- E2E 默认针对生产构建运行：Web 使用 `next build` 后的 standalone server，Admin 使用 `max build` 后的 dist，由 `scripts/e2e/admin-preview.mjs` 使用固定 Nginx 镜像及生产配置托管在 3001 端口。Web 构建脚本同时把静态资源准备到 standalone 目录；本地 Admin 日常开发继续使用原 Umi 包装器。
+- Windows 和 CI 统一通过 `scripts/e2e/run-e2e.mjs` 启动并回收本次拥有的 Web 进程和 Admin Nginx 容器，再调用 Playwright。3000/3001 端口已占用时明确失败，不复用未知服务；退出时只清理本次启动的资源。
 - 关键跨栈测试连接真实 Backend 和独立 `_test` PostgreSQL，不使用 MSW 替代本项目 API。不可控第三方服务在边界处使用可审计替身。
 - 每个测试拥有独立浏览器上下文和可准确归属的测试数据，禁止依赖其他测试的执行顺序、Cookie、存储或数据库残留。
 - Locator 优先使用 `getByRole()`、`getByLabel()` 和其他用户可见契约；断言使用 Playwright 自动等待能力，禁止固定时长 `sleep` 和无限重试。
 - Playwright 不由日常开发、`$git-sync`、Push、Pull Request 或定时任务自动运行。需要本地标准 Chromium E2E 时由用户明确授权；需要干净 Ubuntu 环境时由用户人工触发 GitHub 完整验证。Firefox 与 WebKit 也只在用户明确要求或派生项目验收计划明确授权时执行。单独的本地浏览器结果不能满足严格源码交接门禁；GitHub 完整验证只有在 pytest、Vitest、production build 和 Chromium Playwright 全部成功并生成同 SHA Artifact 后，才形成发布可核验的重型验证证据。快速源码交接模式明确表示未取得该证据，不能表述为完整验证通过。
-- CI 失败保留首个失败重试的 Trace、必要截图和 HTML Report。重试只用于采集诊断信息，初次失败仍按不稳定测试处理，禁止依靠重试把套件标记为健康。
+- CI 失败只上传白名单阶段耗时、退出状态和浏览器文件位置、项目、状态、重试结果，不上传 Cookie、HAR、Trace、Video、HTML 或截图。CI 禁用 Trace/Video，`failOnFlakyTests` 阻断重试后才成功的套件；本地已授权专项复现可保留现有诊断能力，但敏感报告不得进入 Git 或发布附件。
+- 手动 Full Validation 并行执行 Backend pytest 和 Admin/Web Vitest、生产构建，最后消费同一 Run 的产物执行 Web standalone、Admin 生产 Nginx dist E2E，并输出 v2 成功证据。当前单维护者、1Panel 人工部署不要求再运行候选镜像 E2E，使用 CNB/TCR 来源、digest 与扫描核验及部署后健康和关键业务检查，步骤见[端到端人工发布手册](../operations/github-cnb-tcr-1panel-release-runbook.md)。Full Validation 验证的构建产物与最终 TCR 镜像仍有边界，人工核验不能表述为最终镜像组合已通过自动 E2E。
 - 视觉回归只覆盖少量稳定且高价值的页面或组件状态，固定操作系统、浏览器、字体和视口；普通布局断言优先使用语义和尺寸检查。
 
 ### 6.4 UI 与可访问性验收

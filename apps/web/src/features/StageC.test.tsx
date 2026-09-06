@@ -62,6 +62,27 @@ describe("stage C web account", () => {
     expect(refresh).toHaveBeenCalledOnce();
   });
 
+  it.each([429, 503])("keeps SSR recovery retryable after a temporary %s failure", async (status) => {
+    let calls = 0;
+    server.use(
+      http.post("http://localhost:3000/api/v1/auth/refresh", () => {
+        calls += 1;
+        return calls === 1
+          ? HttpResponse.json({ code: status === 429 ? "RATE_LIMITED" : "SERVICE_UNAVAILABLE", message: "会话服务暂不可用" }, { status })
+          : HttpResponse.json({ code: "OK", data: {} });
+      }),
+    );
+    const user = userEvent.setup();
+    render(<AccountSessionRecovery />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("会话服务暂不可用");
+    expect(replace).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "重试" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(calls).toBe(2);
+    expect(replace).not.toHaveBeenCalled();
+  });
+
   it("submits the login form and enters the account center", async () => {
     const user = userEvent.setup();
     renderWithQuery(<AuthForm mode="login" />);
