@@ -13,6 +13,7 @@ class PermissionDefinition:
 class PermissionCode(StrEnum):
     NAVIGATION_READ = "navigation:read"
     NAVIGATION_WRITE = "navigation:write"
+    NAVIGATION_PURGE = "navigation:purge"
     NAVIGATION_CREDENTIALS_READ = "navigation:credentials:read"
     NAVIGATION_CREDENTIALS_WRITE = "navigation:credentials:write"
     USERS_READ = "users:read"
@@ -52,6 +53,7 @@ class PermissionCode(StrEnum):
 PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
     PermissionDefinition("navigation:read", "查看导航管理", "查看分类、标签、站点及回收站"),
     PermissionDefinition("navigation:write", "维护导航", "新增修改分类、标签、站点及批量生命周期操作"),
+    PermissionDefinition("navigation:purge", "永久删除导航站点", "永久删除回收站站点及其全部帐号资料和标签关联"),
     PermissionDefinition("navigation:credentials:read", "查阅外网凭据", "在 Admin 或 Web 查阅全部外网帐号密码"),
     PermissionDefinition("navigation:credentials:write", "维护外网凭据", "在 Admin 新增修改删除外网帐号资料"),
     PermissionDefinition("users:read", "查看用户", "查看用户列表和详情"),
@@ -95,7 +97,7 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 
 PERMISSION_CODES = frozenset(item.code for item in PERMISSION_CATALOG)
 ROLE_ASSIGNABLE_PERMISSION_CODES = frozenset(item.code for item in PERMISSION_CATALOG if item.assignable_to_roles)
-CATALOG_VERSION = "2026-09-06.1"
+CATALOG_VERSION = "2026-09-07.1"
 
 __all__ = [
     "CATALOG_VERSION",

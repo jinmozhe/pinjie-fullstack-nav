@@ -29,13 +29,14 @@
 | [0007-受控迁移兼容策略决策.md](adr/0007-受控迁移兼容策略决策.md)                             | 禁止永久和隐式兼容，仅允许有期限、可观测、可删除的迁移窗口                      |
 | [0008-不可变发布与生产追溯决策.md](adr/0008-不可变发布与生产追溯决策.md)                     | 分离 CI、镜像发布和生产部署，以 Commit SHA、镜像 digest 和部署记录建立追溯链    |
 | [0009-Python运行时基线决策.md](adr/0009-Python运行时基线决策.md)                             | 统一标准 CPython 3.14、本地 uv、CI、容器补丁固定和标准库 UUID v7 边界           |
-| [0010-浏览器认证会话RBAC与审计决策.md](adr/0010-浏览器认证会话RBAC与审计决策.md)             | 确定 Browser Cookie Profile、C/B 会话隔离、Refresh 权威、规范化 RBAC 与审计边界 |
+| [0010-浏览器认证会话RBAC与审计决策.md](adr/0010-浏览器认证会话RBAC与审计决策.md) | 确定 Browser Cookie Profile、C/B 会话隔离、Refresh 权威、规范化 RBAC 与审计边界；删除确认范围由 ADR 0017 局部替代 |
 | [0011-Admin采用AntDesignProV6与UmiMax决策.md](adr/0011-Admin采用AntDesignProV6与UmiMax决策.md) | Admin 全面采用官方 Ant Design Pro v6/Umi Max，保留项目安全、契约和质量边界 |
 | [0012-统一文件资产采用可补偿本地存储决策.md](adr/0012-统一文件资产采用可补偿本地存储决策.md) | 统一文件资产采用存储端口、同文件系统原子提交、同主体去重和可恢复删除补偿 |
 | [0013-全局系统设置与配置媒体决策.md](adr/0013-全局系统设置与配置媒体决策.md) | 全局设置采用单表分组 JSONB、固定强类型接口和独立可补偿配置媒体槽位 |
 | [0014-共享PostgreSQL与Redis生产基础设施决策.md](adr/0014-共享PostgreSQL与Redis生产基础设施决策.md) | 生产共享 1Panel PostgreSQL 与 Redis，并按项目隔离数据库、角色、ACL、Key 和恢复范围 |
 | [0015-派生项目计划基线重建决策.md](adr/0015-派生项目计划基线重建决策.md) | 母版永久保留计划，独立派生仓库可在初始化阶段由用户人工清理继承计划并重建计划基线 |
 | [0016-管理员身份与导航只读会话决策.md](adr/0016-管理员身份与导航只读会话决策.md) | 管理员身份复用、独立查阅会话、两端退出与明文凭据边界 |
+| [0017-Admin删除操作统一确认决策.md](adr/0017-Admin删除操作统一确认决策.md) | 管理端单条与批量软硬删除统一确认，保留业务原因和目标快照 |
 
 ---
 
@@ -88,7 +89,7 @@
 | [local-dev-environment.md](operations/local-dev-environment.md) | Windows 本地开发手册：纯 uv、pnpm、本机 PostgreSQL、Docker Desktop Redis、Codex 默认联网沙箱基线与生产环境边界 |
 | [environment-variables-and-backend-local-run.md](operations/environment-variables-and-backend-local-run.md) | 三端环境变量、认证 Secret、Backend 初始化、权限同步、管理员创建、日志 Worker 和本地检查步骤 |
 | [admin-local-development-and-validation-troubleshooting.md](operations/admin-local-development-and-validation-troubleshooting.md) | Admin Umi 本地启动、测试、浏览器验证、跨栈前置条件和迁移故障排查 |
-| [ai-assisted-development-workflow.md](operations/ai-assisted-development-workflow.md) | AI 助手按风险读取与计划、授权复用、阻塞处理、恢复保护、验证和完成条件指南 |
+| [ai-assisted-development-workflow.md](operations/ai-assisted-development-workflow.md) | AI 助手规则读取与跨端实施指南：第 17 节为修改前必读流程，涵盖约束落实、授权复用、恢复保护、验证和完成条件 |
 | [codex-windows-config-acl-governance.md](operations/codex-windows-config-acl-governance.md) | Codex Windows `config.toml`、默认联网、Schannel、GitHub CLI Keyring、`elevated + Custom`、ACL 诊断、验证、最小修复和回滚标准 |
 | [uv使用指南.md](operations/uv使用指南.md) | uv 原理、纯 uv 环境方案、常用命令和 conda 对比 |
 | [pnpm使用指南.md](operations/pnpm使用指南.md) | pnpm 存储机制、workspace 共享包、Markdown 检查等常用命令和 npm 对比 |

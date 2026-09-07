@@ -18,8 +18,11 @@ from app.domains.navigation.schemas import (
     NavAccountRead,
     NavBulkIn,
     NavBulkRead,
+    NavCategoryIn,
+    NavCategoryRead,
     NavSiteIn,
     NavSitePage,
+    NavSitePurgeIn,
     NavSiteRead,
     NavTaxonomyIn,
     NavTaxonomyRead,
@@ -63,11 +66,12 @@ class NavigationService:
         async def authorized_operation() -> T:
             assert self.actor_id is not None
             actor = await AdminRepository(self.session).get(self.actor_id, for_update=True, refresh=True)
-            permission = (
-                PermissionCode.NAVIGATION_CREDENTIALS_WRITE
-                if action.startswith("accounts.")
-                else PermissionCode.NAVIGATION_WRITE
-            )
+            if action == "sites.purge":
+                permission = PermissionCode.NAVIGATION_PURGE
+            elif action.startswith("accounts."):
+                permission = PermissionCode.NAVIGATION_CREDENTIALS_WRITE
+            else:
+                permission = PermissionCode.NAVIGATION_WRITE
             if (
                 actor is None
                 or not actor.is_active
@@ -100,13 +104,25 @@ class NavigationService:
         except IntegrityError as exc:
             raise conflict("名称已存在或资源被引用，请刷新后重试") from exc
 
-    async def taxonomy(self, kind: TaxonomyKind, *, public: bool = False) -> list[NavTaxonomyRead]:
-        return [NavTaxonomyRead.model_validate(item) for item in await self.repo.taxonomy(kind, public=public)]
+    @staticmethod
+    def taxonomy_read(row: NavCategory | NavTag) -> NavCategoryRead | NavTaxonomyRead:
+        if isinstance(row, NavCategory):
+            return NavCategoryRead.model_validate(row)
+        return NavTaxonomyRead.model_validate(row)
+
+    async def taxonomy(
+        self, kind: TaxonomyKind, *, public: bool = False, reader: bool = False
+    ) -> list[NavCategoryRead | NavTaxonomyRead]:
+        return [self.taxonomy_read(item) for item in await self.repo.taxonomy(kind, public=public, reader=reader)]
 
     async def save_taxonomy(
-        self, kind: TaxonomyKind, payload: NavTaxonomyIn, id: uuid.UUID | None = None
-    ) -> NavTaxonomyRead:
-        async def operation() -> NavTaxonomyRead:
+        self, kind: TaxonomyKind, payload: NavCategoryIn | NavTaxonomyIn, id: uuid.UUID | None = None
+    ) -> NavCategoryRead | NavTaxonomyRead:
+        async def operation() -> NavCategoryRead | NavTaxonomyRead:
+            if kind == "tags" and "requires_login" in payload.model_fields_set:
+                raise conflict("标签不支持登录可见性设置")
+            if kind == "tags" and "icon_key" in payload.model_fields_set:
+                raise conflict("标签不支持分类图标")
             if id:
                 rows = await self.repo.taxonomy_targets(kind, [id])
                 if not rows:
@@ -114,10 +130,13 @@ class NavigationService:
                 row = rows[0]
             else:
                 row = NavCategory() if kind == "categories" else NavTag()
-            for key, value in payload.model_dump().items():
+            for key, value in payload.model_dump(exclude={"requires_login", "icon_key"}).items():
                 setattr(row, key, value)
+            if isinstance(row, NavCategory):
+                row.requires_login = payload.requires_login if isinstance(payload, NavCategoryIn) else False
+                row.icon_key = payload.icon_key if isinstance(payload, NavCategoryIn) else None
             await self.repo.save(row)
-            return NavTaxonomyRead.model_validate(row)
+            return self.taxonomy_read(row)
 
         return await self.write(kind + ".save", operation, target_ids=[id] if id else [])
 
@@ -160,7 +179,7 @@ class NavigationService:
             icon_asset_id=row.icon_asset_id,
             sort_order=row.sort_order,
             is_published=row.is_published,
-            category=NavTaxonomyRead.model_validate(row.category),
+            category=NavCategoryRead.model_validate(row.category),
             tags=[NavTaxonomyRead.model_validate(tag) for tag in row.tags],
             icon_url=icons.get(row.icon_asset_id) if row.icon_asset_id else None,
             deleted_at=row.deleted_at,
@@ -177,6 +196,7 @@ class NavigationService:
         tag_id: uuid.UUID | None,
         public: bool = False,
         deleted: bool = False,
+        reader: bool = False,
     ) -> NavSitePage | PublicNavSitePage:
         rows, total = await self.repo.sites(
             page=page,
@@ -186,6 +206,7 @@ class NavigationService:
             tag_id=tag_id,
             public=public,
             deleted=deleted,
+            reader=reader,
         )
         icons = await self.repo.icons([row.icon_asset_id for row in rows if row.icon_asset_id])
         reads = [self.site_read(row, icons) for row in rows]
@@ -253,6 +274,20 @@ class NavigationService:
             return NavBulkRead(completed_count=len(rows))
 
         return await self.write("sites." + payload.action, operation, target_ids=payload.ids)
+
+    async def purge_sites(self, payload: NavSitePurgeIn) -> NavBulkRead:
+        async def operation() -> NavBulkRead:
+            rows = await self.repo.site_targets(payload.ids)
+            if len(rows) != len(payload.ids):
+                raise missing()
+            if any(row.deleted_at is None for row in rows):
+                raise conflict("只有回收站站点可以永久删除，请刷新后重试")
+            deleted_ids = await self.repo.purge_sites([row.id for row in rows])
+            if set(deleted_ids) != set(payload.ids):
+                raise conflict("站点状态已变化，永久删除未完成")
+            return NavBulkRead(completed_count=len(deleted_ids))
+
+        return await self.write("sites.purge", operation, target_ids=payload.ids)
 
     async def accounts(self, site_id: uuid.UUID, *, public: bool = False) -> list[NavAccountRead]:
         await self.site(site_id, public=public)

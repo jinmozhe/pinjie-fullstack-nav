@@ -7,6 +7,7 @@ from app.domains.auth.router import router as auth_router
 from app.domains.navigation.reader_router import router as reader_router
 from app.domains.navigation.router import admin_router as admin_navigation_router
 from app.domains.navigation.router import public_router as navigation_router
+from app.domains.navigation.router import reader_router as reader_navigation_router
 from app.domains.settings.router import admin_router as admin_settings_router
 from app.domains.settings.router import public_router as public_settings_router
 from app.domains.system.router import router as system_router
@@ -14,6 +15,7 @@ from app.domains.users.router import router as users_router
 
 api_router = APIRouter()
 api_router.include_router(reader_router)
+api_router.include_router(reader_navigation_router)
 api_router.include_router(admin_navigation_router)
 api_router.include_router(navigation_router)
 api_router.include_router(auth_router)

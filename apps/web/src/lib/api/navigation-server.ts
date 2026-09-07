@@ -1,17 +1,32 @@
-import type { NavTaxonomyRead, PageResultPublicNavSiteRead } from "@pinjie/api-client";
+import type { NavCategoryRead, NavTaxonomyRead, PageResultPublicNavSiteRead, ReaderIdentityRead } from "@pinjie/api-client";
+import { cookies } from "next/headers";
 
-async function get<T>(path: string): Promise<T> {
+class NavigationFetchError extends Error {
+  constructor(readonly status: number) { super("导航服务暂不可用"); }
+}
+
+async function get<T>(path: string, cookie = ""): Promise<T> {
   if (!process.env.BACKEND_INTERNAL_URL) throw new Error("导航服务尚未配置");
-  const response = await fetch(new URL(`/api/v1/navigation/${path}`, process.env.BACKEND_INTERNAL_URL), { cache: "no-store", signal: globalThis.AbortSignal.timeout(10000) });
-  if (!response.ok) throw new Error("导航服务暂不可用");
+  const response = await fetch(new URL(`/api/v1/${path}`, process.env.BACKEND_INTERNAL_URL), { cache: "no-store", headers: { cookie }, signal: globalThis.AbortSignal.timeout(10000) });
+  if (!response.ok) throw new NavigationFetchError(response.status);
   return ((await response.json()) as { data: T }).data;
 }
 
 export async function fetchNavigation() {
+  const session = (await cookies()).get("pinjie_reader_session");
+  const cookie = session ? `${session.name}=${session.value}` : "";
+  let reader: ReaderIdentityRead | undefined;
+  if (cookie) {
+    try { reader = await get<ReaderIdentityRead>("nav-reader/me", cookie); }
+    catch (error) {
+      if (!(error instanceof NavigationFetchError && error.status === 401)) throw error;
+    }
+  }
+  const scope = reader ? "nav-reader" : "navigation";
   const [sites, categories, tags] = await Promise.all([
-    get<PageResultPublicNavSiteRead>("sites?page=1&page_size=24"),
-    get<NavTaxonomyRead[]>("taxonomy/categories"),
-    get<NavTaxonomyRead[]>("taxonomy/tags"),
+    get<PageResultPublicNavSiteRead>(`${scope}/sites?page=1&page_size=24`, reader ? cookie : ""),
+    get<NavCategoryRead[]>(`${scope}/taxonomy/categories`, reader ? cookie : ""),
+    get<NavTaxonomyRead[]>("navigation/taxonomy/tags"),
   ]);
-  return { sites, categories, tags };
+  return { sites, categories, tags, reader };
 }

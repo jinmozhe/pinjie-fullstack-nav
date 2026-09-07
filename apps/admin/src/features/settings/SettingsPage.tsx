@@ -29,6 +29,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { PageFrame, QueryState, formatTime } from "@/components/PageFrame";
+import { StandardConfirmModal } from "@/components/StandardConfirmModal";
 import { canAccess, useCurrentAdmin } from "@/features/auth";
 import { adminApi } from "@/lib/api/admin";
 import { ApiError, errorMessage } from "@/lib/api/http";
@@ -76,6 +77,7 @@ function SiteSettingsTab({ canUpdate }: { canUpdate: boolean }) {
   const queryClient = useQueryClient();
   const [dirty, setDirty] = useState(false);
   const [hydratedRevision, setHydratedRevision] = useState<number>();
+  const [deleteLogoRevision, setDeleteLogoRevision] = useState<number>();
   const [conflict, setConflict] = useState(false);
   const query = useQuery({ queryKey: SITE_QUERY_KEY, queryFn: adminApi.siteSetting });
 
@@ -132,12 +134,10 @@ function SiteSettingsTab({ canUpdate }: { canUpdate: boolean }) {
   });
 
   const deleteLogo = useMutation({
-    mutationFn: () => {
-      if (!query.data) throw new Error("站点设置尚未加载");
-      return adminApi.deleteSiteLogo(query.data.revision);
-    },
+    mutationFn: (revision: number) => adminApi.deleteSiteLogo(revision),
     onSuccess: (data) => {
       queryClient.setQueryData(SITE_QUERY_KEY, data);
+      setDeleteLogoRevision(undefined);
       setConflict(false);
       message.success("站点 LOGO 已移除");
     },
@@ -207,8 +207,8 @@ function SiteSettingsTab({ canUpdate }: { canUpdate: boolean }) {
                     danger
                     icon={<DeleteOutlined />}
                     loading={deleteLogo.isPending}
-                    disabled={!canUpdate || conflict}
-                    onClick={() => deleteLogo.mutate()}
+                    disabled={!canUpdate || pending || conflict}
+                    onClick={() => setDeleteLogoRevision(query.data.revision)}
                   >
                     移除
                   </Button>
@@ -281,6 +281,17 @@ function SiteSettingsTab({ canUpdate }: { canUpdate: boolean }) {
           </Form>
         </div>
       ) : null}
+      <StandardConfirmModal
+        title="确认移除站点 LOGO"
+        description="已保存的站点 LOGO 将被删除，Web 将不再显示该图片。需要恢复时请重新上传。"
+        open={deleteLogoRevision !== undefined}
+        loading={deleteLogo.isPending}
+        onCancel={() => setDeleteLogoRevision(undefined)}
+        onConfirm={async () => {
+          if (deleteLogoRevision === undefined) return;
+          await deleteLogo.mutateAsync(deleteLogoRevision);
+        }}
+      />
     </>
   );
 }

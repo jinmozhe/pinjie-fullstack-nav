@@ -202,6 +202,9 @@ a { color: inherit; }
 .nav-layout aside nav { display: grid; gap: 4px; }
 .nav-layout aside button { min-height: var(--nav-control); width: 100%; padding: 8px 12px; border: 0; border-radius: var(--nav-radius); background: transparent; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .nav-layout aside button.active { background: var(--nav-selected); color: var(--brand-strong); font-weight: 700; }
+.nav-layout aside button { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.nav-layout aside button > svg { flex: 0 0 18px; }
+.nav-layout aside button > span { min-width: 0; }
 .nav-results { min-width: 0; }
 .nav-results-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; font-size: 13px; color: var(--muted); }
 .nav-results-bar label { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -245,7 +248,7 @@ a { color: inherit; }
   .nav-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .nav-layout aside { border: 0; border-bottom: 1px solid var(--line); padding: 0 0 16px; }
   .nav-layout aside nav { display: flex; overflow-x: auto; }
-  .nav-layout aside button { width: auto; white-space: nowrap; }
+  .nav-layout aside button { width: auto; flex-shrink: 0; white-space: nowrap; }
   .nav-layout aside h2 { display: none; }
   .nav-dialog { padding: 18px; }
 }
