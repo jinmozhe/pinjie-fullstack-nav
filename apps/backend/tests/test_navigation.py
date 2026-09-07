@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 from sqlalchemy import delete, select
 
 from app.core.config import Settings
@@ -34,6 +34,8 @@ from app.domains.navigation.schemas import (
     NavCategoryRead,
     NavSiteIn,
     NavTaxonomyIn,
+    NavTaxonomyResult,
+    NavTaxonomyWrite,
 )
 from app.main import create_app
 from app.services.authentication import AdminAuthService
@@ -49,6 +51,23 @@ def test_password_is_preserved_and_notes_only_is_valid() -> None:
         NavAccountIn()
     with pytest.raises(ValidationError):
         NavAccountIn(username="sample", user_id=str(uuid.uuid7()))
+
+
+def test_taxonomy_union_preserves_common_contract_and_category_validation() -> None:
+    for model, required in [(NavTaxonomyWrite, {"name"}), (NavTaxonomyResult, {"id", "name"})]:
+        adapter = TypeAdapter(model)
+        schema = adapter.json_schema()
+        assert schema["type"] == "object"
+        assert set(schema["required"]) == required
+        assert len(schema["anyOf"]) == 2
+        assert {"name", "description", "sort_order", "is_active"} <= schema["properties"].keys()
+    adapter = TypeAdapter(NavTaxonomyResult)
+    category = adapter.validate_python(
+        {"id": uuid.uuid7(), "name": "Category", "requires_login": True, "icon_key": "code"}
+    )
+    assert isinstance(category, NavCategoryRead) and category.requires_login
+    with pytest.raises(ValidationError):
+        adapter.validate_python({"id": uuid.uuid7(), "name": "Category", "requires_login": True, "icon_key": "unknown"})
 
 
 def test_category_icons_are_optional_and_reject_unsupported_values() -> None:

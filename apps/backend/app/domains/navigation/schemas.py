@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -60,6 +60,19 @@ class NavCategoryIn(NavTaxonomyIn):
 class NavCategoryRead(NavTaxonomyRead):
     requires_login: bool = Field(description="仅管理员查阅登录后可见")
     icon_key: CategoryIconKey | None = Field(default=None, description="分类内置图标标识，null 使用默认图标")
+
+
+def _taxonomy_common_schema(base: type[BaseModel]) -> dict[str, Any]:
+    # Keep inherited object guarantees visible alongside the category/tag alternatives.
+    return {key: value for key, value in base.model_json_schema().items() if key in {"type", "properties", "required"}}
+
+
+type NavTaxonomyWrite = Annotated[
+    NavCategoryIn | NavTaxonomyIn, Field(json_schema_extra=_taxonomy_common_schema(NavTaxonomyIn))
+]
+type NavTaxonomyResult = Annotated[
+    NavCategoryRead | NavTaxonomyRead, Field(json_schema_extra=_taxonomy_common_schema(NavTaxonomyRead))
+]
 
 
 class NavSiteIn(BaseModel):
