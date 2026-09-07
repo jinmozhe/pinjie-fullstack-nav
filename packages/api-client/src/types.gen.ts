@@ -1274,6 +1274,37 @@ export type NavTaxonomyRead = {
     id: string;
 };
 
+export type NavTaxonomyResult = (NavCategoryRead | NavTaxonomyRead) & {
+    /**
+     * Name
+     *
+     * 资源名称
+     */
+    name: string;
+    /**
+     * Description
+     *
+     * 资源说明文本
+     */
+    description?: string;
+    /**
+     * Sort Order
+     */
+    sort_order?: number;
+    /**
+     * Is Active
+     *
+     * 资源当前是否启用
+     */
+    is_active?: boolean;
+    /**
+     * Id
+     *
+     * 资源唯一标识
+     */
+    id: string;
+};
+
 /**
  * PageResult[AdminRead]
  */
@@ -2366,6 +2397,34 @@ export type ResponseModelNavSiteRead = {
 };
 
 /**
+ * ResponseModel[NavTaxonomyResult]
+ */
+export type ResponseModelNavTaxonomyResult = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: NavTaxonomyResult;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
  * ResponseModel[NoneType]
  */
 export type ResponseModelNoneType = {
@@ -2928,36 +2987,6 @@ export type ResponseModelSystemStatus = {
 };
 
 /**
- * ResponseModel[Union[NavCategoryRead, NavTaxonomyRead]]
- */
-export type ResponseModelUnionNavCategoryReadNavTaxonomyRead = {
-    /**
-     * Code
-     *
-     * 稳定程序代码
-     */
-    code: string;
-    /**
-     * Message
-     *
-     * 面向调用方的中文结果消息
-     */
-    message: string;
-    /**
-     * Data
-     *
-     * 响应业务数据
-     */
-    data: NavCategoryRead | NavTaxonomyRead;
-    /**
-     * Request Id
-     *
-     * 用于定位本次请求的唯一标识
-     */
-    request_id: string;
-};
-
-/**
  * ResponseModel[UserAuthSessionOut]
  */
 export type ResponseModelUserAuthSessionOut = {
@@ -3104,6 +3133,36 @@ export type ResponseModelListNavAccountRead = {
 };
 
 /**
+ * ResponseModel[list[NavTaxonomyResult]]
+ */
+export type ResponseModelListNavTaxonomyResult = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * Data
+     *
+     * 响应业务数据
+     */
+    data: Array<NavTaxonomyResult>;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
  * ResponseModel[list[PermissionRead]]
  */
 export type ResponseModelListPermissionRead = {
@@ -3125,36 +3184,6 @@ export type ResponseModelListPermissionRead = {
      * 响应业务数据
      */
     data: Array<PermissionRead>;
-    /**
-     * Request Id
-     *
-     * 用于定位本次请求的唯一标识
-     */
-    request_id: string;
-};
-
-/**
- * ResponseModel[list[Union[NavCategoryRead, NavTaxonomyRead]]]
- */
-export type ResponseModelListUnionNavCategoryReadNavTaxonomyRead = {
-    /**
-     * Code
-     *
-     * 稳定程序代码
-     */
-    code: string;
-    /**
-     * Message
-     *
-     * 面向调用方的中文结果消息
-     */
-    message: string;
-    /**
-     * Data
-     *
-     * 响应业务数据
-     */
-    data: Array<NavCategoryRead | NavTaxonomyRead>;
     /**
      * Request Id
      *
@@ -4076,7 +4105,7 @@ export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponses = {
     /**
      * 请求成功
      */
-    200: ResponseModelListUnionNavCategoryReadNavTaxonomyRead;
+    200: ResponseModelListNavTaxonomyResult;
 };
 
 export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponse = ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponses[keyof ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponses];
@@ -4152,16 +4181,30 @@ export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses = {
     /**
      * 请求成功
      */
-    200: ResponseModelListUnionNavCategoryReadNavTaxonomyRead;
+    200: ResponseModelListNavTaxonomyResult;
 };
 
 export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponse = AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses[keyof AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses];
 
 export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostData = {
-    /**
-     * Payload
-     */
-    body: NavCategoryIn | NavTaxonomyIn;
+    body: (NavCategoryIn | NavTaxonomyIn) & {
+        /**
+         * Name
+         */
+        name: string;
+        /**
+         * Description
+         */
+        description?: string;
+        /**
+         * Sort Order
+         */
+        sort_order?: number;
+        /**
+         * Is Active
+         */
+        is_active?: boolean;
+    };
     path: {
         /**
          * Kind
@@ -4185,16 +4228,30 @@ export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses = {
     /**
      * 请求成功
      */
-    200: ResponseModelUnionNavCategoryReadNavTaxonomyRead;
+    200: ResponseModelNavTaxonomyResult;
 };
 
 export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponse = CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses[keyof CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses];
 
 export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutData = {
-    /**
-     * Payload
-     */
-    body: NavCategoryIn | NavTaxonomyIn;
+    body: (NavCategoryIn | NavTaxonomyIn) & {
+        /**
+         * Name
+         */
+        name: string;
+        /**
+         * Description
+         */
+        description?: string;
+        /**
+         * Sort Order
+         */
+        sort_order?: number;
+        /**
+         * Is Active
+         */
+        is_active?: boolean;
+    };
     path: {
         /**
          * Kind
@@ -4222,7 +4279,7 @@ export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses = {
     /**
      * 请求成功
      */
-    200: ResponseModelUnionNavCategoryReadNavTaxonomyRead;
+    200: ResponseModelNavTaxonomyResult;
 };
 
 export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponse = UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses[keyof UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses];
@@ -4577,7 +4634,7 @@ export type PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses = {
     /**
      * 请求成功
      */
-    200: ResponseModelListUnionNavCategoryReadNavTaxonomyRead;
+    200: ResponseModelListNavTaxonomyResult;
 };
 
 export type PublicTaxonomyApiV1NavigationTaxonomyKindGetResponse = PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses[keyof PublicTaxonomyApiV1NavigationTaxonomyKindGetResponses];

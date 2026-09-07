@@ -183,7 +183,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___"
+                  "$ref": "#/components/schemas/ResponseModel_list_NavTaxonomyResult__"
                 }
               }
             }
@@ -337,7 +337,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___"
+                  "$ref": "#/components/schemas/ResponseModel_list_NavTaxonomyResult__"
                 }
               }
             }
@@ -404,6 +404,36 @@
                     "$ref": "#/components/schemas/NavTaxonomyIn"
                   }
                 ],
+                "properties": {
+                  "name": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "title": "Name",
+                    "type": "string"
+                  },
+                  "description": {
+                    "default": "",
+                    "maxLength": 1000,
+                    "title": "Description",
+                    "type": "string"
+                  },
+                  "sort_order": {
+                    "default": 0,
+                    "maximum": 1000000,
+                    "minimum": -1000000,
+                    "title": "Sort Order",
+                    "type": "integer"
+                  },
+                  "is_active": {
+                    "default": true,
+                    "title": "Is Active",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object",
                 "title": "Payload"
               }
             }
@@ -415,7 +445,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_Union_NavCategoryRead__NavTaxonomyRead__"
+                  "$ref": "#/components/schemas/ResponseModel_NavTaxonomyResult_"
                 }
               }
             }
@@ -494,6 +524,36 @@
                     "$ref": "#/components/schemas/NavTaxonomyIn"
                   }
                 ],
+                "properties": {
+                  "name": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "title": "Name",
+                    "type": "string"
+                  },
+                  "description": {
+                    "default": "",
+                    "maxLength": 1000,
+                    "title": "Description",
+                    "type": "string"
+                  },
+                  "sort_order": {
+                    "default": 0,
+                    "maximum": 1000000,
+                    "minimum": -1000000,
+                    "title": "Sort Order",
+                    "type": "integer"
+                  },
+                  "is_active": {
+                    "default": true,
+                    "title": "Is Active",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object",
                 "title": "Payload"
               }
             }
@@ -505,7 +565,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_Union_NavCategoryRead__NavTaxonomyRead__"
+                  "$ref": "#/components/schemas/ResponseModel_NavTaxonomyResult_"
                 }
               }
             }
@@ -1281,7 +1341,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___"
+                  "$ref": "#/components/schemas/ResponseModel_list_NavTaxonomyResult__"
                 }
               }
             }
@@ -7513,6 +7573,56 @@
         ],
         "title": "NavTaxonomyRead"
       },
+      "NavTaxonomyResult": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/NavCategoryRead"
+          },
+          {
+            "$ref": "#/components/schemas/NavTaxonomyRead"
+          }
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "description": "资源名称"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Description",
+            "default": "",
+            "description": "资源说明文本"
+          },
+          "sort_order": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "Sort Order",
+            "default": 0
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true,
+            "description": "资源当前是否启用"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "资源唯一标识"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id"
+        ]
+      },
       "PageResult_AdminRead_": {
         "properties": {
           "items": {
@@ -8906,6 +9016,38 @@
         ],
         "title": "ResponseModel[NavSiteRead]"
       },
+      "ResponseModel_NavTaxonomyResult_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "稳定程序代码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "面向调用方的中文结果消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NavTaxonomyResult",
+            "description": "响应业务数据"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "用于定位本次请求的唯一标识"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "title": "ResponseModel[NavTaxonomyResult]"
+      },
       "ResponseModel_NoneType_": {
         "properties": {
           "code": {
@@ -9547,46 +9689,6 @@
         ],
         "title": "ResponseModel[SystemStatus]"
       },
-      "ResponseModel_Union_NavCategoryRead__NavTaxonomyRead__": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "description": "稳定程序代码"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "description": "面向调用方的中文结果消息"
-          },
-          "data": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/NavCategoryRead"
-              },
-              {
-                "$ref": "#/components/schemas/NavTaxonomyRead"
-              }
-            ],
-            "title": "Data",
-            "description": "响应业务数据"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id",
-            "description": "用于定位本次请求的唯一标识"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "code",
-          "message",
-          "data",
-          "request_id"
-        ],
-        "title": "ResponseModel[Union[NavCategoryRead, NavTaxonomyRead]]"
-      },
       "ResponseModel_UserAuthSessionOut_": {
         "properties": {
           "code": {
@@ -9756,6 +9858,42 @@
         ],
         "title": "ResponseModel[list[NavAccountRead]]"
       },
+      "ResponseModel_list_NavTaxonomyResult__": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "稳定程序代码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "面向调用方的中文结果消息"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/NavTaxonomyResult"
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "响应业务数据"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "用于定位本次请求的唯一标识"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "title": "ResponseModel[list[NavTaxonomyResult]]"
+      },
       "ResponseModel_list_PermissionRead__": {
         "properties": {
           "code": {
@@ -9791,49 +9929,6 @@
           "request_id"
         ],
         "title": "ResponseModel[list[PermissionRead]]"
-      },
-      "ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "description": "稳定程序代码"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "description": "面向调用方的中文结果消息"
-          },
-          "data": {
-            "items": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/NavCategoryRead"
-                },
-                {
-                  "$ref": "#/components/schemas/NavTaxonomyRead"
-                }
-              ]
-            },
-            "type": "array",
-            "title": "Data",
-            "description": "响应业务数据"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id",
-            "description": "用于定位本次请求的唯一标识"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "code",
-          "message",
-          "data",
-          "request_id"
-        ],
-        "title": "ResponseModel[list[Union[NavCategoryRead, NavTaxonomyRead]]]"
       },
       "RoleBulkDeleteIn": {
         "properties": {

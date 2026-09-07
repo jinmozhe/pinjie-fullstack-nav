@@ -18,21 +18,19 @@ from .schemas import (
     NavAccountRead,
     NavBulkIn,
     NavBulkRead,
-    NavCategoryIn,
-    NavCategoryRead,
     NavSiteIn,
     NavSitePage,
     NavSitePurgeIn,
     NavSiteRead,
-    NavTaxonomyIn,
-    NavTaxonomyRead,
+    NavTaxonomyResult,
+    NavTaxonomyWrite,
     PublicNavSitePage,
 )
 
 public_router = APIRouter(prefix="/navigation", tags=["公开导航"])
 admin_router = APIRouter(prefix="/admin/navigation", tags=["导航管理"])
 reader_router = APIRouter(prefix="/nav-reader", tags=["导航查阅"])
-TaxonomyRead = NavCategoryRead | NavTaxonomyRead
+TaxonomyRead = NavTaxonomyResult
 TaxonomyKind = Literal["categories", "tags"]
 Page = Annotated[int, Query(ge=1)]
 PageSize = Annotated[int, Query(ge=1, le=100)]
@@ -127,7 +125,7 @@ async def admin_taxonomy(
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def create_taxonomy(
-    kind: TaxonomyKind, payload: NavCategoryIn | NavTaxonomyIn, service: AdminNavigationServiceDependency
+    kind: TaxonomyKind, payload: NavTaxonomyWrite, service: AdminNavigationServiceDependency
 ) -> ResponseModel[TaxonomyRead]:
     return success_response(data=await service.save_taxonomy(kind, payload), request_id=current_request_id())
 
@@ -138,7 +136,7 @@ async def create_taxonomy(
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def update_taxonomy(
-    kind: TaxonomyKind, id: uuid.UUID, payload: NavCategoryIn | NavTaxonomyIn, service: AdminNavigationServiceDependency
+    kind: TaxonomyKind, id: uuid.UUID, payload: NavTaxonomyWrite, service: AdminNavigationServiceDependency
 ) -> ResponseModel[TaxonomyRead]:
     return success_response(data=await service.save_taxonomy(kind, payload, id), request_id=current_request_id())
 

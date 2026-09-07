@@ -33,6 +33,8 @@ Admin 侧栏按“欢迎、站点管理、分类管理、标签管理”的顺�
 
 分类新增和编辑支持“仅登录后可见”开关，列表展示公开或登录可见，沿用 `navigation:write` 权限与审计。分类专属 Schema 扩展公共字段，标签不保存且拒绝显式提交 `requires_login`。普通用户登录不参与分类授权，站点继承所属分类可见性，凭据继续使用原查阅权限。
 
+分类与标签共用的 taxonomy 接口采用命名联合类型。契约保留各分支校验，同时从原基础 Schema 生成公共 object、字段和 required 约束，使调用方可以直接识别名称、ID 等公共字段；禁止仅为通过检查隐藏分支或放宽运行时校验。
+
 ## 回收站永久删除
 
 `POST /api/v1/admin/navigation/sites/purge` 使用专用 `NavSitePurgeIn` 接收 1 至 100 个唯一站点 UUID，单条与批量共用，返回实际 `completed_count`。原 `/sites/bulk` 的 delete 仍为软删除。新端点要求 Admin 会话、CSRF 和 `navigation:purge`，事务内重新核验管理员启用状态与当前权限。
