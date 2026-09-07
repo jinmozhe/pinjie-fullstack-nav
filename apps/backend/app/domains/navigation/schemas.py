@@ -8,6 +8,28 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from app.core.pagination import PageResult
 
 Name = Annotated[str, Field(min_length=1, max_length=100)]
+CategoryIconKey = Literal[
+    "code",
+    "book",
+    "tool",
+    "app",
+    "globe",
+    "cloud",
+    "database",
+    "api",
+    "design",
+    "image",
+    "video",
+    "music",
+    "ai",
+    "chart",
+    "education",
+    "news",
+    "community",
+    "shopping",
+    "game",
+    "security",
+]
 
 
 class NavTaxonomyIn(BaseModel):
@@ -28,6 +50,16 @@ class NavTaxonomyIn(BaseModel):
 class NavTaxonomyRead(NavTaxonomyIn):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
+
+
+class NavCategoryIn(NavTaxonomyIn):
+    requires_login: bool = Field(default=False, description="仅管理员查阅登录后可见")
+    icon_key: CategoryIconKey | None = Field(default=None, description="分类内置图标标识，null 使用默认图标")
+
+
+class NavCategoryRead(NavTaxonomyRead):
+    requires_login: bool = Field(description="仅管理员查阅登录后可见")
+    icon_key: CategoryIconKey | None = Field(default=None, description="分类内置图标标识，null 使用默认图标")
 
 
 class NavSiteIn(BaseModel):
@@ -73,7 +105,7 @@ class NavSiteIn(BaseModel):
 
 class NavSiteRead(NavSiteIn):
     id: uuid.UUID
-    category: NavTaxonomyRead
+    category: NavCategoryRead
     tags: list[NavTaxonomyRead]
     icon_url: str | None
     deleted_at: datetime | None
@@ -85,7 +117,7 @@ class PublicNavSiteRead(BaseModel):
     name: str
     url: str
     description: str
-    category: NavTaxonomyRead
+    category: NavCategoryRead
     tags: list[NavTaxonomyRead]
     icon_url: str | None
 
@@ -128,6 +160,18 @@ class NavBulkIn(BaseModel):
 
 class NavBulkRead(BaseModel):
     completed_count: int
+
+
+class NavSitePurgeIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    ids: list[uuid.UUID] = Field(min_length=1, max_length=100, description="待永久删除的回收站站点 ID")
+
+    @field_validator("ids")
+    @classmethod
+    def unique_ids(cls, value: list[uuid.UUID]) -> list[uuid.UUID]:
+        if len(value) != len(set(value)):
+            raise ValueError("目标不能重复")
+        return value
 
 
 NavSitePage = PageResult[NavSiteRead]

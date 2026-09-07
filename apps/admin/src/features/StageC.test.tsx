@@ -173,12 +173,18 @@ describe("stage C admin workspace", () => {
     expect(screen.getByText("已选择 1 项")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /批量删除/ }));
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("填写删除原因（可选）")).toBeInTheDocument();
+    expect(within(dialog).getByText("确认移入回收站")).toBeInTheDocument();
     expect(within(dialog).getByLabelText("删除原因")).toBeInTheDocument();
-    await user.click(within(dialog).getByRole("button", { name: "移入回收站" }));
+    expect(bulkPayload).toBeUndefined();
+    await user.click(within(dialog).getByRole("button", { name: /取\s*消/ }));
+    expect(bulkPayload).toBeUndefined();
+    await user.click(screen.getByRole("button", { name: /批量删除/ }));
+    const reopened = await screen.findByRole("dialog");
+    await user.type(within(reopened).getByLabelText("删除原因"), "重复账户");
+    await user.click(within(reopened).getByRole("button", { name: /确\s*定/ }));
 
     await waitFor(() =>
-      expect(bulkPayload).toEqual({ user_ids: ["01900000-0000-7000-8000-000000000002"], deletion_reason: null }),
+      expect(bulkPayload).toEqual({ user_ids: ["01900000-0000-7000-8000-000000000002"], deletion_reason: "重复账户" }),
     );
   }, 60_000);
 

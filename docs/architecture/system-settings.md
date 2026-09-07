@@ -71,6 +71,8 @@ GET/PATCH /api/v1/admin/settings/registration
 
 Admin `/settings` 固定显示“站点设置”和“注册设置”两个 Tab。至少拥有一项读取权限才显示菜单；Tab、只读状态和写按钮按精确权限控制。revision 冲突保留当前草稿，由管理员明确加载最新配置。
 
+移除已保存站点 LOGO 使用统一标准确认弹窗，说明删除影响和重新上传恢复方式。打开弹窗时保存 revision，确认后使用该版本删除；取消不发送请求，失败保留弹窗和其他设置草稿，版本冲突仍需明确加载最新配置。
+
 Web 的 server-only `fetchSiteProfile()` 在同一次服务端渲染中去重。首页、登录、注册和用户中心使用站点名称与 LOGO，根 Metadata 使用标题、关键词和描述。`/static/settings` 同源代理只允许固定 LOGO 路径和正整数 revision，并返回长期 immutable 缓存。
 
 ## 7. 部署、备份与扩展

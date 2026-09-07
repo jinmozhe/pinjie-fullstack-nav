@@ -27,7 +27,14 @@ from app.db.models import (
 from app.db.transaction import transaction_scope
 from app.domains.admin.schemas import AdminLoginIn
 from app.domains.navigation.reader_schemas import ReaderAuthorizeIn, ReaderExchangeIn
-from app.domains.navigation.schemas import NavAccountIn, NavBulkIn, NavSiteIn, NavTaxonomyIn
+from app.domains.navigation.schemas import (
+    NavAccountIn,
+    NavBulkIn,
+    NavCategoryIn,
+    NavCategoryRead,
+    NavSiteIn,
+    NavTaxonomyIn,
+)
 from app.main import create_app
 from app.services.authentication import AdminAuthService
 from app.services.nav_reader import NavReaderService, pkce_challenge, require_reader_permission
@@ -42,6 +49,17 @@ def test_password_is_preserved_and_notes_only_is_valid() -> None:
         NavAccountIn()
     with pytest.raises(ValidationError):
         NavAccountIn(username="sample", user_id=str(uuid.uuid7()))
+
+
+def test_category_icons_are_optional_and_reject_unsupported_values() -> None:
+    assert NavCategoryIn(name="Example").icon_key is None
+    assert NavCategoryIn(name="Example", icon_key="code").icon_key == "code"
+    assert NavCategoryIn(name="Example", icon_key=None).icon_key is None
+    for value in ["", "CodeOutlined", "unknown", "https://example.com/icon.png"]:
+        with pytest.raises(ValidationError):
+            NavCategoryIn.model_validate({"name": "Example", "icon_key": value})
+    with pytest.raises(ValidationError):
+        NavTaxonomyIn.model_validate({"name": "Tag", "icon_key": "code"})
 
 
 @pytest.mark.parametrize(
@@ -111,8 +129,25 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
             )
             category = await service.save_taxonomy("categories", NavTaxonomyIn(name=f"category-{admin_id}"))
             category_id = category.id
+            assert isinstance(category, NavCategoryRead) and category.requires_login is False
+            assert category.icon_key is None
+            for icon_key in ["code", "book", None, "tool"]:
+                updated = await service.save_taxonomy(
+                    "categories",
+                    NavCategoryIn.model_validate({"name": category.name, "icon_key": icon_key}),
+                    category.id,
+                )
+                assert isinstance(updated, NavCategoryRead) and updated.icon_key == icon_key
+                session.expire_all()
+                saved = [item for item in await service.taxonomy("categories", public=True) if item.id == category.id]
+                assert len(saved) == 1 and isinstance(saved[0], NavCategoryRead) and saved[0].icon_key == icon_key
             tag = await service.save_taxonomy("tags", NavTaxonomyIn(name=f"tag-{admin_id}"))
             tag_id = tag.id
+            for icon_key in ["code", None]:
+                with pytest.raises(AppException, match="标签不支持分类图标"):
+                    await service.save_taxonomy(
+                        "tags", NavCategoryIn.model_validate({"name": tag.name, "icon_key": icon_key}), tag.id
+                    )
             site = await service.save_site(
                 NavSiteIn(
                     name="Example",
@@ -135,6 +170,31 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
                 page=1, page_size=100, search="", category_id=category.id, tag_id=None, public=True
             )
             assert account.password not in public.model_dump_json()
+            assert public.items[0].category.icon_key == "tool"
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as browser:
+                categories = await browser.get("/api/v1/navigation/taxonomy/categories")
+                assert categories.status_code == 200
+                saved_category = next(item for item in categories.json()["data"] if item["id"] == str(category.id))
+                assert saved_category["icon_key"] == "tool"
+            await service.save_taxonomy(
+                "categories", NavCategoryIn(name=category.name, requires_login=True, icon_key="tool"), category.id
+            )
+            with pytest.raises(AppException):
+                await service.save_taxonomy("tags", NavCategoryIn(name=tag.name, requires_login=True), tag.id)
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as browser:
+                for cookie_name in ["pinjie_web_access", "pinjie_admin_access"]:
+                    browser.cookies.set(cookie_name, "wrong-profile-test-value")
+                for suffix in [f"category_id={category.id}", f"tag_id={tag.id}", f"search=Example&tag_id={tag.id}"]:
+                    hidden = await browser.get(f"/api/v1/navigation/sites?{suffix}")
+                    assert hidden.status_code == 200
+                    assert hidden.json()["data"]["items"] == []
+                    assert hidden.json()["data"]["total"] == 0
+                    assert hidden.json()["data"]["total_pages"] == 0
+                taxonomy = await browser.get("/api/v1/navigation/taxonomy/categories")
+                assert taxonomy.status_code == 200 and str(category.id) not in taxonomy.text
+                for path in ["sites", "taxonomy/categories"]:
+                    denied = await browser.get(f"/api/v1/nav-reader/{path}")
+                    assert denied.status_code == 401
             with pytest.raises(AppException):
                 await service.bulk_taxonomy("categories", NavBulkIn(ids=[category.id], action="delete"))
             with pytest.raises(AppException):
@@ -175,8 +235,28 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
                 with pytest.raises(AppException):
                     await reader.exchange(exchange.model_copy(update={field: value}))
             token, csrf, identity = await reader.exchange(exchange)
+            navigation = NavigationService(
+                session=session, session_factory=resources.session_factory, metadata=metadata, actor_id=admin_id
+            )
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as browser:
                 browser.cookies.set("pinjie_reader_session", token)
+                disabled = await browser.get(f"/api/v1/nav-reader/sites?category_id={category_id}")
+                assert disabled.status_code == 200 and disabled.json()["data"]["total"] == 0
+                assert category_id is not None
+                await navigation.bulk_taxonomy("categories", NavBulkIn(ids=[category_id], action="enable"))
+                visible = await browser.get(
+                    f"/api/v1/nav-reader/sites?category_id={category_id}&tag_id={tag_id}&search=Example"
+                )
+                assert visible.status_code == 200 and visible.json()["data"]["total"] == 1
+                assert visible.json()["data"]["items"][0]["id"] == str(site_id)
+                assert visible.json()["data"]["items"][0]["category"]["requires_login"] is True
+                assert visible.json()["data"]["items"][0]["category"]["icon_key"] == "tool"
+                assert visible.headers["cache-control"] == "no-store"
+                assert account.password not in visible.text
+                visible_categories = await browser.get("/api/v1/nav-reader/taxonomy/categories")
+                assert visible_categories.status_code == 200 and str(category_id) in visible_categories.text
+                still_public = await browser.get(f"/api/v1/navigation/sites?category_id={category_id}")
+                assert still_public.json()["data"]["total"] == 0
                 denied = await browser.post(
                     "/api/v1/admin/navigation/sites/bulk",
                     headers={"Origin": "http://localhost:3000"},
@@ -206,6 +286,10 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
                 await reader.logout(token, "invalid-csrf")
             assert (await reader.current(token))[0].id == admin_id
             await reader.logout(token, csrf)
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as browser:
+                browser.cookies.set("pinjie_reader_session", token)
+                for path in ["sites", "taxonomy/categories"]:
+                    assert (await browser.get(f"/api/v1/nav-reader/{path}")).status_code == 401
             unchanged_admin_session = await session.get(AdminSession, active_admin_session.session_id)
             assert unchanged_admin_session is not None and unchanged_admin_session.revoked_at is None
             with pytest.raises(AppException):

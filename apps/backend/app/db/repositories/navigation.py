@@ -1,7 +1,7 @@
 import uuid
 from typing import Literal
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -14,9 +14,13 @@ class NavigationRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def taxonomy(self, kind: TaxonomyKind, *, public: bool = False) -> list[NavCategory] | list[NavTag]:
+    async def taxonomy(
+        self, kind: TaxonomyKind, *, public: bool = False, reader: bool = False
+    ) -> list[NavCategory] | list[NavTag]:
         if kind == "categories":
             query = select(NavCategory).order_by(NavCategory.sort_order, NavCategory.id)
+            if public and not reader:
+                query = query.where(NavCategory.requires_login.is_(False))
             return list(await self.session.scalars(query.where(NavCategory.is_active) if public else query))
         tags = select(NavTag).order_by(NavTag.sort_order, NavTag.id)
         return list(await self.session.scalars(tags.where(NavTag.is_active) if public else tags))
@@ -45,11 +49,14 @@ class NavigationRepository:
         tag_id: uuid.UUID | None,
         public: bool,
         deleted: bool,
+        reader: bool = False,
     ) -> tuple[list[NavSite], int]:
         query = select(NavSite).join(NavCategory).options(selectinload(NavSite.category), selectinload(NavSite.tags))
         query = query.where(NavSite.deleted_at.is_not(None) if deleted and not public else NavSite.deleted_at.is_(None))
         if public:
             query = query.where(NavSite.is_published, NavCategory.is_active)
+            if not reader:
+                query = query.where(NavCategory.requires_login.is_(False))
         if search:
             pattern = "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
             query = query.where(NavSite.name.ilike(pattern) | NavSite.description.ilike(pattern))
@@ -70,10 +77,25 @@ class NavigationRepository:
             .order_by(NavSite.id)
             .options(selectinload(NavSite.category), selectinload(NavSite.tags))
         )
-        return list(await self.session.scalars(query.with_for_update() if lock else query))
+        return list(
+            await self.session.scalars(
+                query.with_for_update().execution_options(populate_existing=True) if lock else query
+            )
+        )
 
     async def icons(self, ids: list[uuid.UUID]) -> dict[uuid.UUID, str]:
         return {asset.id: asset.url for asset in await self.session.scalars(select(Asset).where(Asset.id.in_(ids)))}
+
+    async def purge_sites(self, ids: list[uuid.UUID]) -> list[uuid.UUID]:
+        # Foreign keys cascade to accounts and tag links, preserving shared assets and taxonomy.
+        return list(
+            await self.session.scalars(
+                delete(NavSite)
+                .where(NavSite.id.in_(ids), NavSite.deleted_at.is_not(None))
+                .returning(NavSite.id)
+                .execution_options(synchronize_session="fetch")
+            )
+        )
 
     async def accounts(self, site_id: uuid.UUID, *, public: bool = False) -> list[NavSiteAccount]:
         query = select(NavSiteAccount).where(NavSiteAccount.site_id == site_id)

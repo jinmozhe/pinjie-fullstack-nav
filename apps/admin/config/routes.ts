@@ -1,9 +1,11 @@
 export default [
   { path: "/login", component: "../features/auth/LoginPage", layout: false },
   { path: "/navigation/authorize", component: "../features/navigation/AuthorizePage", layout: false },
-  { path: "/navigation", name: "导航管理", icon: "GlobalOutlined", component: "../features/navigation/NavigationPage", access: "canNavigation" },
   { path: "/", redirect: "/welcome" },
   { path: "/welcome", name: "欢迎", icon: "HomeOutlined", component: "../features/welcome/WelcomePage" },
+  { path: "/navigation", name: "站点管理", icon: "GlobalOutlined", component: "../features/navigation/NavigationPage", access: "canNavigation" },
+  { path: "/categories", name: "分类管理", icon: "AppstoreOutlined", component: "../features/navigation/CategoriesPage", access: "canNavigation" },
+  { path: "/tags", name: "标签管理", icon: "TagsOutlined", component: "../features/navigation/TagsPage", access: "canNavigation" },
   { path: "/users", name: "用户", icon: "UserOutlined", component: "../features/users/UsersPage", access: "canUsers" },
   { path: "/admins", name: "管理员", icon: "TeamOutlined", component: "../features/admins/AdminsPage", access: "canAdmins" },
   { path: "/roles", name: "角色权限", icon: "SafetyCertificateOutlined", component: "../features/roles/RolesPage", access: "canRoles" },

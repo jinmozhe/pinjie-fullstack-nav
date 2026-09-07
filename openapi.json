@@ -169,6 +169,130 @@
         }
       }
     },
+    "/api/v1/nav-reader/taxonomy/categories": {
+      "get": {
+        "tags": [
+          "导航查阅"
+        ],
+        "summary": "查阅启用的全部导航分类",
+        "description": "要求有效管理员查阅会话，包含仅登录可见分类。",
+        "operationId": "reader_categories_api_v1_nav_reader_taxonomy_categories_get",
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/nav-reader/sites": {
+      "get": {
+        "tags": [
+          "导航查阅"
+        ],
+        "summary": "查阅全部已发布导航站点",
+        "description": "要求有效管理员查阅会话，包含仅登录可见分类下的站点；仍排除停用分类、未发布及已删除站点。",
+        "operationId": "reader_sites_api_v1_nav_reader_sites_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 24,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Id"
+            }
+          },
+          {
+            "name": "tag_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_PageResult_PublicNavSiteRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/navigation/taxonomy/{kind}": {
       "get": {
         "tags": [
@@ -213,7 +337,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_list_NavTaxonomyRead__"
+                  "$ref": "#/components/schemas/ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___"
                 }
               }
             }
@@ -272,7 +396,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NavTaxonomyIn"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/NavCategoryIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NavTaxonomyIn"
+                  }
+                ],
+                "title": "Payload"
               }
             }
           }
@@ -283,7 +415,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_NavTaxonomyRead_"
+                  "$ref": "#/components/schemas/ResponseModel_Union_NavCategoryRead__NavTaxonomyRead__"
                 }
               }
             }
@@ -354,7 +486,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NavTaxonomyIn"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/NavCategoryIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NavTaxonomyIn"
+                  }
+                ],
+                "title": "Payload"
               }
             }
           }
@@ -365,7 +505,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_NavTaxonomyRead_"
+                  "$ref": "#/components/schemas/ResponseModel_Union_NavCategoryRead__NavTaxonomyRead__"
                 }
               }
             }
@@ -767,6 +907,78 @@
         }
       }
     },
+    "/api/v1/admin/navigation/sites/purge": {
+      "post": {
+        "tags": [
+          "导航管理"
+        ],
+        "summary": "永久删除回收站站点",
+        "description": "原子删除 1 至 100 个回收站站点及所属帐号和标签关联，保留分类、标签、图标资产和审计。",
+        "operationId": "purge_sites_api_v1_admin_navigation_sites_purge_post",
+        "parameters": [
+          {
+            "name": "pinjie_admin_access",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pinjie Admin Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NavSitePurgeIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_NavBulkRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录"
+          },
+          "403": {
+            "description": "无永久删除权限或 CSRF 校验失败"
+          },
+          "404": {
+            "description": "目标站点不存在"
+          },
+          "409": {
+            "description": "目标不在回收站或状态冲突，整批回滚"
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/navigation/sites/{site_id}/accounts": {
       "get": {
         "tags": [
@@ -1069,7 +1281,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseModel_list_NavTaxonomyRead__"
+                  "$ref": "#/components/schemas/ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___"
                 }
               }
             }
@@ -6845,6 +7057,167 @@
         ],
         "title": "NavBulkRead"
       },
+      "NavCategoryIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "description": "资源名称"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Description",
+            "default": "",
+            "description": "资源说明文本"
+          },
+          "sort_order": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "Sort Order",
+            "default": 0
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true,
+            "description": "资源当前是否启用"
+          },
+          "requires_login": {
+            "type": "boolean",
+            "title": "Requires Login",
+            "description": "仅管理员查阅登录后可见",
+            "default": false
+          },
+          "icon_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "code",
+                  "book",
+                  "tool",
+                  "app",
+                  "globe",
+                  "cloud",
+                  "database",
+                  "api",
+                  "design",
+                  "image",
+                  "video",
+                  "music",
+                  "ai",
+                  "chart",
+                  "education",
+                  "news",
+                  "community",
+                  "shopping",
+                  "game",
+                  "security"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Key",
+            "description": "分类内置图标标识，null 使用默认图标"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "NavCategoryIn"
+      },
+      "NavCategoryRead": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "description": "资源名称"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Description",
+            "default": "",
+            "description": "资源说明文本"
+          },
+          "sort_order": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "Sort Order",
+            "default": 0
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true,
+            "description": "资源当前是否启用"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "资源唯一标识"
+          },
+          "requires_login": {
+            "type": "boolean",
+            "title": "Requires Login",
+            "description": "仅管理员查阅登录后可见"
+          },
+          "icon_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "code",
+                  "book",
+                  "tool",
+                  "app",
+                  "globe",
+                  "cloud",
+                  "database",
+                  "api",
+                  "design",
+                  "image",
+                  "video",
+                  "music",
+                  "ai",
+                  "chart",
+                  "education",
+                  "news",
+                  "community",
+                  "shopping",
+                  "game",
+                  "security"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Key",
+            "description": "分类内置图标标识，null 使用默认图标"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "requires_login"
+        ],
+        "title": "NavCategoryRead"
+      },
       "NavSiteIn": {
         "properties": {
           "name": {
@@ -6916,6 +7289,27 @@
         ],
         "title": "NavSiteIn"
       },
+      "NavSitePurgeIn": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Ids",
+            "description": "待永久删除的回收站站点 ID"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "NavSitePurgeIn"
+      },
       "NavSiteRead": {
         "properties": {
           "name": {
@@ -6984,7 +7378,7 @@
             "description": "资源唯一标识"
           },
           "category": {
-            "$ref": "#/components/schemas/NavTaxonomyRead"
+            "$ref": "#/components/schemas/NavCategoryRead"
           },
           "tags": {
             "items": {
@@ -7714,7 +8108,7 @@
             "description": "资源说明文本"
           },
           "category": {
-            "$ref": "#/components/schemas/NavTaxonomyRead"
+            "$ref": "#/components/schemas/NavCategoryRead"
           },
           "tags": {
             "items": {
@@ -8512,38 +8906,6 @@
         ],
         "title": "ResponseModel[NavSiteRead]"
       },
-      "ResponseModel_NavTaxonomyRead_": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "description": "稳定程序代码"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "description": "面向调用方的中文结果消息"
-          },
-          "data": {
-            "$ref": "#/components/schemas/NavTaxonomyRead",
-            "description": "响应业务数据"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id",
-            "description": "用于定位本次请求的唯一标识"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "code",
-          "message",
-          "data",
-          "request_id"
-        ],
-        "title": "ResponseModel[NavTaxonomyRead]"
-      },
       "ResponseModel_NoneType_": {
         "properties": {
           "code": {
@@ -9185,6 +9547,46 @@
         ],
         "title": "ResponseModel[SystemStatus]"
       },
+      "ResponseModel_Union_NavCategoryRead__NavTaxonomyRead__": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "稳定程序代码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "面向调用方的中文结果消息"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NavCategoryRead"
+              },
+              {
+                "$ref": "#/components/schemas/NavTaxonomyRead"
+              }
+            ],
+            "title": "Data",
+            "description": "响应业务数据"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "用于定位本次请求的唯一标识"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "title": "ResponseModel[Union[NavCategoryRead, NavTaxonomyRead]]"
+      },
       "ResponseModel_UserAuthSessionOut_": {
         "properties": {
           "code": {
@@ -9354,42 +9756,6 @@
         ],
         "title": "ResponseModel[list[NavAccountRead]]"
       },
-      "ResponseModel_list_NavTaxonomyRead__": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "description": "稳定程序代码"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "description": "面向调用方的中文结果消息"
-          },
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/NavTaxonomyRead"
-            },
-            "type": "array",
-            "title": "Data",
-            "description": "响应业务数据"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id",
-            "description": "用于定位本次请求的唯一标识"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "code",
-          "message",
-          "data",
-          "request_id"
-        ],
-        "title": "ResponseModel[list[NavTaxonomyRead]]"
-      },
       "ResponseModel_list_PermissionRead__": {
         "properties": {
           "code": {
@@ -9425,6 +9791,49 @@
           "request_id"
         ],
         "title": "ResponseModel[list[PermissionRead]]"
+      },
+      "ResponseModel_list_Union_NavCategoryRead__NavTaxonomyRead___": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "稳定程序代码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "面向调用方的中文结果消息"
+          },
+          "data": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/NavCategoryRead"
+                },
+                {
+                  "$ref": "#/components/schemas/NavTaxonomyRead"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "响应业务数据"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "用于定位本次请求的唯一标识"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "title": "ResponseModel[list[Union[NavCategoryRead, NavTaxonomyRead]]]"
       },
       "RoleBulkDeleteIn": {
         "properties": {

@@ -1,6 +1,6 @@
 import type { AdminRead, AdminSiteSettingRead } from "@pinjie/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigProvider, message } from "antd";
 import zhCN from "antd/locale/zh_CN";
@@ -125,6 +125,13 @@ describe("SettingsPage", () => {
     );
 
     await user.click(screen.getByRole("button", { name: /移除/ }));
+    const dialog = await screen.findByRole("dialog", { name: "确认移除站点 LOGO" });
+    expect(deletedRevision).toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: /取\s*消/ }));
+    expect(deletedRevision).toBeNull();
+    expect(screen.getByRole("img", { name: "当前站点 LOGO" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /移除/ }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /确\s*定/ }));
     await waitFor(() => expect(deletedRevision).toBe("2"));
     expect(await screen.findByText("未上传")).toBeInTheDocument();
   });

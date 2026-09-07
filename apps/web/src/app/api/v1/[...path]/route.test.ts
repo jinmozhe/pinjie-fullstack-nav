@@ -82,6 +82,19 @@ describe("Web API profile proxy", () => {
     expect(String(target)).toBe(`http://backend.test/api/v1/${routePath.join("/")}${query}`);
   });
 
+  it.each(["sites", "taxonomy/categories"])("isolates the reader profile and prevents shared caching for %s", async (suffix) => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ data: [] }), { headers: { "cache-control": "public, max-age=3600" } }));
+    const path = ["nav-reader", ...suffix.split("/")];
+    const response = await GET(new Request(`http://localhost:3000/api/v1/${path.join("/")}`, {
+      headers: { cookie: "pinjie_reader_session=reader; pinjie_web_access=user; pinjie_admin_access=admin" },
+    }), context(path));
+    expect(response.status).toBe(200);
+    expect(new Headers(fetchMock.mock.calls[0]?.[1]?.headers).get("cookie")).toBe("pinjie_reader_session=reader");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const rejected = await POST(new Request(`http://localhost:3000/api/v1/${path.join("/")}`, { method: "POST" }), context(path));
+    expect(rejected.status).toBe(404);
+  });
+
   it("rejects unsafe requests from another origin", async () => {
     const response = await POST(
       new Request("http://localhost:3000/api/v1/auth/login", {

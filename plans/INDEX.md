@@ -24,5 +24,9 @@
 
 | 计划 | 状态 | 结果 | 影响范围 | 用途 |
 | --- | --- | --- | --- | --- |
+| `plans/2026-09-07_站点回收站永久删除计划.md` | 已结束 | 已完成；源码、生成契约与轻量验证通过，真实删除、权限同步及重型验证未执行 | Backend、Admin、API Client、Database、Documentation | 回收站独立权限控制的单条及批量永久删除 |
+| `plans/2026-09-07_分类图标配置计划.md` | 已结束 | 已完成；源码、迁移文件、生成契约与轻量验证完成，实际迁移和重型验收未执行 | Backend、Admin、Web、API Client、Database、Documentation | 分类内置图标选择、保存与跨端展示 |
+| `plans/2026-09-07_Admin删除操作统一确认计划.md` | 已结束 | 已完成；本地实现与轻量验证通过，动态交互和视觉验证未执行 | Admin、Documentation | 统一软硬删除确认、保留原因与目标快照并调整站点列顺序 |
+| `plans/2026-09-07_分类登录可见控制计划.md` | 已结束 | 已完成；源码、生成契约与本地轻量验证完成，实际迁移与重型验收未执行 | Backend、Admin、Web、API Client、Database、Deployment、Documentation | 分类登录可见配置、服务端过滤及 Web 身份缓存隔离 |
 | `plans/2026-09-06_母版90644f5累计更新计划.md` | 已结束 | 已完成；选择性迁移并通过轻量门禁，排除母版身份绑定工具 | Backend、Admin、Web、API Client、Deployment、Documentation | 从原派生快照累计吸收母版通用修复，保留 Nav 并登记排除项 |
 | `plans/2026-09-06_导航管理与管理员只读查阅计划.md` | 已结束 | 已完成；源码与轻量验证完成，用户日志确认本地初始化，重型验收未执行 | Backend、Admin、Web、API Client、Database、Deployment、Documentation | 公开导航、后台统一凭据管理与管理员独立只读会话 |

@@ -17,7 +17,7 @@ export function AccountsDrawer({ site, onClose }: { site: NavSiteRead; onClose: 
   const [editing, setEditing] = useState<NavAccountRead | null>();
   const [deleting, setDeleting] = useState<string[]>();
   const [form] = Form.useForm<NavAccountIn>();
-  const query = useQuery({ queryKey: ["navigation-accounts", site.id], queryFn: () => navigationApi.accounts(site.id), gcTime: 0, staleTime: 0, retry: false });
+  const query = useQuery({ queryKey: ["navigation-accounts", site.id], queryFn: ({ signal }) => navigationApi.accounts(site.id, signal), gcTime: 0, staleTime: 0, retry: false });
   const refresh = () => { setSelected([]); void client.invalidateQueries({ queryKey: ["navigation-accounts", site.id] }); };
   const save = useMutation({ gcTime: 0, mutationFn: (input: NavAccountIn) => navigationApi.saveAccount(site.id, input, editing?.id), onSuccess: () => { form.resetFields(); setEditing(undefined); save.reset(); refresh(); message.success("已保存"); }, onError: (error) => message.error(errorMessage(error)) });
   const bulk = useMutation({ mutationFn: (input: NavBulkIn) => navigationApi.bulkAccounts(site.id, input), onSuccess: () => { setDeleting(undefined); refresh(); message.success("操作完成"); }, onError: (error) => message.error(errorMessage(error)) });
@@ -32,7 +32,7 @@ export function AccountsDrawer({ site, onClose }: { site: NavSiteRead; onClose: 
   ];
   return <Drawer title={`${site.name} · 帐号资料`} open onClose={onClose} size={960} destroyOnHidden>
     <QueryState loading={false} error={query.isError ? errorMessage(query.error) : undefined} onRetry={() => void query.refetch()} />
-    <ProTable<NavAccountRead> rowKey="id" dataSource={query.isError ? [] : query.data} columns={columns} loading={query.isPending} search={false} options={false} scroll={{ x: "max-content" }} onChange={() => setSelected([])} rowSelection={writable ? { selectedRowKeys: selected, onChange: setSelected } : false}
+    <ProTable<NavAccountRead> rowKey="id" headerTitle="帐号列表" dataSource={query.isError ? [] : query.data} columns={columns} loading={query.isPending} search={false} options={{ reload: () => void query.refetch() }} scroll={{ x: "max-content" }} onChange={() => setSelected([])} rowSelection={writable ? { selectedRowKeys: selected, onChange: setSelected } : false}
       toolBarRender={() => writable ? [<Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => edit(null)}>新增帐号</Button>] : []}
       tableAlertOptionRender={() => <Space><Button icon={<CheckOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "enable" })}>启用</Button><Button icon={<StopOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "disable" })}>停用</Button><Button danger icon={<DeleteOutlined />} onClick={() => setDeleting(selected.map(String))}>删除</Button></Space>} />
     <Modal title={editing ? "编辑帐号" : "新增帐号"} open={editing !== undefined} onCancel={() => { form.resetFields(); setEditing(undefined); }} onOk={() => form.submit()} confirmLoading={save.isPending} destroyOnHidden>

@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, CheckConstraint, Column, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import Boolean, CheckConstraint, Column, ForeignKey, Integer, String, Table, Text, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, SoftDeleteMixin, TimestampMixin, UUIDPrimaryKeyMixin
@@ -8,11 +8,23 @@ from .base import Base, SoftDeleteMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 class NavCategory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "nav_categories"
-    __table_args__ = {"comment": "导航一级分类"}
+    __table_args__ = (
+        CheckConstraint(
+            "icon_key IN ('code', 'book', 'tool', 'app', 'globe', 'cloud', 'database', 'api', "
+            "'design', 'image', 'video', 'music', 'ai', 'chart', 'education', 'news', "
+            "'community', 'shopping', 'game', 'security')",
+            name="ck_nav_categories_icon_key",
+        ),
+        {"comment": "导航一级分类"},
+    )
     name: Mapped[str] = mapped_column(String(100), unique=True)
+    icon_key: Mapped[str | None] = mapped_column(String(32), comment="分类内置图标标识，空值使用默认图标")
     description: Mapped[str] = mapped_column(String(1000), default="")
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    requires_login: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), comment="仅管理员查阅登录后可见"
+    )
 
 
 class NavTag(UUIDPrimaryKeyMixin, TimestampMixin, Base):
