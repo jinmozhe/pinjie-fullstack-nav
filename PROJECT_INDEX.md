@@ -7,6 +7,7 @@
 | 字段 | 当前值 |
 | --- | --- |
 | 项目角色 | 独立导航站全栈项目 |
+| 对外品牌 | 拾径导航，文案以 [PRD 对外品牌](docs/PROJECT_REQUIREMENTS.md#21-对外品牌) 为准 |
 | 派生类型 | Nav |
 | 母版发布基线 | `pinjie-fullstack-base` `v1.0.0`，Commit `7f5f4ad28b73ffabe3c0fa9cc99b39875482ba18` |
 | 派生源码快照 | `00b409ae866b260854b75bef74c16cd4b9692c79`，即 `v1.0.0-1-g00b409a` |

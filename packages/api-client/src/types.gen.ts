@@ -4362,9 +4362,23 @@ export type ReaderSiteApiV1NavReaderSitesSiteIdGetResponse = ReaderSiteApiV1NavR
 export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Tag Id
+         */
+        tag_id?: string | null;
+    };
     url: '/api/v1/nav-reader/taxonomy/categories';
 };
+
+export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetError = ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetErrors[keyof ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetErrors];
 
 export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponses = {
     /**
@@ -4374,6 +4388,48 @@ export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponses = {
 };
 
 export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponse = ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponses[keyof ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetResponses];
+
+export type ReaderTagsApiV1NavReaderTaxonomyTagsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Category Id
+         */
+        category_id?: string | null;
+    };
+    url: '/api/v1/nav-reader/taxonomy/tags';
+};
+
+export type ReaderTagsApiV1NavReaderTaxonomyTagsGetErrors = {
+    /**
+     * 查阅会话无效
+     */
+    401: unknown;
+    /**
+     * 无查阅权限
+     */
+    403: unknown;
+    /**
+     * 筛选目标不存在或不可见
+     */
+    404: unknown;
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type ReaderTagsApiV1NavReaderTaxonomyTagsGetError = ReaderTagsApiV1NavReaderTaxonomyTagsGetErrors[keyof ReaderTagsApiV1NavReaderTaxonomyTagsGetErrors];
+
+export type ReaderTagsApiV1NavReaderTaxonomyTagsGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelListNavTaxonomyResult;
+};
+
+export type ReaderTagsApiV1NavReaderTaxonomyTagsGetResponse = ReaderTagsApiV1NavReaderTaxonomyTagsGetResponses[keyof ReaderTagsApiV1NavReaderTaxonomyTagsGetResponses];
 
 export type ReaderSitesApiV1NavReaderSitesGetData = {
     body?: never;
@@ -4993,11 +5049,28 @@ export type PublicTaxonomyApiV1NavigationTaxonomyKindGetData = {
          */
         kind: 'categories' | 'tags';
     };
-    query?: never;
+    query?: {
+        /**
+         * Category Id
+         */
+        category_id?: string | null;
+        /**
+         * Tag Id
+         */
+        tag_id?: string | null;
+    };
     url: '/api/v1/navigation/taxonomy/{kind}';
 };
 
 export type PublicTaxonomyApiV1NavigationTaxonomyKindGetErrors = {
+    /**
+     * 筛选参数不匹配
+     */
+    400: unknown;
+    /**
+     * 筛选目标不存在或不可见
+     */
+    404: unknown;
     /**
      * 请求参数校验失败
      */

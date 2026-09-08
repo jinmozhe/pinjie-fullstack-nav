@@ -113,9 +113,25 @@ class NavigationService:
         return NavTaxonomyRead.model_validate(row)
 
     async def taxonomy(
-        self, kind: TaxonomyKind, *, public: bool = False, reader: bool = False
+        self,
+        kind: TaxonomyKind,
+        *,
+        public: bool = False,
+        reader: bool = False,
+        category_id: uuid.UUID | None = None,
+        tag_id: uuid.UUID | None = None,
     ) -> list[NavCategoryRead | NavTaxonomyRead]:
-        return [self.taxonomy_read(item) for item in await self.repo.taxonomy(kind, public=public, reader=reader)]
+        if category_id or tag_id:
+            if not public or (kind == "tags" and tag_id) or (kind == "categories" and category_id):
+                raise AppException(status_code=400, code="NAV_FILTER_INVALID", message="筛选参数与分类标签查询不匹配")
+            filter_kind: TaxonomyKind = "categories" if category_id else "tags"
+            filter_id = category_id or tag_id
+            if filter_id is None or not await self.repo.visible_taxonomy(filter_kind, filter_id, reader=reader):
+                raise missing()
+            items = await self.repo.taxonomy_filtered(kind, category_id=category_id, tag_id=tag_id, reader=reader)
+        else:
+            items = await self.repo.taxonomy(kind, public=public, reader=reader)
+        return [self.taxonomy_read(item) for item in items]
 
     async def save_taxonomy(
         self, kind: TaxonomyKind, payload: NavCategoryIn | NavTaxonomyIn, id: uuid.UUID | None = None

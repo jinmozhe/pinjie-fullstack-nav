@@ -15,7 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: site.title, template: `%s | ${site.name}` },
     description: site.description,
     keywords: site.keywords,
-    ...(site.logo_url ? { icons: { icon: site.logo_url } } : {}),
     alternates: { canonical: "/" },
   };
 }

@@ -11,7 +11,7 @@ const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 
 function isAllowedRoute(method: string, path: string[]): boolean {
   const route = path.join("/");
-  if (method === "GET" && /^(nav-reader\/(me|sites|groups|taxonomy\/categories)|navigation\/(sites|groups)|navigation\/taxonomy\/(categories|tags))$/.test(route)) return true;
+  if (method === "GET" && /^(nav-reader\/(me|sites|groups|taxonomy\/(categories|tags))|navigation\/(sites|groups)|navigation\/taxonomy\/(categories|tags))$/.test(route)) return true;
   if (method === "GET" && path.length === 3 && ["navigation", "nav-reader"].includes(path[0] ?? "") && path[1] === "sites" && SESSION_ID.test(path[2] ?? "")) return true;
   if (method === "GET" && path.length === 4 && path[0] === "navigation" && path[1] === "sites" && SESSION_ID.test(path[2] ?? "") && path[3] === "accounts") return true;
   if (method === "GET" && route === "system/site-profile") return true;
