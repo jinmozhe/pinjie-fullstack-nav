@@ -44,7 +44,7 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   const reader = !loggedOut && identity.isSuccess && identity.dataUpdatedAt > blockedAt && Date.parse(identity.data.expires_at) > Date.now();
   const lastReader = useRef(reader);
   const scope = reader ? ["reader-navigation", identity.data.admin_id] : ["public-navigation"];
-  const suspended = reader && (!visible || identity.isFetching);
+  const suspended = reader && (!visible || identity.isLoading);
   const useInitial = initialAvailable && Boolean(initial?.reader) === reader;
   const sameInitialLocation = navigationHref(location) === navigationHref(initialLocation);
   const closeDetail = useCallback(() => {
@@ -84,7 +84,14 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   const groups = useQuery({ queryKey: [...scope, "groups", location.page], queryFn: ({ signal }) => navigationApi.groups(location.page, reader, signal), initialData: useInitial && sameInitialLocation ? initial?.groups : undefined, enabled: enabled && home, ...queryPolicy });
   const categories = useQuery({ queryKey: [...scope, "categories"], queryFn: ({ signal }) => navigationApi.categories(reader, signal), initialData: useInitial ? initial?.categories : undefined, enabled, ...queryPolicy });
   const tags = useQuery({ queryKey: ["nav-tags"], queryFn: ({ signal }) => navigationApi.tags(signal), initialData: initial?.tags, ...queryPolicy });
+  /** 分类页（含分类+标签双过滤）：用于下拉框展示该分类内有站点的标签 */
+  const isOnCategory = !home && !location.search && !!location.category;
+  /** 纯标签页（未锁定分类）：用于下拉框展示包含该标签站点的分类 */
+  const isOnTagOnly = !home && !location.search && !location.category && !!location.tag;
+  const filteredTags = useQuery({ queryKey: [...scope, "tags-in-cat", location.category], queryFn: ({ signal }) => navigationApi.tagsInCategory(location.category, reader, signal), enabled: enabled && isOnCategory, ...queryPolicy });
+  const filteredCategories = useQuery({ queryKey: [...scope, "cats-with-tag", location.tag], queryFn: ({ signal }) => navigationApi.categoriesWithTag(location.tag, reader, signal), enabled: enabled && isOnTagOnly, ...queryPolicy });
   const results = home ? groups : sites;
+  const filterOptions = isOnCategory ? filteredTags : isOnTagOnly ? filteredCategories : undefined;
   const blocked = suspended || logout.isPending || (reader && (results.isError || categories.isError));
   const siteData = blocked || sites.isError ? undefined : sites.data;
   const groupData = blocked || groups.isError ? undefined : groups.data;
@@ -92,8 +99,8 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   const category = categoryData?.find(item => item.id === location.category);
   const tag = tags.data?.find(item => item.id === location.tag);
   const invalidSelection = !home && !location.search && ((!!location.category && categories.isSuccess && !category) || (!!location.tag && tags.isSuccess && !tag));
-  const failed = results.isError || categories.isError || tags.isError;
-  const loading = blocked || results.isPending || categories.isPending || tags.isPending;
+  const failed = results.isError || categories.isError || tags.isError || Boolean(filterOptions?.isError);
+  const loading = blocked || results.isPending || categories.isPending || tags.isPending || Boolean(filterOptions?.isPending);
   const title = home ? "全部站点" : location.search ? "搜索结果" : category?.name ?? tag?.name ?? "站点列表";
 
   useEffect(() => {
@@ -133,7 +140,7 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   }, [autoLogin, loginResult, identity.error, loggedOut]);
   const sidebarProps = { profile, categories: categoryData ?? [], tags: tags.data ?? [], location, onNavigate: navigate };
   const closeDrawer = useCallback(() => setDrawer(false), []);
-  const retry = () => { void results.refetch(); void categories.refetch(); void tags.refetch(); };
+  const retry = () => { void results.refetch(); void categories.refetch(); void tags.refetch(); if (filterOptions) void filterOptions.refetch(); };
 
   return <main className="nav-shell">
     <header className="nav-header"><div className="nav-header-brand"><span className="nav-menu-toggle"><IconButton title="打开分类菜单" aria-expanded={drawer} onClick={() => setDrawer(true)}><Menu size={22} /></IconButton></span><SiteBrand profile={profile} /></div>
@@ -146,13 +153,19 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
     </form>
     <aside className="nav-sidebar"><SidebarContent {...sidebarProps} /></aside>
     <section className="nav-results" aria-labelledby="nav-heading">
-      <h1 ref={heading} tabIndex={-1} id="nav-heading" className={home ? "nav-visually-hidden" : "nav-list-heading"}>{title}</h1>
+      <h1 ref={heading} tabIndex={-1} id="nav-heading" className={!home && location.search ? "nav-list-heading" : "nav-visually-hidden"}>{title}</h1>
       {(logout.isError || loginResult === "failed") && <p className="form-alert" role="alert">{logout.isError ? errorMessage(logout.error) : "管理员登录未完成，请重新登录"}</p>}
       {identity.isError && !(identity.error instanceof ApiError && identity.error.status === 401) && <p className="form-alert" role="alert">{errorMessage(identity.error)}</p>}
-      {!home && <div className="nav-results-bar"><div><span>{siteData ? `${siteData.total} 个站点` : "站点"}</span>{location.search && <span className="nav-search-term">“{location.search}”</span>}<NavigationLink location={HOME_LOCATION} onNavigate={navigate}>清除{location.search ? "搜索" : "筛选"}</NavigationLink></div>
-        {!location.search && <label>标签<select aria-label="筛选标签" value={location.tag} onChange={event => navigate({ ...location, page: 1, search: "", tag: event.target.value })}><option value="">全部标签</option>{tags.data?.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+      {!home && <div className="nav-results-bar">
+        {location.search
+          ? <div className="nav-results-bar-info"><span>{siteData ? `${siteData.total} 个站点` : "站点"}</span><span className="nav-search-term">"{location.search}"</span><NavigationLink location={HOME_LOCATION} onNavigate={navigate}>清除搜索</NavigationLink></div>
+          : <><span className="nav-results-bar-title">{title}</span><div className="nav-results-bar-right"><span className="nav-results-bar-count">{siteData ? `${siteData.total} 个站点` : ""}</span>
+            {isOnCategory && <div className="nav-select-wrap"><select aria-label="按标签筛选" disabled={loading || failed} value={location.tag} onChange={event => navigate({ ...location, page: 1, tag: event.target.value })}><option value="">{filteredTags.isPending ? "正在加载标签" : "全部标签"}</option>{!blocked && !filteredTags.isError && filteredTags.data?.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>}
+            {isOnTagOnly && <div className="nav-select-wrap"><select aria-label="按分类筛选" disabled={loading || failed} value={location.category} onChange={event => navigate({ ...location, page: 1, category: event.target.value })}><option value="">{filteredCategories.isPending ? "正在加载分类" : "全部分类"}</option>{!blocked && !filteredCategories.isError && filteredCategories.data?.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>}
+            <NavigationLink location={HOME_LOCATION} onNavigate={navigate}>清除筛选</NavigationLink>
+          </div></>}
       </div>}
-      {failed || invalidSelection ? <div className="nav-empty" role="alert"><p>{invalidSelection ? "分类或标签不存在或不可见" : errorMessage(results.error ?? categories.error ?? tags.error) || initialError}</p><button className="secondary-action" onClick={retry}><RefreshCw size={16} />重新加载</button><NavigationLink location={HOME_LOCATION} onNavigate={navigate}>返回全部站点</NavigationLink></div>
+      {failed || invalidSelection ? <div className="nav-empty" role="alert"><p>{invalidSelection ? "分类或标签不存在或不可见" : errorMessage(results.error ?? categories.error ?? tags.error ?? filterOptions?.error) || initialError}</p><button className="secondary-action" onClick={retry}><RefreshCw size={16} />重新加载</button><NavigationLink location={HOME_LOCATION} onNavigate={navigate}>返回全部站点</NavigationLink></div>
         : loading ? <div className="nav-grid nav-grid-skeleton" role="status" aria-label="正在加载站点">{Array.from({ length: 8 }, (_, index) => <div key={index}><span /><span /><span /></div>)}</div>
           : home ? groupData?.items.length ? groupData.items.map(group => <section className="nav-group" key={group.category.id} aria-labelledby={`group-${group.category.id}`}>
             <header><div><h2 id={`group-${group.category.id}`}>{group.category.name}</h2><span>{group.total}</span></div><NavigationLink location={{ ...HOME_LOCATION, category: group.category.id }} onNavigate={navigate} aria-label={`查看全部${group.category.name}站点`}>查看全部<ArrowRight size={15} /></NavigationLink></header>
@@ -166,6 +179,6 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
       </nav>}
     </section>
     {drawer && <NavigationDrawer {...sidebarProps} onClose={closeDrawer} />}
-    {detailId && visible && <SiteDetail key={`${scope.join(":")}:${detailId}`} siteId={detailId} reader={reader} scope={scope} suspended={blocked} onClose={closeDetail} onNavigate={navigate} />}
+    {detailId && visible && <SiteDetail key={`${scope.join(":")}:${detailId}`} siteId={detailId} reader={reader} scope={scope} suspended={blocked || (reader && identity.isFetching)} onClose={closeDetail} onNavigate={navigate} />}
   </main>;
 }

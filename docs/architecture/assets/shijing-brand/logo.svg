@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">拾径导航</title>
+  <desc id="desc">从起点出发的折返路径连接向右的箭头，象征收集好站并快速抵达。</desc>
+  <path d="M25 49H36C46 49 49 38 40 33L26 26C17 21 21 14 29 14H49" stroke="#F26B38" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M41 6L49 14L41 22" stroke="#F26B38" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="13" cy="49" r="4.5" fill="#27272A"/>
+</svg>

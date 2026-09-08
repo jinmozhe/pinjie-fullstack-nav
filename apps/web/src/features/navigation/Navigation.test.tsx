@@ -31,6 +31,26 @@ function mount() {
 }
 
 describe("navigation category access", () => {
+  it("reports a failed private category tag request and retries through the reader endpoint", async () => {
+    let requests = 0;
+    server.use(http.get("http://localhost:3000/api/v1/nav-reader/taxonomy/tags", ({ request }) => {
+      expect(new URL(request.url).searchParams.get("category_id")).toBe(category.id);
+      requests += 1;
+      return requests === 1
+        ? HttpResponse.json({ code: "REQUEST_FAILED", message: "标签加载失败" }, { status: 503 })
+        : response([{ id: "01900000-0000-7000-8000-000000000009", name: "Private tag", description: "", sort_order: 0, is_active: true }]);
+    }));
+    mount();
+    await userEvent.click(await screen.findByRole("link", { name: category.name }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("标签加载失败");
+    expect(screen.getByRole("combobox", { name: "按标签筛选" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "重新加载" }));
+    expect(await screen.findByRole("option", { name: "Private tag" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "按标签筛选" })).toBeEnabled();
+    act(() => { new TestChannel().postMessage(); });
+    await waitFor(() => expect(screen.queryByRole("option", { name: "Private tag" })).not.toBeInTheDocument());
+  });
+
   beforeEach(() => {
     window.history.replaceState(null, "", "/");
     vi.spyOn(globalThis.HTMLDialogElement.prototype, "showModal").mockImplementation(function (this: globalThis.HTMLDialogElement) { this.setAttribute("open", ""); });
@@ -44,6 +64,7 @@ describe("navigation category access", () => {
       http.get("http://localhost:3000/api/v1/nav-reader/sites/:id", () => response(privateSites.items[0])),
       http.get("http://localhost:3000/api/v1/navigation/sites/:id/accounts", () => response([])),
       http.get("http://localhost:3000/api/v1/nav-reader/taxonomy/categories", () => response([category])),
+      http.get("http://localhost:3000/api/v1/nav-reader/taxonomy/tags", () => response([])),
       http.get("http://localhost:3000/api/v1/navigation/sites", () => response(empty)),
       http.get("http://localhost:3000/api/v1/navigation/taxonomy/categories", () => response([])),
       http.get("http://localhost:3000/api/v1/navigation/taxonomy/tags", () => response([])),

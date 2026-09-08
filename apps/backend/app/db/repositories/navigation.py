@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
-from app.db.models import Asset, NavCategory, NavSite, NavSiteAccount, NavTag
+from app.db.models import Asset, NavCategory, NavSite, NavSiteAccount, NavTag, nav_site_tags
 
 TaxonomyKind = Literal["categories", "tags"]
 
@@ -80,6 +80,42 @@ class NavigationRepository:
             return list(await self.session.scalars(query.where(NavCategory.is_active) if public else query))
         tags = select(NavTag).order_by(NavTag.sort_order, NavTag.id)
         return list(await self.session.scalars(tags.where(NavTag.is_active) if public else tags))
+
+    async def taxonomy_filtered(
+        self,
+        kind: TaxonomyKind,
+        *,
+        category_id: uuid.UUID | None = None,
+        tag_id: uuid.UUID | None = None,
+        reader: bool = False,
+    ) -> list[NavCategory] | list[NavTag]:
+        """按交叉条件过滤：kind=tags 时返回指定分类下的标签，kind=categories 时返回包含指定标签的分类。"""
+        if kind == "tags" and category_id:
+            # 查询该分类下已发布站点所关联的启用标签
+            tags_query = (
+                select(NavTag)
+                .join(nav_site_tags, nav_site_tags.c.tag_id == NavTag.id)
+                .join(NavSite, NavSite.id == nav_site_tags.c.site_id)
+                .join(NavCategory, NavCategory.id == NavSite.category_id)
+                .where(
+                    NavSite.category_id == category_id, *self.visible_sites(reader=reader), NavTag.is_active.is_(True)
+                )
+                .distinct()
+                .order_by(NavTag.sort_order, NavTag.id)
+            )
+            return list(await self.session.scalars(tags_query))
+        if kind == "categories" and tag_id:
+            # 查询包含该标签的已发布站点所属的启用分类
+            categories_query = (
+                select(NavCategory)
+                .join(NavSite, NavSite.category_id == NavCategory.id)
+                .join(nav_site_tags, nav_site_tags.c.site_id == NavSite.id)
+                .where(nav_site_tags.c.tag_id == tag_id, *self.visible_sites(reader=reader))
+                .distinct()
+                .order_by(NavCategory.sort_order, NavCategory.id)
+            )
+            return list(await self.session.scalars(categories_query))
+        raise ValueError("taxonomy filter must match the requested kind")
 
     async def taxonomy_targets(self, kind: TaxonomyKind, ids: list[uuid.UUID]) -> list[NavCategory] | list[NavTag]:
         if kind == "categories":

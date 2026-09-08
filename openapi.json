@@ -290,9 +290,28 @@
         "tags": [
           "导航查阅"
         ],
-        "summary": "查阅启用的全部导航分类",
-        "description": "要求有效管理员查阅会话，包含仅登录可见分类。",
+        "summary": "查阅启用的导航分类",
+        "description": "要求有效管理员查阅会话，包含仅登录可见分类。可传 tag_id 只返回包含该标签站点的分类。",
         "operationId": "reader_categories_api_v1_nav_reader_taxonomy_categories_get",
+        "parameters": [
+          {
+            "name": "tag_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "请求成功",
@@ -300,6 +319,76 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseModel_list_NavTaxonomyResult__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/nav-reader/taxonomy/tags": {
+      "get": {
+        "tags": [
+          "导航查阅"
+        ],
+        "summary": "查阅分类内的导航标签",
+        "description": "要求有效管理员查阅会话；可用 category_id 查询可见分类内已发布站点的启用标签。",
+        "operationId": "reader_tags_api_v1_nav_reader_taxonomy_tags_get",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_list_NavTaxonomyResult__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "查阅会话无效"
+          },
+          "403": {
+            "description": "无查阅权限"
+          },
+          "404": {
+            "description": "筛选目标不存在或不可见"
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1606,7 +1695,8 @@
         "tags": [
           "公开导航"
         ],
-        "summary": "Public Taxonomy",
+        "summary": "读取公开分类或标签",
+        "description": "tags 可用 category_id 查询分类内标签；categories 可用 tag_id 查询标签所属分类。仅统计公开可见站点。",
         "operationId": "public_taxonomy_api_v1_navigation_taxonomy__kind__get",
         "parameters": [
           {
@@ -1621,6 +1711,40 @@
               "type": "string",
               "title": "Kind"
             }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Id"
+            }
+          },
+          {
+            "name": "tag_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag Id"
+            }
           }
         ],
         "responses": {
@@ -1633,6 +1757,12 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "筛选参数不匹配"
+          },
+          "404": {
+            "description": "筛选目标不存在或不可见"
           },
           "422": {
             "description": "请求参数校验失败",

@@ -116,12 +116,25 @@ async def reader_site(
     return success_response(data=await service.public_site(site_id, reader=True), request_id=current_request_id())
 
 
-@public_router.get("/taxonomy/{kind}", response_model=ResponseModel[list[TaxonomyRead]])
+@public_router.get(
+    "/taxonomy/{kind}",
+    response_model=ResponseModel[list[TaxonomyRead]],
+    summary="读取公开分类或标签",
+    description="tags 可用 category_id 查询分类内标签；categories 可用 tag_id 查询标签所属分类。仅统计公开可见站点。",
+    responses={400: {"description": "筛选参数不匹配"}, 404: {"description": "筛选目标不存在或不可见"}},
+)
 async def public_taxonomy(
-    kind: TaxonomyKind, service: NavigationServiceDependency, response: Response
+    kind: TaxonomyKind,
+    service: NavigationServiceDependency,
+    response: Response,
+    category_id: uuid.UUID | None = None,
+    tag_id: uuid.UUID | None = None,
 ) -> ResponseModel[list[TaxonomyRead]]:
     response.headers["Cache-Control"] = "no-store"
-    return success_response(data=await service.taxonomy(kind, public=True), request_id=current_request_id())
+    return success_response(
+        data=await service.taxonomy(kind, public=True, category_id=category_id, tag_id=tag_id),
+        request_id=current_request_id(),
+    )
 
 
 @public_router.get(
@@ -150,15 +163,43 @@ async def public_sites(
 @reader_router.get(
     "/taxonomy/categories",
     response_model=ResponseModel[list[TaxonomyRead]],
-    summary="查阅启用的全部导航分类",
-    description="要求有效管理员查阅会话，包含仅登录可见分类。",
+    summary="查阅启用的导航分类",
+    description="要求有效管理员查阅会话，包含仅登录可见分类。可传 tag_id 只返回包含该标签站点的分类。",
 )
 async def reader_categories(
-    service: NavigationServiceDependency, current: CurrentReaderDependency, response: Response
+    service: NavigationServiceDependency,
+    current: CurrentReaderDependency,
+    response: Response,
+    tag_id: uuid.UUID | None = None,
 ) -> ResponseModel[list[TaxonomyRead]]:
     response.headers["Cache-Control"] = "no-store"
     return success_response(
-        data=await service.taxonomy("categories", public=True, reader=True), request_id=current_request_id()
+        data=await service.taxonomy("categories", public=True, reader=True, tag_id=tag_id),
+        request_id=current_request_id(),
+    )
+
+
+@reader_router.get(
+    "/taxonomy/tags",
+    response_model=ResponseModel[list[TaxonomyRead]],
+    summary="查阅分类内的导航标签",
+    description="要求有效管理员查阅会话；可用 category_id 查询可见分类内已发布站点的启用标签。",
+    responses={
+        401: {"description": "查阅会话无效"},
+        403: {"description": "无查阅权限"},
+        404: {"description": "筛选目标不存在或不可见"},
+    },
+)
+async def reader_tags(
+    service: NavigationServiceDependency,
+    current: CurrentReaderDependency,
+    response: Response,
+    category_id: uuid.UUID | None = None,
+) -> ResponseModel[list[TaxonomyRead]]:
+    response.headers["Cache-Control"] = "no-store"
+    return success_response(
+        data=await service.taxonomy("tags", public=True, reader=True, category_id=category_id),
+        request_id=current_request_id(),
     )
 
 

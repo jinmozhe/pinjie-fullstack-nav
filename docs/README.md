@@ -53,6 +53,7 @@
 | [admin-engineering-standard.md](architecture/admin-engineering-standard.md)     | Admin Umi/Pro 框架边界、Feature、请求、状态、UI 组件和依赖准入的具体实施标准               |
 | [web-design-standard.md](architecture/web-design-standard.md) | Web 导航分组首页、列表搜索与详情弹窗的已确认视觉和交互标准，本地源码与轻量检查已完成 |
 | [web-design-preview.md](architecture/web-design-preview.md) | Web 桌面与手机首页、列表、搜索、分类抽屉及两种身份详情的 V1 静态设计图与评审入口 |
+| [site-brand.md](architecture/site-brand.md) | 拾径导航 Logo 源文件、PNG、图标、视觉规范和后台配置步骤 |
 | [module-boundaries.md](architecture/module-boundaries.md)                       | Backend 领域、Frontend Feature、共享包和机械依赖门禁的边界                                 |
 | [error-model.md](architecture/error-model.md)                                   | 错误分类、HTTP 契约、分层处理和禁止吞错、假成功、静默降级的规则                            |
 | [authentication-authorization.md](architecture/authentication-authorization.md) | Browser Cookie Profile、JWT、Session、CSRF、RBAC、管理操作保护和审计运行机制             |

@@ -24,6 +24,7 @@
 - `GET /api/v1/navigation/groups` 与 `GET /api/v1/nav-reader/groups` 按分类排序分页读取非空分组，默认每页 6 组、最多 12 组。每组返回分类、真实可见站点总量和最多 8 个预览站点，顶层 total 为可见非空分类数。查阅入口要求有效管理员查阅会话。
 - `GET /api/v1/navigation/sites/{site_id}` 与 `GET /api/v1/nav-reader/sites/{site_id}` 分别读取公开或管理员可见的单个站点资料，不含帐号；站点不存在或不可见时返回 404。
 - `GET /api/v1/navigation/taxonomy/{kind}` 只返回启用的公开分类或启用标签，携带查阅 Cookie 也不扩展公开入口的可见范围。
+- taxonomy 的 `tags` 查询接受 `category_id`，只返回该分类可见已发布站点关联的启用标签；`categories` 查询接受 `tag_id`，只返回含该标签可见站点的分类。管理员使用 `/api/v1/nav-reader/taxonomy/tags` 与 `/api/v1/nav-reader/taxonomy/categories`，每次核验查阅身份。参数与查询类型不匹配返回 400，目标不存在、停用或不可见返回 404；结果按原排序去重，空分类返回空标签列表。
 - `GET /api/v1/nav-reader/sites` 与 `GET /api/v1/nav-reader/taxonomy/categories` 要求有效管理员查阅会话，包含仅登录可见分类；仍排除停用分类、未发布及已删除站点。查阅列表沿用公开列表的名称搜索和筛选错误语义；Admin 管理列表继续支持名称或简介搜索。
 - `GET /api/v1/navigation/sites/{site_id}/accounts` 要求独立查阅身份，并只返回启用帐号。
 - `/api/v1/admin/navigation/` 提供分类、标签、站点、帐号的管理接口；写操作要求管理员会话、资源权限、CSRF 和审计。
@@ -36,6 +37,8 @@ Admin 侧栏按“欢迎、站点管理、分类管理、标签管理”的顺�
 分类新增和编辑支持“仅登录后可见”开关，列表展示公开或登录可见，沿用 `navigation:write` 权限与审计。分类专属 Schema 扩展公共字段，标签不保存且拒绝显式提交 `requires_login`。普通用户登录不参与分类授权，站点继承所属分类可见性，凭据继续使用原查阅权限。
 
 分类与标签共用的 taxonomy 接口采用命名联合类型。契约保留各分支校验，同时从原基础 Schema 生成公共 object、字段和 required 约束，使调用方可以直接识别名称、ID 等公共字段；禁止仅为通过检查隐藏分支或放宽运行时校验。
+
+Web 分类页按相关标签筛选，纯标签页按相关分类筛选，组合条件写入 URL 并重置页码。选项查询按身份与目标分类或标签隔离缓存；加载时禁用控件，失败显示错误和重试，不将失败解释为空选项。搜索维持独立名称搜索规则，清除筛选回首页；身份失效和退出清理受限选项。后台身份轮询时列表保持显示，详情凭据仍在重新核验期间暂停展示。
 
 ## 管理端站点信息抓取
 

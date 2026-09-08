@@ -96,6 +96,16 @@ async def test_group_previews_name_search_and_visibility_use_real_postgresql() -
             assert not {private.id, empty.id, disabled.id} & {item.category.id for item in page.items}
             assert "Sample-only-never-public" not in page.model_dump_json()
             authorized = await service.groups(page=1, page_size=12, reader=True)
+            assert [item.id for item in await service.taxonomy("tags", public=True, category_id=public.id)] == [tag.id]
+            assert await service.taxonomy("tags", public=True, category_id=empty.id) == []
+            with pytest.raises(AppException) as hidden_filter:
+                await service.taxonomy("tags", public=True, category_id=private.id)
+            assert hidden_filter.value.status_code == 404
+            assert await service.taxonomy("tags", public=True, reader=True, category_id=private.id) == []
+            assert [item.id for item in await service.taxonomy("categories", public=True, tag_id=tag.id)] == [public.id]
+            with pytest.raises(AppException) as invalid_filter:
+                await service.taxonomy("categories", public=True, category_id=public.id)
+            assert invalid_filter.value.status_code == 400
             assert private.id in {item.category.id for item in authorized.items}
             assert authorized.total == page.total + 1
             first = await service.groups(page=1, page_size=1, reader=True)
