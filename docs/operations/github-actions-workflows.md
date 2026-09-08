@@ -82,7 +82,7 @@ flowchart TD
 Dependency review 报告依赖图不可用时，应先检查仓库安全设置。GitHub 会在启用 Dependabot 时自动启用依赖图，见[官方 Dependabot 入门说明](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/dependabot-quickstart)。不得通过跳过依赖审查解决配置缺失。
 
 单维护者基线没有独立审批职责分离，但 Pull Request 和自动检查仍是默认分支的强制门禁。
-普通提交、分支推送和合并按用户文字分别授权。用户显式调用 `$git-sync` 时，该次调用覆盖当前任务的分支、提交、推送、PR、rebase 自动合并、分支清理和本地 `main` 同步；镜像发布和生产部署继续分别取得明确授权，并保留不可变发布和审计记录。
+普通提交、分支推送和合并按用户文字分别授权。用户显式执行 `$git-sync` 时，一次授权覆盖当前仓库全部本地可交付内容及必要的分支整合、提交、推送、PR、rebase 自动合并、分支清理和本地 `main` 同步，具体恢复与中止规则见开发流程第 18.1 节；镜像发布和生产部署继续分别取得明确授权，并保留不可变发布和审计记录。
 
 ### 3.2 项目 Node.js 与 Action 运行时
 
@@ -355,6 +355,14 @@ CI 固定安装 Semgrep CE `1.173.0`，不配置 Semgrep Token，不创建云端
 
 扫描器发现问题和扫描器自身故障都可能使 Job 失败。判断时先看具体 Job 和第一条有效错误，不能只根据 `Security failed` 邮件标题推断原因。
 
+### 9.9 本地与线上执行边界
+
+Security 扫描统一由已有 GitHub Actions Linux Runner 执行。本地开发、提交、推送和 git-sync 不运行 Semgrep、Gitleaks、Trivy、`pnpm audit` 等 Security 扫描，不为此安装工具，也不通过本地 Docker 或 WSL 代跑；不将本地 Security 结果作为推送前置条件，不新增统一的 `pnpm check:security` 入口。
+
+各项目按自己的后端、前端或全栈技术栈执行已配置的轻量检查。本仓库的 typecheck、lint、Ruff、Mypy、工作区和模块边界、契约检查、`check:dependencies` 的 Umi/Vite 策略检查及提交内容秘密核对继续适用；它们不等同于完整 Security 扫描。
+
+线上 Security 失败时读取对应 Job、规则 ID、文件及根因，在本地完成源码修复和适用轻量验证，通过正常追加提交让 CI 复验。扫描器或网络故障按运行状态诊断；同一错误三次修复或恢复后仍失败，按开发流程第 18.1 节中止并等待用户决策。线上必需检查保持失败关闭，本地未执行 Security 不代表线上检查可以跳过。
+
 ## 10. Pull Request 流程差异
 
 Pull Request 会运行同样的四个自动工作流，并额外启用两项差异检查：
@@ -539,10 +547,10 @@ Workflow 显示成功，表示远程命令、Compose 等待和镜像引用核对
 ### 13.1 `$git-sync` 日常交付
 
 ```text
-本地修改
--> 本地验证
--> 显式调用 `$git-sync`
--> 创建或使用 `codex/*` 功能分支
+显式执行 `$git-sync`
+-> 盘点并保护全部本地分支、提交及各 worktree 可交付改动
+-> 按依赖创建或使用 `codex/*` 交付分支
+-> 执行项目允许的本地轻量验证，Security 仅由 CI 执行
 -> 精确暂存并提交
 -> 推送功能分支，不触发整套检查
 -> 创建或更新目标为 `main` 的 Pull Request
@@ -551,10 +559,12 @@ Workflow 显示成功，表示远程命令、Compose 等待和镜像引用核对
 -> 额外执行 OpenAPI breaking changes 和 Dependency review
 -> 13 项必需检查满足后自动合并并删除远端分支
 -> 合并提交再次触发 4 个 Push 工作流
--> 本地 fast-forward 同步 `main` 并删除已合并分支
+-> 继续处理其余交付清单，必要时拆为多个 PR
+-> 优先快进同步 `main`，必要时按保护规则核验并对齐引用
+-> 核对并清理全部已交付分支
 ```
 
-`main` 不允许日常直接推送。检查失败、取消、缺失或 PR 无法合并时，`$git-sync` 停止并保留 PR 和分支，报告具体失败检查。它不会关闭工作流、降低门槛或使用 Ruleset bypass。
+`main` 不允许日常直接推送。检查失败、取消、缺失或 PR 无法合并时，保留 PR 和分支，自动诊断、修复、复验后继续；同一错误三次修复仍失败时中止本轮并报告，由用户决策，计数和可提前阻塞条件按开发流程第 18.1 节执行。禁止关闭工作流、降低门槛或使用 Ruleset bypass。
 
 ### 13.2 Pull Request 评审
 
@@ -625,7 +635,7 @@ Pull Request 是所有日常变更的唯一默认分支入口。检查失败时�
 1. 先确认失败的 Workflow 和 Job。
 2. 找到第一条真正失败的命令，后续错误可能只是连锁结果。
 3. 区分代码问题、扫描发现、依赖服务故障和 GitHub Runner 故障。
-4. 在本地复现适用检查，修复后创建新提交。
+4. 本地只复现允许的轻量检查；Security 按第 9.9 节读取线上日志、修复后追加提交，由 CI 复验，不要求本地运行扫描器。
 5. 禁止通过 `continue-on-error`、删除检查或扩大权限制造假成功。
 
 ## 15. 必须与可替换边界
