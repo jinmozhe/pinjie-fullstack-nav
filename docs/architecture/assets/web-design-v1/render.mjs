@@ -11,7 +11,7 @@ const { renderToStaticMarkup } = web('react-dom/server');
 const icons = web('lucide-react');
 
 const C = { bg: '#FCFCFC', ink: '#27272A', muted: '#64646C', faint: '#98989F', line: '#E7E7EB', orange: '#F26B38', link: '#B9471C', selected: '#FFF2EB' };
-const esc = (v) => String(v).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+const esc = (v) => renderToStaticMarkup(String(v));
 let nodes = [];
 function rect(x, y, w, h, fill, stroke = 'none', radius = 0, extra = '') {
   nodes.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" stroke="${stroke}" ${extra}/>`);
