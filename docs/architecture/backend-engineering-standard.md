@@ -34,13 +34,13 @@
 - PostgreSQL、SQLAlchemy 2 async、asyncpg 和 Alembic。
 - Redis、Loguru 和 uv；认证使用 PyJWT，密码哈希使用 pwdlib 的 Argon2id 实现。
 - UUID v7 已确认由应用层统一生成；Python 3.14 使用标准库 `uuid.uuid7()`，阶段 B 不引入 `uuid-utils` 或其他 UUID v7 第三方运行依赖。
-- Ruff、Mypy、pytest、pytest-asyncio 和 httpx 当前作为开发依赖。
+- Ruff、Mypy、pytest 和 pytest-asyncio 当前作为开发依赖；httpx 为站点资料抓取的运行依赖，同时供测试使用。
 
 依赖管理要求：
 
 1. 直接依赖写入 `apps/backend/pyproject.toml`，精确解析结果写入 `apps/backend/uv.lock`。
 2. 使用 `uv add <package>` 或 `uv add --dev <package>`，禁止手工制造与锁文件不一致的安装状态。
-3. 生产代码导入的包必须是运行依赖。当前 `httpx` 只在开发依赖中，未来生产外部 HTTP 能力必须先通过计划将其加入运行依赖：执行 `uv add httpx`（不带 `--dev`）使其出现在 `[project].dependencies`，重新生成 `uv.lock`，并同步更新 Backend Dockerfile 的依赖安装层和相关测试。派生项目仅在真实生产外部调用成立后再做此升级，母版阶段 `httpx` 保留开发依赖以支持 pytest `httpx.AsyncClient` 测试入口。
+3. 生产代码导入的包必须是运行依赖。本项目的 `httpx` 已通过站点信息抓取计划加入 `[project].dependencies`，由 `uv.lock` 锁定，Backend Dockerfile 在无开发依赖安装后检查其可导入；外部 HTTP 客户端由 lifespan 统一管理。新增其他生产依赖继续执行 `uv add`，同步锁文件、镜像安装层及相关测试。
 4. import-linter 已纳入 Backend 开发依赖和门禁。引入 Psycopg 3 或其他尚未声明的工具时必须经过计划、锁定依赖并补充相应验证。
 5. 外部参考项目只作为设计证据，禁止绝对路径导入、符号链接、Git 子模块或运行时读取参考项目文件。
 

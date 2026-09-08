@@ -1088,6 +1088,67 @@ export type NavCategoryRead = {
 };
 
 /**
+ * NavMetadataIn
+ */
+export type NavMetadataIn = {
+    /**
+     * Url
+     *
+     * 待抓取的公网 HTTP(S) 网址
+     */
+    url: string;
+};
+
+/**
+ * NavMetadataRead
+ */
+export type NavMetadataRead = {
+    /**
+     * Name
+     *
+     * 资源名称
+     */
+    name?: string | null;
+    /**
+     * Description
+     *
+     * 资源说明文本
+     */
+    description?: string | null;
+    /**
+     * Icon Base64
+     *
+     * 经校验缩放的 PNG Base64，保存前只在表单内存中使用
+     */
+    icon_base64?: string | null;
+    /**
+     * Warnings
+     *
+     * 缺失或未完成字段的安全提示
+     */
+    warnings?: Array<string>;
+};
+
+/**
+ * NavSiteGroupRead
+ */
+export type NavSiteGroupRead = {
+    category: NavCategoryRead;
+    /**
+     * Total
+     *
+     * 当前身份可见的分类站点总数
+     */
+    total: number;
+    /**
+     * Items
+     *
+     * 按站点排序的最多八项预览
+     */
+    items: Array<PublicNavSiteRead>;
+};
+
+/**
  * NavSiteIn
  */
 export type NavSiteIn = {
@@ -1459,6 +1520,42 @@ export type PageResultLoginEventRead = {
      * 当前分页中的资源列表
      */
     items: Array<LoginEventRead>;
+    /**
+     * Page
+     *
+     * 当前页码，从 1 开始
+     */
+    page: number;
+    /**
+     * Page Size
+     *
+     * 每页资源数量
+     */
+    page_size: number;
+    /**
+     * Total
+     *
+     * 符合条件的资源总数
+     */
+    total: number;
+    /**
+     * Total Pages
+     *
+     * 符合条件的总页数
+     */
+    total_pages: number;
+};
+
+/**
+ * PageResult[NavSiteGroupRead]
+ */
+export type PageResultNavSiteGroupRead = {
+    /**
+     * Items
+     *
+     * 当前分页中的资源列表
+     */
+    items: Array<NavSiteGroupRead>;
     /**
      * Page
      *
@@ -2369,6 +2466,34 @@ export type ResponseModelNavBulkRead = {
 };
 
 /**
+ * ResponseModel[NavMetadataRead]
+ */
+export type ResponseModelNavMetadataRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: NavMetadataRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
  * ResponseModel[NavSiteRead]
  */
 export type ResponseModelNavSiteRead = {
@@ -2595,6 +2720,34 @@ export type ResponseModelPageResultLoginEventRead = {
 };
 
 /**
+ * ResponseModel[PageResult[NavSiteGroupRead]]
+ */
+export type ResponseModelPageResultNavSiteGroupRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: PageResultNavSiteGroupRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
  * ResponseModel[PageResult[NavSiteRead]]
  */
 export type ResponseModelPageResultNavSiteRead = {
@@ -2726,6 +2879,34 @@ export type ResponseModelPageResultSessionRead = {
      * 响应业务数据
      */
     data: PageResultSessionRead;
+    /**
+     * Request Id
+     *
+     * 用于定位本次请求的唯一标识
+     */
+    request_id: string;
+};
+
+/**
+ * ResponseModel[PublicNavSiteRead]
+ */
+export type ResponseModelPublicNavSiteRead = {
+    /**
+     * Code
+     *
+     * 稳定程序代码
+     */
+    code: string;
+    /**
+     * Message
+     *
+     * 面向调用方的中文结果消息
+     */
+    message: string;
+    /**
+     * 响应业务数据
+     */
+    data: PublicNavSiteRead;
     /**
      * Request Id
      *
@@ -4094,6 +4275,90 @@ export type LogoutReaderApiV1NavReaderLogoutPostResponses = {
 
 export type LogoutReaderApiV1NavReaderLogoutPostResponse = LogoutReaderApiV1NavReaderLogoutPostResponses[keyof LogoutReaderApiV1NavReaderLogoutPostResponses];
 
+export type ReaderGroupsApiV1NavReaderGroupsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number;
+    };
+    url: '/api/v1/nav-reader/groups';
+};
+
+export type ReaderGroupsApiV1NavReaderGroupsGetErrors = {
+    /**
+     * 查阅会话无效
+     */
+    401: unknown;
+    /**
+     * 无查阅权限
+     */
+    403: unknown;
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type ReaderGroupsApiV1NavReaderGroupsGetError = ReaderGroupsApiV1NavReaderGroupsGetErrors[keyof ReaderGroupsApiV1NavReaderGroupsGetErrors];
+
+export type ReaderGroupsApiV1NavReaderGroupsGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelPageResultNavSiteGroupRead;
+};
+
+export type ReaderGroupsApiV1NavReaderGroupsGetResponse = ReaderGroupsApiV1NavReaderGroupsGetResponses[keyof ReaderGroupsApiV1NavReaderGroupsGetResponses];
+
+export type ReaderSiteApiV1NavReaderSitesSiteIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Site Id
+         */
+        site_id: string;
+    };
+    query?: never;
+    url: '/api/v1/nav-reader/sites/{site_id}';
+};
+
+export type ReaderSiteApiV1NavReaderSitesSiteIdGetErrors = {
+    /**
+     * 查阅会话无效
+     */
+    401: unknown;
+    /**
+     * 无查阅权限
+     */
+    403: unknown;
+    /**
+     * 站点不存在或不可见
+     */
+    404: unknown;
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type ReaderSiteApiV1NavReaderSitesSiteIdGetError = ReaderSiteApiV1NavReaderSitesSiteIdGetErrors[keyof ReaderSiteApiV1NavReaderSitesSiteIdGetErrors];
+
+export type ReaderSiteApiV1NavReaderSitesSiteIdGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelPublicNavSiteRead;
+};
+
+export type ReaderSiteApiV1NavReaderSitesSiteIdGetResponse = ReaderSiteApiV1NavReaderSitesSiteIdGetResponses[keyof ReaderSiteApiV1NavReaderSitesSiteIdGetResponses];
+
 export type ReaderCategoriesApiV1NavReaderTaxonomyCategoriesGetData = {
     body?: never;
     path?: never;
@@ -4155,6 +4420,49 @@ export type ReaderSitesApiV1NavReaderSitesGetResponses = {
 };
 
 export type ReaderSitesApiV1NavReaderSitesGetResponse = ReaderSitesApiV1NavReaderSitesGetResponses[keyof ReaderSitesApiV1NavReaderSitesGetResponses];
+
+export type FetchMetadataApiV1AdminNavigationMetadataPostData = {
+    body: NavMetadataIn;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/navigation/metadata';
+};
+
+export type FetchMetadataApiV1AdminNavigationMetadataPostErrors = {
+    /**
+     * 未登录
+     */
+    401: unknown;
+    /**
+     * 无维护权限或 CSRF 无效
+     */
+    403: unknown;
+    /**
+     * 网址或目标不允许
+     */
+    422: unknown;
+    /**
+     * 抓取并发已满
+     */
+    429: unknown;
+    /**
+     * 目标网页不可读取
+     */
+    502: unknown;
+    /**
+     * 抓取超时
+     */
+    504: unknown;
+};
+
+export type FetchMetadataApiV1AdminNavigationMetadataPostResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelNavMetadataRead;
+};
+
+export type FetchMetadataApiV1AdminNavigationMetadataPostResponse = FetchMetadataApiV1AdminNavigationMetadataPostResponses[keyof FetchMetadataApiV1AdminNavigationMetadataPostResponses];
 
 export type AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetData = {
     body?: never;
@@ -4609,6 +4917,74 @@ export type BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses
 
 export type BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponse = BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses[keyof BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses];
 
+export type PublicGroupsApiV1NavigationGroupsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number;
+    };
+    url: '/api/v1/navigation/groups';
+};
+
+export type PublicGroupsApiV1NavigationGroupsGetErrors = {
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type PublicGroupsApiV1NavigationGroupsGetError = PublicGroupsApiV1NavigationGroupsGetErrors[keyof PublicGroupsApiV1NavigationGroupsGetErrors];
+
+export type PublicGroupsApiV1NavigationGroupsGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelPageResultNavSiteGroupRead;
+};
+
+export type PublicGroupsApiV1NavigationGroupsGetResponse = PublicGroupsApiV1NavigationGroupsGetResponses[keyof PublicGroupsApiV1NavigationGroupsGetResponses];
+
+export type PublicSiteApiV1NavigationSitesSiteIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Site Id
+         */
+        site_id: string;
+    };
+    query?: never;
+    url: '/api/v1/navigation/sites/{site_id}';
+};
+
+export type PublicSiteApiV1NavigationSitesSiteIdGetErrors = {
+    /**
+     * 站点不存在或不可见
+     */
+    404: unknown;
+    /**
+     * 请求参数校验失败
+     */
+    422: HttpValidationError;
+};
+
+export type PublicSiteApiV1NavigationSitesSiteIdGetError = PublicSiteApiV1NavigationSitesSiteIdGetErrors[keyof PublicSiteApiV1NavigationSitesSiteIdGetErrors];
+
+export type PublicSiteApiV1NavigationSitesSiteIdGetResponses = {
+    /**
+     * 请求成功
+     */
+    200: ResponseModelPublicNavSiteRead;
+};
+
+export type PublicSiteApiV1NavigationSitesSiteIdGetResponse = PublicSiteApiV1NavigationSitesSiteIdGetResponses[keyof PublicSiteApiV1NavigationSitesSiteIdGetResponses];
+
 export type PublicTaxonomyApiV1NavigationTaxonomyKindGetData = {
     body?: never;
     path: {
@@ -4668,6 +5044,10 @@ export type PublicSitesApiV1NavigationSitesGetData = {
 };
 
 export type PublicSitesApiV1NavigationSitesGetErrors = {
+    /**
+     * 筛选目标不存在或不可见
+     */
+    404: unknown;
     /**
      * 请求参数校验失败
      */

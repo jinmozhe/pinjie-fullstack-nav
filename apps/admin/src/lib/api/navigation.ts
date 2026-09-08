@@ -1,10 +1,11 @@
-import type { NavAccountIn, NavAccountRead, NavBulkIn, NavBulkRead, NavCategoryIn, NavCategoryRead, NavSiteIn, NavSitePurgeIn, NavSiteRead, NavTaxonomyIn, NavTaxonomyRead, PageResultNavSiteRead, ReaderAuthorizationRead, ReaderAuthorizeIn } from "@pinjie/api-client";
+import type { NavAccountIn, NavAccountRead, NavBulkIn, NavBulkRead, NavCategoryIn, NavCategoryRead, NavMetadataRead, NavSiteIn, NavSitePurgeIn, NavSiteRead, NavTaxonomyIn, NavTaxonomyRead, PageResultNavSiteRead, ReaderAuthorizationRead, ReaderAuthorizeIn } from "@pinjie/api-client";
 import { apiRequest, jsonBody } from "./http";
 import type { ReaderConfigRead } from "@pinjie/api-client";
 
 export type TaxonomyKind = "categories" | "tags";
 const root = "/api/v1/admin/navigation";
 export const navigationApi = {
+  metadata: (url: string, signal?: globalThis.AbortSignal) => apiRequest<NavMetadataRead>(`${root}/metadata`, { method: "POST", body: jsonBody({ url }), signal, cache: "no-store" }),
   readerConfig: () => apiRequest<ReaderConfigRead>("/api/v1/navigation/auth-config"),
   authorize: (input: ReaderAuthorizeIn) => apiRequest<ReaderAuthorizationRead>("/api/v1/admin/nav-reader/authorize", { method: "POST", body: jsonBody(input), cache: "no-store" }),
   taxonomy: (kind: TaxonomyKind) => apiRequest<(NavCategoryRead | NavTaxonomyRead)[]>(`${root}/taxonomy/${kind}`),

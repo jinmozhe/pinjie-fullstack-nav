@@ -125,6 +125,25 @@ class NavSiteRead(NavSiteIn):
     updated_at: datetime
 
 
+class NavMetadataIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    url: str = Field(min_length=1, max_length=2000, description="待抓取的公网 HTTP(S) 网址")
+
+    @field_validator("url")
+    @classmethod
+    def safe_url(cls, value: str) -> str:
+        return NavSiteIn.safe_url(value)
+
+
+class NavMetadataRead(BaseModel):
+    name: str | None = Field(default=None, max_length=100)
+    description: str | None = Field(default=None, max_length=2000)
+    icon_base64: str | None = Field(
+        default=None, max_length=400000, description="经校验缩放的 PNG Base64，保存前只在表单内存中使用"
+    )
+    warnings: list[str] = Field(default_factory=list, max_length=6, description="缺失或未完成字段的安全提示")
+
+
 class PublicNavSiteRead(BaseModel):
     id: uuid.UUID
     name: str
@@ -133,6 +152,12 @@ class PublicNavSiteRead(BaseModel):
     category: NavCategoryRead
     tags: list[NavTaxonomyRead]
     icon_url: str | None
+
+
+class NavSiteGroupRead(BaseModel):
+    category: NavCategoryRead
+    total: int = Field(ge=1, description="当前身份可见的分类站点总数")
+    items: list[PublicNavSiteRead] = Field(max_length=8, description="按站点排序的最多八项预览")
 
 
 class NavAccountIn(BaseModel):
@@ -189,3 +214,4 @@ class NavSitePurgeIn(BaseModel):
 
 NavSitePage = PageResult[NavSiteRead]
 PublicNavSitePage = PageResult[PublicNavSiteRead]
+NavSiteGroupPage = PageResult[NavSiteGroupRead]

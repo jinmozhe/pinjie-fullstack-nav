@@ -10,6 +10,7 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 COPY apps/backend/pyproject.toml apps/backend/uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
+RUN .venv/bin/python -c "import httpx; import PIL"
 
 COPY apps/backend/alembic.ini ./alembic.ini
 COPY apps/backend/alembic ./alembic

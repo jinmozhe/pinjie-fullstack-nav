@@ -11,6 +11,7 @@ export type ImageUploaderProps = {
   value?: string | null;
   onChange?: (url: string) => void;
   onAsset?: (asset: AssetRead) => void;
+  onUploadingChange?: (uploading: boolean) => void;
   scene?: UploadScene;
   disabled?: boolean;
   maxSizeMb?: number;
@@ -21,6 +22,7 @@ const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 export function ImageUploader({
   onChange,
   onAsset,
+  onUploadingChange,
   scene = "avatar",
   disabled = false,
   maxSizeMb = 2,
@@ -43,6 +45,7 @@ export function ImageUploader({
 
   const customRequest: UploadProps["customRequest"] = async ({ file, onError, onSuccess }) => {
     setUploading(true);
+    onUploadingChange?.(true);
     setError(undefined);
     try {
       const asset = await adminApi.uploadAsset(file as globalThis.File, scene);
@@ -56,6 +59,7 @@ export function ImageUploader({
       onError?.(caught instanceof Error ? caught : new Error(text));
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
     }
   };
 

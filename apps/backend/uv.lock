@@ -683,6 +683,7 @@ dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
     { name = "fastapi" },
+    { name = "httpx" },
     { name = "loguru" },
     { name = "orjson" },
     { name = "pillow" },
@@ -698,7 +699,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "import-linter" },
     { name = "mypy" },
     { name = "pytest" },
@@ -713,6 +713,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.16.0" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "fastapi", specifier = ">=0.116.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "orjson", specifier = ">=3.11.0" },
     { name = "pillow", specifier = ">=12.1,<13" },
@@ -728,7 +729,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "import-linter", specifier = ">=2.6" },
     { name = "mypy", specifier = ">=1.17.1" },
     { name = "pytest", specifier = ">=8.4.1" },

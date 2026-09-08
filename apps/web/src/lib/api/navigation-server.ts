@@ -1,5 +1,6 @@
-import type { NavCategoryRead, NavTaxonomyRead, PageResultPublicNavSiteRead, ReaderIdentityRead } from "@pinjie/api-client";
+import type { NavCategoryRead, NavTaxonomyRead, PageResultNavSiteGroupRead, PageResultPublicNavSiteRead, ReaderIdentityRead } from "@pinjie/api-client";
 import { cookies } from "next/headers";
+import { HOME_LOCATION, isNavigationHome, type NavigationLocation } from "@/lib/navigation-location";
 
 class NavigationFetchError extends Error {
   constructor(readonly status: number) { super("导航服务暂不可用"); }
@@ -12,7 +13,7 @@ async function get<T>(path: string, cookie = ""): Promise<T> {
   return ((await response.json()) as { data: T }).data;
 }
 
-export async function fetchNavigation() {
+export async function fetchNavigation(location: NavigationLocation = HOME_LOCATION) {
   const session = (await cookies()).get("pinjie_reader_session");
   const cookie = session ? `${session.name}=${session.value}` : "";
   let reader: ReaderIdentityRead | undefined;
@@ -23,10 +24,18 @@ export async function fetchNavigation() {
     }
   }
   const scope = reader ? "nav-reader" : "navigation";
-  const [sites, categories, tags] = await Promise.all([
-    get<PageResultPublicNavSiteRead>(`${scope}/sites?page=1&page_size=24`, reader ? cookie : ""),
+  const home = isNavigationHome(location);
+  const params = new globalThis.URLSearchParams({ page: String(location.page), page_size: "24" });
+  if (location.search) params.set("search", location.search);
+  else {
+    if (location.category) params.set("category_id", location.category);
+    if (location.tag) params.set("tag_id", location.tag);
+  }
+  const [sites, groups, categories, tags] = await Promise.all([
+    home ? undefined : get<PageResultPublicNavSiteRead>(`${scope}/sites?${params}`, reader ? cookie : ""),
+    home ? get<PageResultNavSiteGroupRead>(`${scope}/groups?page=${location.page}&page_size=6`, reader ? cookie : "") : undefined,
     get<NavCategoryRead[]>(`${scope}/taxonomy/categories`, reader ? cookie : ""),
     get<NavTaxonomyRead[]>("navigation/taxonomy/tags"),
   ]);
-  return { sites, categories, tags, reader };
+  return { sites, groups, categories, tags, reader };
 }

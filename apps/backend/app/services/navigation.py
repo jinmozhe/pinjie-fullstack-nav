@@ -20,6 +20,8 @@ from app.domains.navigation.schemas import (
     NavBulkRead,
     NavCategoryIn,
     NavCategoryRead,
+    NavSiteGroupPage,
+    NavSiteGroupRead,
     NavSiteIn,
     NavSitePage,
     NavSitePurgeIn,
@@ -198,6 +200,13 @@ class NavigationService:
         deleted: bool = False,
         reader: bool = False,
     ) -> NavSitePage | PublicNavSitePage:
+        if public:
+            search = search.strip()
+            if search:
+                category_id = tag_id = None
+            for kind, id in [("categories", category_id), ("tags", tag_id)]:
+                if id and not await self.repo.visible_taxonomy(cast(TaxonomyKind, kind), id, reader=reader):
+                    raise missing()
         rows, total = await self.repo.sites(
             page=page,
             page_size=page_size,
@@ -211,20 +220,44 @@ class NavigationService:
         icons = await self.repo.icons([row.icon_asset_id for row in rows if row.icon_asset_id])
         reads = [self.site_read(row, icons) for row in rows]
         if public:
-            items = [
-                PublicNavSiteRead(
-                    id=item.id,
-                    name=item.name,
-                    url=item.url,
-                    description=item.description,
-                    category=item.category,
-                    tags=[tag for tag in item.tags if tag.is_active],
-                    icon_url=item.icon_url,
-                )
-                for item in reads
-            ]
+            items = [self.public_read(row, icons) for row in rows]
             return PublicNavSitePage.create(items=items, page=page, page_size=page_size, total=total)
         return NavSitePage.create(items=reads, page=page, page_size=page_size, total=total)
+
+    @staticmethod
+    def public_read(row: NavSite, icons: dict[uuid.UUID, str]) -> PublicNavSiteRead:
+        return PublicNavSiteRead(
+            id=row.id,
+            name=row.name,
+            url=row.url,
+            description=row.description,
+            category=NavCategoryRead.model_validate(row.category),
+            tags=[
+                NavTaxonomyRead.model_validate(tag)
+                for tag in sorted(row.tags, key=lambda tag: (tag.sort_order, tag.id))
+                if tag.is_active
+            ],
+            icon_url=icons.get(row.icon_asset_id) if row.icon_asset_id else None,
+        )
+
+    async def groups(self, *, page: int, page_size: int, reader: bool = False) -> NavSiteGroupPage:
+        rows, total = await self.repo.groups(page=page, page_size=page_size, reader=reader)
+        icons = await self.repo.icons([row.icon_asset_id for row, _ in rows if row.icon_asset_id])
+        groups: dict[uuid.UUID, NavSiteGroupRead] = {}
+        for row, count in rows:
+            if row.category_id not in groups:
+                groups[row.category_id] = NavSiteGroupRead(
+                    category=NavCategoryRead.model_validate(row.category), total=count, items=[]
+                )
+            groups[row.category_id].items.append(self.public_read(row, icons))
+        return NavSiteGroupPage.create(items=list(groups.values()), page=page, page_size=page_size, total=total)
+
+    async def public_site(self, id: uuid.UUID, *, reader: bool = False) -> PublicNavSiteRead:
+        row = await self.site(id, public=True)
+        if row.category.requires_login and not reader:
+            raise missing()
+        icons = await self.repo.icons([row.icon_asset_id] if row.icon_asset_id else [])
+        return self.public_read(row, icons)
 
     async def save_site(self, payload: NavSiteIn, id: uuid.UUID | None = None) -> NavSiteRead:
         async def operation() -> NavSiteRead:
