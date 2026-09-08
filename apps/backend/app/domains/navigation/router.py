@@ -7,6 +7,7 @@ from app.api.dependencies import require_admin_csrf, require_permission
 from app.api.navigation_dependencies import (
     AdminNavigationServiceDependency,
     CurrentReaderDependency,
+    NavigationMetadataServiceDependency,
     NavigationServiceDependency,
 )
 from app.core.context import current_request_id
@@ -18,6 +19,9 @@ from .schemas import (
     NavAccountRead,
     NavBulkIn,
     NavBulkRead,
+    NavMetadataIn,
+    NavMetadataRead,
+    NavSiteGroupPage,
     NavSiteIn,
     NavSitePage,
     NavSitePurgeIn,
@@ -25,6 +29,7 @@ from .schemas import (
     NavTaxonomyResult,
     NavTaxonomyWrite,
     PublicNavSitePage,
+    PublicNavSiteRead,
 )
 
 public_router = APIRouter(prefix="/navigation", tags=["公开导航"])
@@ -35,6 +40,80 @@ TaxonomyKind = Literal["categories", "tags"]
 Page = Annotated[int, Query(ge=1)]
 PageSize = Annotated[int, Query(ge=1, le=100)]
 Search = Annotated[str, Query(max_length=100)]
+GroupPageSize = Annotated[int, Query(ge=1, le=12)]
+
+
+@public_router.get(
+    "/groups",
+    response_model=ResponseModel[NavSiteGroupPage],
+    summary="按分类读取公开站点预览",
+    description="分页读取有公开站点的启用分类，每组最多八个站点，total 为可见非空分类数。",
+)
+async def public_groups(
+    service: NavigationServiceDependency,
+    response: Response,
+    page: Page = 1,
+    page_size: GroupPageSize = 6,
+) -> ResponseModel[NavSiteGroupPage]:
+    response.headers["Cache-Control"] = "no-store"
+    return success_response(data=await service.groups(page=page, page_size=page_size), request_id=current_request_id())
+
+
+@reader_router.get(
+    "/groups",
+    response_model=ResponseModel[NavSiteGroupPage],
+    summary="按分类查阅站点预览",
+    description="要求有效管理员查阅会话，包含仅登录可见分类，每组最多八个站点，不返回帐号。",
+    responses={401: {"description": "查阅会话无效"}, 403: {"description": "无查阅权限"}},
+)
+async def reader_groups(
+    service: NavigationServiceDependency,
+    current: CurrentReaderDependency,
+    response: Response,
+    page: Page = 1,
+    page_size: GroupPageSize = 6,
+) -> ResponseModel[NavSiteGroupPage]:
+    response.headers["Cache-Control"] = "no-store"
+    return success_response(
+        data=await service.groups(page=page, page_size=page_size, reader=True), request_id=current_request_id()
+    )
+
+
+@public_router.get(
+    "/sites/{site_id}",
+    response_model=ResponseModel[PublicNavSiteRead],
+    summary="读取公开站点详情",
+    description="仅返回已发布且分类公开启用的站点资料，不含帐号。",
+    responses={404: {"description": "站点不存在或不可见"}},
+)
+async def public_site(
+    site_id: uuid.UUID,
+    service: NavigationServiceDependency,
+    response: Response,
+) -> ResponseModel[PublicNavSiteRead]:
+    response.headers["Cache-Control"] = "no-store"
+    return success_response(data=await service.public_site(site_id), request_id=current_request_id())
+
+
+@reader_router.get(
+    "/sites/{site_id}",
+    response_model=ResponseModel[PublicNavSiteRead],
+    summary="查阅站点详情",
+    description="要求有效管理员查阅会话，包含登录可见分类，不含帐号。",
+    responses={
+        401: {"description": "查阅会话无效"},
+        403: {"description": "无查阅权限"},
+        404: {"description": "站点不存在或不可见"},
+    },
+)
+async def reader_site(
+    site_id: uuid.UUID,
+    service: NavigationServiceDependency,
+    current: CurrentReaderDependency,
+    response: Response,
+) -> ResponseModel[PublicNavSiteRead]:
+    response.headers["Cache-Control"] = "no-store"
+    return success_response(data=await service.public_site(site_id, reader=True), request_id=current_request_id())
 
 
 @public_router.get("/taxonomy/{kind}", response_model=ResponseModel[list[TaxonomyRead]])
@@ -45,7 +124,13 @@ async def public_taxonomy(
     return success_response(data=await service.taxonomy(kind, public=True), request_id=current_request_id())
 
 
-@public_router.get("/sites", response_model=ResponseModel[PublicNavSitePage])
+@public_router.get(
+    "/sites",
+    response_model=ResponseModel[PublicNavSitePage],
+    summary="搜索和筛选公开站点",
+    description="search 去除首尾空白后仅按名称包含匹配，忽略大小写及分类标签条件；无搜索时可按分类标签筛选。",
+    responses={404: {"description": "筛选目标不存在或不可见"}},
+)
 async def public_sites(
     service: NavigationServiceDependency,
     response: Response,
@@ -81,7 +166,7 @@ async def reader_categories(
     "/sites",
     response_model=ResponseModel[PublicNavSitePage],
     summary="查阅全部已发布导航站点",
-    description="要求有效管理员查阅会话，包含仅登录可见分类下的站点；仍排除停用分类、未发布及已删除站点。",
+    description="要求有效管理员查阅会话，包含登录可见分类；search 仅按名称包含匹配并忽略分类标签条件，排除停用分类、未发布及已删除站点。",
 )
 async def reader_sites(
     service: NavigationServiceDependency,
@@ -106,6 +191,30 @@ async def reader_accounts(
 ) -> ResponseModel[list[NavAccountRead]]:
     response.headers["Cache-Control"] = "no-store"
     return success_response(data=await service.accounts(site_id, public=True), request_id=current_request_id())
+
+
+@admin_router.post(
+    "/metadata",
+    response_model=ResponseModel[NavMetadataRead],
+    dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
+    summary="按网址抓取站点资料草稿",
+    description="仅抓取标准端口公网页面，返回名称、简介、PNG 图标与缺失提示；不执行脚本、不保存站点或资产。",
+    responses={
+        401: {"description": "未登录"},
+        403: {"description": "无维护权限或 CSRF 无效"},
+        422: {"description": "网址或目标不允许"},
+        429: {"description": "抓取并发已满"},
+        502: {"description": "目标网页不可读取"},
+        504: {"description": "抓取超时"},
+    },
+)
+async def fetch_metadata(
+    payload: NavMetadataIn,
+    service: NavigationMetadataServiceDependency,
+    response: Response,
+) -> ResponseModel[NavMetadataRead]:
+    response.headers["Cache-Control"] = "no-store"
+    return success_response(data=await service.fetch(payload.url), request_id=current_request_id())
 
 
 @admin_router.get(

@@ -82,7 +82,7 @@ describe("Web API profile proxy", () => {
     expect(String(target)).toBe(`http://backend.test/api/v1/${routePath.join("/")}${query}`);
   });
 
-  it.each(["sites", "taxonomy/categories"])("isolates the reader profile and prevents shared caching for %s", async (suffix) => {
+  it.each(["sites", "groups", `sites/${sessionId}`, "taxonomy/categories"])("isolates the reader profile and prevents shared caching for %s", async (suffix) => {
     fetchMock.mockResolvedValue(new Response(JSON.stringify({ data: [] }), { headers: { "cache-control": "public, max-age=3600" } }));
     const path = ["nav-reader", ...suffix.split("/")];
     const response = await GET(new Request(`http://localhost:3000/api/v1/${path.join("/")}`, {

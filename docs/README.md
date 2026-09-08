@@ -51,7 +51,8 @@
 | [project-structure.md](architecture/project-structure.md)                       | 完整目录树 + 工程文件设计说明（全项目索引、全栈计划、AI 规则桥接、环境变量和锁文件等）     |
 | [backend-engineering-standard.md](architecture/backend-engineering-standard.md) | Backend 配置、Router、事务、数据、外部调用、日志、探针、测试和质量门禁的具体实施标准       |
 | [admin-engineering-standard.md](architecture/admin-engineering-standard.md)     | Admin Umi/Pro 框架边界、Feature、请求、状态、UI 组件和依赖准入的具体实施标准               |
-| [web-design-standard.md](architecture/web-design-standard.md) | Web 导航分组首页、卡片点击与详情弹窗的视觉和交互设计草案，尚未实施 |
+| [web-design-standard.md](architecture/web-design-standard.md) | Web 导航分组首页、列表搜索与详情弹窗的已确认视觉和交互标准，本地源码与轻量检查已完成 |
+| [web-design-preview.md](architecture/web-design-preview.md) | Web 桌面与手机首页、列表、搜索、分类抽屉及两种身份详情的 V1 静态设计图与评审入口 |
 | [module-boundaries.md](architecture/module-boundaries.md)                       | Backend 领域、Frontend Feature、共享包和机械依赖门禁的边界                                 |
 | [error-model.md](architecture/error-model.md)                                   | 错误分类、HTTP 契约、分层处理和禁止吞错、假成功、静默降级的规则                            |
 | [authentication-authorization.md](architecture/authentication-authorization.md) | Browser Cookie Profile、JWT、Session、CSRF、RBAC、管理操作保护和审计运行机制             |

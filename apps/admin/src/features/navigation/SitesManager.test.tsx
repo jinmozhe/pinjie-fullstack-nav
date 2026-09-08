@@ -36,6 +36,90 @@ function renderSites(principal = admin, deleted = false, rows: NavSiteRead[] = [
   return { ...render(<ConfigProvider locale={zhCN}><QueryClientProvider client={client}><AdminContext.Provider value={principal}><SitesManager deleted={deleted} /></AdminContext.Provider></QueryClientProvider></ConfigProvider>), client };
 }
 
+describe("SitesManager metadata", () => {
+  it("uploads a fetched icon only on save and reuses it after a site save failure", async () => {
+    const user = userEvent.setup();
+    let uploads = 0;
+    const saved: unknown[] = [];
+    const assetId = "01900000-0000-7000-8000-000000000099";
+    server.use(
+      http.post(`${root}/metadata`, () => ok({ name: "抓取名称", description: "抓取简介", icon_base64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF1kAAAAASUVORK5CYII=", warnings: [] })),
+      http.post("http://localhost:3000/api/v1/assets/upload", () => { uploads += 1; return ok({ id: assetId, url: "/static/uploads/site-icon.png" }); }),
+      http.put(`${root}/sites/${site.id}`, async ({ request }) => { saved.push(await request.json()); return saved.length === 1 ? HttpResponse.json({ code: "CONFLICT", message: "保存失败" }, { status: 409 }) : ok(site); }),
+    );
+    renderSites();
+    const row = (await screen.findByRole("link", { name: site.name })).closest("tr");
+    if (!row) throw new Error("站点行不存在");
+    await user.click(within(row).getByRole("button", { name: "edit" }));
+    const dialog = await screen.findByRole("dialog", { name: "编辑站点" });
+    await user.click(within(dialog).getByRole("button", { name: /抓取/ }));
+    await within(dialog).findByText("已填入 3 项");
+    expect(uploads).toBe(0);
+    await user.click(within(dialog).getByRole("button", { name: /确\s*定/ }));
+    await screen.findByText("保存失败");
+    expect(uploads).toBe(1);
+    expect(saved[0]).toMatchObject({ name: "抓取名称", icon_asset_id: assetId });
+    await user.click(within(dialog).getByRole("button", { name: /确\s*定/ }));
+    await waitFor(() => expect(saved).toHaveLength(2));
+    expect(uploads).toBe(1);
+  });
+
+  it("fills the draft from the URL without saving a site or uploading an icon", async () => {
+    const user = userEvent.setup();
+    const requests: unknown[] = [];
+    server.use(http.post(`${root}/metadata`, async ({ request }) => { requests.push(await request.json()); return ok({ name: "抓取名称", description: "抓取简介", icon_base64: null, warnings: ["图标未获取成功"] }); }));
+    renderSites();
+    await user.click(await screen.findByRole("button", { name: /新增站点/ }));
+    const dialog = await screen.findByRole("dialog", { name: "新增站点" });
+    await user.type(within(dialog).getByRole("textbox", { name: "网址" }), "https://example.com");
+    await user.click(within(dialog).getByRole("button", { name: /抓取/ }));
+    await waitFor(() => expect(within(dialog).getByRole("textbox", { name: "名称" })).toHaveValue("抓取名称"));
+    expect(within(dialog).getByRole("textbox", { name: "简介" })).toHaveValue("抓取简介");
+    expect(within(dialog).getByRole("textbox", { name: "网址" })).toHaveValue("https://example.com");
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("图标未获取成功");
+    expect(requests).toEqual([{ url: "https://example.com" }]);
+  });
+
+  it("preserves fields edited during a pending fetch and reports failures", async () => {
+    const user = userEvent.setup();
+    let finish: (() => void) | undefined;
+    server.use(http.post(`${root}/metadata`, async () => { await new Promise<void>(resolve => { finish = resolve; }); return ok({ name: "远端名称", description: null, icon_base64: null, warnings: ["未找到描述"] }); }));
+    renderSites();
+    await user.click(await screen.findByRole("button", { name: /新增站点/ }));
+    const dialog = await screen.findByRole("dialog", { name: "新增站点" });
+    await user.type(within(dialog).getByRole("textbox", { name: "网址" }), "https://example.com");
+    await user.click(within(dialog).getByRole("button", { name: /抓取/ }));
+    await waitFor(() => expect(finish).toBeTypeOf("function"));
+    await user.type(within(dialog).getByRole("textbox", { name: "名称" }), "手动名称");
+    finish?.();
+    await within(dialog).findByText(/未找到描述/);
+    expect(within(dialog).getByRole("textbox", { name: "名称" })).toHaveValue("手动名称");
+    server.use(http.post(`${root}/metadata`, () => HttpResponse.json({ code: "NAV_FETCH_TIMEOUT", message: "目标网站响应超时" }, { status: 504 })));
+    await user.click(within(dialog).getByRole("button", { name: /抓取/ }));
+    expect(await within(dialog).findByText("目标网站响应超时")).toBeVisible();
+    expect(within(dialog).getByRole("textbox", { name: "名称" })).toHaveValue("手动名称");
+  });
+
+  it("discards a response after the URL changes", async () => {
+    const user = userEvent.setup();
+    let finish: (() => void) | undefined;
+    server.use(http.post(`${root}/metadata`, async () => { await new Promise<void>(resolve => { finish = resolve; }); return ok({ name: "过期名称", warnings: [] }); }));
+    renderSites();
+    await user.click(await screen.findByRole("button", { name: /新增站点/ }));
+    const dialog = await screen.findByRole("dialog", { name: "新增站点" });
+    const url = within(dialog).getByRole("textbox", { name: "网址" });
+    await user.type(url, "https://example.com");
+    await user.click(within(dialog).getByRole("button", { name: /抓取/ }));
+    await waitFor(() => expect(finish).toBeTypeOf("function"));
+    await user.clear(url);
+    await user.type(url, "https://other.example.com");
+    finish?.();
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: /确\s*定/ })).toBeEnabled());
+    expect(within(dialog).getByRole("textbox", { name: "名称" })).toHaveValue("");
+    expect(within(dialog).queryByText(/已填入/)).not.toBeInTheDocument();
+  });
+});
+
 describe("SitesManager deletion confirmation", () => {
   it.each([false, true])("confirms a single atomic request for bulk=%s and keeps targets after failure", async (bulk) => {
     const user = userEvent.setup();

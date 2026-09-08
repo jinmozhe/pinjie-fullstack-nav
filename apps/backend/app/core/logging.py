@@ -1,3 +1,4 @@
+import logging
 import sys
 from pathlib import Path
 
@@ -7,6 +8,9 @@ from .config import Settings
 
 
 def configure_logging(settings: Settings) -> None:
+    # HTTP library debug logs may contain user-supplied URLs; keep request telemetry in our safe logging boundary.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
     logger.remove()
     logger.add(
         sys.stderr,

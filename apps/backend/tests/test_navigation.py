@@ -203,7 +203,9 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as browser:
                 for cookie_name in ["pinjie_web_access", "pinjie_admin_access"]:
                     browser.cookies.set(cookie_name, "wrong-profile-test-value")
-                for suffix in [f"category_id={category.id}", f"tag_id={tag.id}", f"search=Example&tag_id={tag.id}"]:
+                hidden_category = await browser.get(f"/api/v1/navigation/sites?category_id={category.id}")
+                assert hidden_category.status_code == 404
+                for suffix in [f"tag_id={tag.id}", f"search=Example&tag_id={tag.id}"]:
                     hidden = await browser.get(f"/api/v1/navigation/sites?{suffix}")
                     assert hidden.status_code == 200
                     assert hidden.json()["data"]["items"] == []
@@ -211,7 +213,7 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
                     assert hidden.json()["data"]["total_pages"] == 0
                 taxonomy = await browser.get("/api/v1/navigation/taxonomy/categories")
                 assert taxonomy.status_code == 200 and str(category.id) not in taxonomy.text
-                for path in ["sites", "taxonomy/categories"]:
+                for path in ["sites", "groups", f"sites/{site.id}", "taxonomy/categories"]:
                     denied = await browser.get(f"/api/v1/nav-reader/{path}")
                     assert denied.status_code == 401
             with pytest.raises(AppException):
@@ -260,7 +262,7 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as browser:
                 browser.cookies.set("pinjie_reader_session", token)
                 disabled = await browser.get(f"/api/v1/nav-reader/sites?category_id={category_id}")
-                assert disabled.status_code == 200 and disabled.json()["data"]["total"] == 0
+                assert disabled.status_code == 404
                 assert category_id is not None
                 await navigation.bulk_taxonomy("categories", NavBulkIn(ids=[category_id], action="enable"))
                 visible = await browser.get(
@@ -275,7 +277,7 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
                 visible_categories = await browser.get("/api/v1/nav-reader/taxonomy/categories")
                 assert visible_categories.status_code == 200 and str(category_id) in visible_categories.text
                 still_public = await browser.get(f"/api/v1/navigation/sites?category_id={category_id}")
-                assert still_public.json()["data"]["total"] == 0
+                assert still_public.status_code == 404
                 denied = await browser.post(
                     "/api/v1/admin/navigation/sites/bulk",
                     headers={"Origin": "http://localhost:3000"},

@@ -169,6 +169,122 @@
         }
       }
     },
+    "/api/v1/nav-reader/groups": {
+      "get": {
+        "tags": [
+          "导航查阅"
+        ],
+        "summary": "按分类查阅站点预览",
+        "description": "要求有效管理员查阅会话，包含仅登录可见分类，每组最多八个站点，不返回帐号。",
+        "operationId": "reader_groups_api_v1_nav_reader_groups_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 12,
+              "minimum": 1,
+              "default": 6,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_PageResult_NavSiteGroupRead__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "查阅会话无效"
+          },
+          "403": {
+            "description": "无查阅权限"
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/nav-reader/sites/{site_id}": {
+      "get": {
+        "tags": [
+          "导航查阅"
+        ],
+        "summary": "查阅站点详情",
+        "description": "要求有效管理员查阅会话，包含登录可见分类，不含帐号。",
+        "operationId": "reader_site_api_v1_nav_reader_sites__site_id__get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_PublicNavSiteRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "查阅会话无效"
+          },
+          "403": {
+            "description": "无查阅权限"
+          },
+          "404": {
+            "description": "站点不存在或不可见"
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/nav-reader/taxonomy/categories": {
       "get": {
         "tags": [
@@ -197,7 +313,7 @@
           "导航查阅"
         ],
         "summary": "查阅全部已发布导航站点",
-        "description": "要求有效管理员查阅会话，包含仅登录可见分类下的站点；仍排除停用分类、未发布及已删除站点。",
+        "description": "要求有效管理员查阅会话，包含登录可见分类；search 仅按名称包含匹配并忽略分类标签条件，排除停用分类、未发布及已删除站点。",
         "operationId": "reader_sites_api_v1_nav_reader_sites_get",
         "parameters": [
           {
@@ -289,6 +405,74 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/navigation/metadata": {
+      "post": {
+        "tags": [
+          "导航管理"
+        ],
+        "summary": "按网址抓取站点资料草稿",
+        "description": "仅抓取标准端口公网页面，返回名称、简介、PNG 图标与缺失提示；不执行脚本、不保存站点或资产。",
+        "operationId": "fetch_metadata_api_v1_admin_navigation_metadata_post",
+        "parameters": [
+          {
+            "name": "pinjie_admin_access",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pinjie Admin Access"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NavMetadataIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_NavMetadataRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录"
+          },
+          "403": {
+            "description": "无维护权限或 CSRF 无效"
+          },
+          "422": {
+            "description": "网址或目标不允许"
+          },
+          "429": {
+            "description": "抓取并发已满"
+          },
+          "502": {
+            "description": "目标网页不可读取"
+          },
+          "504": {
+            "description": "抓取超时"
           }
         }
       }
@@ -1313,6 +1497,110 @@
         }
       }
     },
+    "/api/v1/navigation/groups": {
+      "get": {
+        "tags": [
+          "公开导航"
+        ],
+        "summary": "按分类读取公开站点预览",
+        "description": "分页读取有公开站点的启用分类，每组最多八个站点，total 为可见非空分类数。",
+        "operationId": "public_groups_api_v1_navigation_groups_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 12,
+              "minimum": 1,
+              "default": 6,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_PageResult_NavSiteGroupRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/navigation/sites/{site_id}": {
+      "get": {
+        "tags": [
+          "公开导航"
+        ],
+        "summary": "读取公开站点详情",
+        "description": "仅返回已发布且分类公开启用的站点资料，不含帐号。",
+        "operationId": "public_site_api_v1_navigation_sites__site_id__get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "请求成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseModel_PublicNavSiteRead_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "站点不存在或不可见"
+          },
+          "422": {
+            "description": "请求参数校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/navigation/taxonomy/{kind}": {
       "get": {
         "tags": [
@@ -1364,7 +1652,8 @@
         "tags": [
           "公开导航"
         ],
-        "summary": "Public Sites",
+        "summary": "搜索和筛选公开站点",
+        "description": "search 去除首尾空白后仅按名称包含匹配，忽略大小写及分类标签条件；无搜索时可按分类标签筛选。",
         "operationId": "public_sites_api_v1_navigation_sites_get",
         "parameters": [
           {
@@ -1446,6 +1735,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "筛选目标不存在或不可见"
           },
           "422": {
             "description": "请求参数校验失败",
@@ -7278,6 +7570,106 @@
         ],
         "title": "NavCategoryRead"
       },
+      "NavMetadataIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Url",
+            "description": "待抓取的公网 HTTP(S) 网址"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "NavMetadataIn"
+      },
+      "NavMetadataRead": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "资源名称"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "资源说明文本"
+          },
+          "icon_base64": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Base64",
+            "description": "经校验缩放的 PNG Base64，保存前只在表单内存中使用"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Warnings",
+            "description": "缺失或未完成字段的安全提示"
+          }
+        },
+        "type": "object",
+        "title": "NavMetadataRead"
+      },
+      "NavSiteGroupRead": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/NavCategoryRead"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Total",
+            "description": "当前身份可见的分类站点总数"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PublicNavSiteRead"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Items",
+            "description": "按站点排序的最多八项预览"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "total",
+          "items"
+        ],
+        "title": "NavSiteGroupRead"
+      },
       "NavSiteIn": {
         "properties": {
           "name": {
@@ -7857,6 +8249,53 @@
           "total_pages"
         ],
         "title": "PageResult[LoginEventRead]"
+      },
+      "PageResult_NavSiteGroupRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NavSiteGroupRead"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "当前分页中的资源列表"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page",
+            "description": "当前页码，从 1 开始"
+          },
+          "page_size": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "description": "每页资源数量"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total",
+            "description": "符合条件的资源总数"
+          },
+          "total_pages": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Pages",
+            "description": "符合条件的总页数"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "page_size",
+          "total",
+          "total_pages"
+        ],
+        "title": "PageResult[NavSiteGroupRead]"
       },
       "PageResult_NavSiteRead_": {
         "properties": {
@@ -8984,6 +9423,38 @@
         ],
         "title": "ResponseModel[NavBulkRead]"
       },
+      "ResponseModel_NavMetadataRead_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "稳定程序代码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "面向调用方的中文结果消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NavMetadataRead",
+            "description": "响应业务数据"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "用于定位本次请求的唯一标识"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "title": "ResponseModel[NavMetadataRead]"
+      },
       "ResponseModel_NavSiteRead_": {
         "properties": {
           "code": {
@@ -9241,6 +9712,38 @@
         ],
         "title": "ResponseModel[PageResult[LoginEventRead]]"
       },
+      "ResponseModel_PageResult_NavSiteGroupRead__": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "稳定程序代码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "面向调用方的中文结果消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageResult_NavSiteGroupRead_",
+            "description": "响应业务数据"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "用于定位本次请求的唯一标识"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "title": "ResponseModel[PageResult[NavSiteGroupRead]]"
+      },
       "ResponseModel_PageResult_NavSiteRead__": {
         "properties": {
           "code": {
@@ -9400,6 +9903,38 @@
           "request_id"
         ],
         "title": "ResponseModel[PageResult[SessionRead]]"
+      },
+      "ResponseModel_PublicNavSiteRead_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "稳定程序代码"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "面向调用方的中文结果消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PublicNavSiteRead",
+            "description": "响应业务数据"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "description": "用于定位本次请求的唯一标识"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "title": "ResponseModel[PublicNavSiteRead]"
       },
       "ResponseModel_ReaderAuthorizationRead_": {
         "properties": {

@@ -4,6 +4,7 @@ from typing import Literal
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.models import Asset, NavCategory, NavSite, NavSiteAccount, NavTag
 
@@ -13,6 +14,61 @@ TaxonomyKind = Literal["categories", "tags"]
 class NavigationRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    @staticmethod
+    def visible_sites(*, reader: bool) -> list[ColumnElement[bool]]:
+        conditions: list[ColumnElement[bool]] = [
+            NavSite.deleted_at.is_(None),
+            NavSite.is_published.is_(True),
+            NavCategory.is_active.is_(True),
+        ]
+        if not reader:
+            conditions.append(NavCategory.requires_login.is_(False))
+        return conditions
+
+    async def visible_taxonomy(self, kind: TaxonomyKind, id: uuid.UUID, *, reader: bool) -> bool:
+        if kind == "categories":
+            query = select(NavCategory.id).where(NavCategory.id == id, NavCategory.is_active)
+            if not reader:
+                query = query.where(NavCategory.requires_login.is_(False))
+        else:
+            query = select(NavTag.id).where(NavTag.id == id, NavTag.is_active)
+        return await self.session.scalar(query) is not None
+
+    async def groups(self, *, page: int, page_size: int, reader: bool) -> tuple[list[tuple[NavSite, int]], int]:
+        visible = self.visible_sites(reader=reader)
+        populated = select(NavSite.category_id).join(NavCategory).where(*visible).distinct()
+        total = await self.session.scalar(select(func.count()).select_from(populated.subquery()))
+        categories = (
+            select(NavCategory.id)
+            .where(NavCategory.id.in_(populated))
+            .order_by(NavCategory.sort_order, NavCategory.id)
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        # Rank and count before limiting previews so totals cover the entire visible category.
+        ranked = (
+            select(
+                NavSite.id,
+                func.count().over(partition_by=NavSite.category_id).label("site_total"),
+                func.row_number()
+                .over(partition_by=NavSite.category_id, order_by=(NavSite.sort_order, NavSite.id))
+                .label("position"),
+            )
+            .join(NavCategory)
+            .where(*visible, NavSite.category_id.in_(categories))
+            .subquery()
+        )
+        query = (
+            select(NavSite, ranked.c.site_total)
+            .join(ranked, ranked.c.id == NavSite.id)
+            .join(NavCategory)
+            .where(ranked.c.position <= 8)
+            .options(selectinload(NavSite.category), selectinload(NavSite.tags))
+            .order_by(NavCategory.sort_order, NavCategory.id, NavSite.sort_order, NavSite.id)
+        )
+        rows = await self.session.execute(query)
+        return [(row, int(count)) for row, count in rows], int(total or 0)
 
     async def taxonomy(
         self, kind: TaxonomyKind, *, public: bool = False, reader: bool = False
@@ -54,12 +110,13 @@ class NavigationRepository:
         query = select(NavSite).join(NavCategory).options(selectinload(NavSite.category), selectinload(NavSite.tags))
         query = query.where(NavSite.deleted_at.is_not(None) if deleted and not public else NavSite.deleted_at.is_(None))
         if public:
-            query = query.where(NavSite.is_published, NavCategory.is_active)
-            if not reader:
-                query = query.where(NavCategory.requires_login.is_(False))
+            query = query.where(*self.visible_sites(reader=reader))
         if search:
             pattern = "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
-            query = query.where(NavSite.name.ilike(pattern) | NavSite.description.ilike(pattern))
+            name_matches = NavSite.name.ilike(pattern, escape="\\")
+            query = query.where(
+                name_matches if public else name_matches | NavSite.description.ilike(pattern, escape="\\")
+            )
         if category_id:
             query = query.where(NavSite.category_id == category_id)
         if tag_id:

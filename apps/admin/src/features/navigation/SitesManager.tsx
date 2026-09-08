@@ -1,14 +1,15 @@
 import type { NavBulkIn, NavSiteIn, NavSiteRead } from "@pinjie/api-client";
-import { PlusOutlined, EditOutlined, DeleteOutlined, UndoOutlined, KeyOutlined, CheckOutlined, StopOutlined, GlobalOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, DeleteOutlined, UndoOutlined, KeyOutlined, CheckOutlined, StopOutlined, GlobalOutlined, CloudDownloadOutlined } from "@ant-design/icons";
 import { ProTable, type ProColumns } from "@ant-design/pro-components";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Avatar, Button, Form, Input, InputNumber, Modal, Select, Space, Switch, Tag, Tooltip, Image, message } from "antd";
-import { useEffect, useState, type Key } from "react";
+import { Alert, Avatar, Button, Form, Input, InputNumber, Modal, Select, Space, Switch, Tag, Tooltip, Image, message } from "antd";
+import { useEffect, useRef, useState, type Key } from "react";
 import { ImageUploader } from "@/components/Uploader";
 import { QueryState } from "@/components/PageFrame";
 import { StandardConfirmModal } from "@/components/StandardConfirmModal";
 import { canAccess, useCurrentAdmin } from "@/features/auth";
 import { navigationApi } from "@/lib/api/navigation";
+import { adminApi } from "@/lib/api/admin";
 import { errorMessage } from "@/lib/api/http";
 import { AccountsDrawer } from "./AccountsDrawer";
 
@@ -27,12 +28,31 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
   const [editing, setEditing] = useState<NavSiteRead | null>();
   const [accounts, setAccounts] = useState<NavSiteRead>();
   const [icon, setIcon] = useState<string>();
+  const [fetchedIcon, setFetchedIcon] = useState<string>();
+  const [iconUploading, setIconUploading] = useState(false);
+  const [fetchNotice, setFetchNotice] = useState<{ type: "error" | "warning" | "success"; text: string }>();
+  const fetchController = useRef<globalThis.AbortController | null>(null);
+  const formVersion = useRef(0);
+  const iconVersion = useRef(0);
   const [form] = Form.useForm<NavSiteIn>();
+  const metadata = useMutation({ mutationFn: ({ url, signal }: { url: string; signal: globalThis.AbortSignal }) => navigationApi.metadata(url, signal), retry: false, gcTime: 0 });
+  useEffect(() => () => { fetchController.current?.abort(); }, []);
+  const cancelFetch = () => { fetchController.current?.abort(); fetchController.current = null; setFetchNotice(undefined); };
+  const closeEditor = () => { cancelFetch(); formVersion.current += 1; setFetchedIcon(undefined); setEditing(undefined); };
   const query = useQuery({ queryKey: ["navigation", "sites", page, search, deleted], queryFn: () => navigationApi.sites(page, search, deleted) });
   const categories = useQuery({ queryKey: ["navigation", "categories"], queryFn: () => navigationApi.taxonomy("categories") });
   const tags = useQuery({ queryKey: ["navigation", "tags"], queryFn: () => navigationApi.taxonomy("tags") });
   const refresh = () => { setSelected([]); void client.invalidateQueries({ queryKey: ["navigation"] }); };
-  const save = useMutation({ mutationFn: (input: NavSiteIn) => navigationApi.saveSite(input, editing?.id), onSuccess: () => { setEditing(undefined); refresh(); message.success("已保存"); }, onError: (error) => message.error(errorMessage(error)) });
+  const save = useMutation({ mutationFn: async (input: NavSiteIn) => {
+    if (fetchedIcon) {
+      const bytes = Uint8Array.from(window.atob(fetchedIcon), char => char.charCodeAt(0));
+      const asset = await adminApi.uploadAsset(new globalThis.File([bytes], "site-icon.png", { type: "image/png" }), "navigation_icon");
+      input = { ...input, icon_asset_id: asset.id };
+      form.setFieldValue("icon_asset_id", asset.id);
+      setIcon(asset.url); setFetchedIcon(undefined);
+    }
+    return navigationApi.saveSite(input, editing?.id);
+  }, retry: false, onSuccess: () => { closeEditor(); refresh(); message.success("已保存"); }, onError: (error) => message.error(errorMessage(error)) });
   const bulk = useMutation({ mutationFn: navigationApi.bulkSites, onSuccess: () => { refresh(); message.success("操作完成"); }, onError: (error) => message.error(errorMessage(error)) });
   const purge = useMutation({
     mutationFn: navigationApi.purgeSites,
@@ -54,7 +74,35 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
       setSelected([]);
     }
   }, [page, query.isSuccess, query.isFetching, query.data]);
-  const edit = (row: NavSiteRead | null) => { form.resetFields(); form.setFieldsValue(row ?? { name: "", url: "", description: "", tag_ids: [], icon_asset_id: null, sort_order: 0, is_published: false }); setIcon(row?.icon_url ?? undefined); setEditing(row); };
+  const edit = (row: NavSiteRead | null) => { cancelFetch(); formVersion.current += 1; iconVersion.current += 1; setIconUploading(false); setFetchedIcon(undefined); form.resetFields(); form.setFieldsValue(row ?? { name: "", url: "", description: "", tag_ids: [], icon_asset_id: null, sort_order: 0, is_published: false }); setIcon(row?.icon_url ?? undefined); setEditing(row); };
+  const fetchMetadata = async () => {
+    if (metadata.isPending || save.isPending || iconUploading) return;
+    try { await form.validateFields(["url"]); } catch { return; }
+    cancelFetch();
+    const controller = new globalThis.AbortController();
+    fetchController.current = controller;
+    const version = formVersion.current;
+    const previousIcon = iconVersion.current;
+    const snapshot = form.getFieldsValue();
+    try {
+      const result = await metadata.mutateAsync({ url: snapshot.url.trim(), signal: controller.signal });
+      if (controller.signal.aborted || version !== formVersion.current || form.getFieldValue("url") !== snapshot.url) return;
+      let filled = 0;
+      for (const field of ["name", "description"] as const) {
+        if (result[field] && form.getFieldValue(field) === snapshot[field]) { form.setFieldValue(field, result[field]); filled += 1; }
+      }
+      if (result.icon_base64 && iconVersion.current === previousIcon) {
+        setFetchedIcon(result.icon_base64); setIcon(`data:image/png;base64,${result.icon_base64}`); filled += 1;
+      }
+      const warnings = result.warnings ?? [];
+      setFetchNotice({ type: warnings.length ? "warning" : "success", text: [`已填入 ${filled} 项`, ...warnings].join("；") });
+    } catch (error) {
+      if (!controller.signal.aborted && version === formVersion.current) setFetchNotice({ type: "error", text: errorMessage(error) });
+    } finally {
+      if (fetchController.current === controller) fetchController.current = null;
+    }
+  };
+  const editorVersion = formVersion.current;
   const act = (action: NavBulkIn["action"], ids = selected.map(String)) => {
     if (busy) return;
     if (action === "delete") setDeleting({ kind: "soft", ids: [...ids] });
@@ -88,16 +136,22 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
         {writable && <Button icon={<UndoOutlined />} disabled={busy} loading={bulk.isPending} onClick={() => act("restore")}>恢复</Button>}
         {canPurge && <Button danger icon={<DeleteOutlined />} disabled={busy} onClick={() => setDeleting({ kind: "purge", ids: selected.map(String) })}>永久删除</Button>}
       </> : <><Button icon={<CheckOutlined />} loading={bulk.isPending} onClick={() => act("publish")}>发布</Button><Button icon={<StopOutlined />} loading={bulk.isPending} onClick={() => act("unpublish")}>下架</Button><Button danger icon={<DeleteOutlined />} loading={bulk.isPending} onClick={() => act("delete")}>移入回收站</Button></>}</Space>} />
-    <Modal title={editing ? "编辑站点" : "新增站点"} open={editing !== undefined} onCancel={() => setEditing(undefined)} onOk={() => form.submit()} confirmLoading={save.isPending} destroyOnHidden>
+    <Modal title={editing ? "编辑站点" : "新增站点"} open={editing !== undefined} onCancel={closeEditor} onOk={() => form.submit()} confirmLoading={save.isPending} okButtonProps={{ disabled: metadata.isPending || iconUploading }} cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} keyboard={!save.isPending} maskClosable={!save.isPending} destroyOnHidden>
       <QueryState loading={categories.isPending || tags.isPending} error={categories.isError || tags.isError ? "分类或标签加载失败" : undefined} onRetry={() => { void categories.refetch(); void tags.refetch(); }} />
-      <Form form={form} layout="vertical" onFinish={(values) => save.mutate(values)}>
+      <Form form={form} layout="vertical" disabled={save.isPending} onValuesChange={(changed) => { if ("url" in changed) cancelFetch(); }} onFinish={(values) => { if (!metadata.isPending && !save.isPending && !iconUploading) save.mutate(values); }}>
+        <Form.Item label="网址" required>
+          <Space.Compact style={{ width: "100%" }}>
+            <Form.Item name="url" noStyle rules={[{ required: true }, { type: "url" }, { validator: (_, value: string) => !value || /^https?:\/\//i.test(value) ? Promise.resolve() : Promise.reject(new Error("请输入 HTTP 或 HTTPS 网址")) }]}><Input aria-label="网址" maxLength={2000} placeholder="https://" /></Form.Item>
+            <Button icon={<CloudDownloadOutlined />} loading={metadata.isPending} disabled={iconUploading || save.isPending} onClick={() => void fetchMetadata()}>抓取</Button>
+          </Space.Compact>
+        </Form.Item>
+        {fetchNotice && <Alert showIcon type={fetchNotice.type} title={fetchNotice.text} style={{ marginBottom: 16 }} />}
         <Form.Item name="name" label="名称" rules={[{ required: true, whitespace: true }]}><Input maxLength={100} /></Form.Item>
-        <Form.Item name="url" label="网址" rules={[{ required: true }, { type: "url" }]}><Input maxLength={2000} placeholder="https://" /></Form.Item>
         <Form.Item name="category_id" label="分类" rules={[{ required: true }]}><Select showSearch optionFilterProp="label" options={categories.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
         <Form.Item name="tag_ids" label="标签"><Select mode="multiple" optionFilterProp="label" options={tags.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
         <Form.Item name="description" label="简介"><Input.TextArea maxLength={2000} rows={3} /></Form.Item>
         <Form.Item name="icon_asset_id" hidden><Input /></Form.Item>
-        <Form.Item label="图标"><Space>{icon && <Image src={icon} width={40} height={40} alt="站点图标" />}<ImageUploader scene="navigation_icon" onAsset={(asset) => { form.setFieldValue("icon_asset_id", asset.id); setIcon(asset.url); }} /><Tooltip title="移除图标"><Button icon={<DeleteOutlined />} onClick={() => { form.setFieldValue("icon_asset_id", null); setIcon(undefined); }} /></Tooltip></Space></Form.Item>
+        <Form.Item label="图标"><Space wrap>{icon && <Image src={icon} width={40} height={40} alt="站点图标" />}<ImageUploader key={editorVersion} scene="navigation_icon" disabled={save.isPending || metadata.isPending} onUploadingChange={(uploading) => { if (editorVersion === formVersion.current) setIconUploading(uploading); }} onAsset={(asset) => { if (editorVersion !== formVersion.current) return; iconVersion.current += 1; setFetchedIcon(undefined); form.setFieldValue("icon_asset_id", asset.id); setIcon(asset.url); }} /><Tooltip title="移除图标"><Button disabled={iconUploading || save.isPending} icon={<DeleteOutlined />} onClick={() => { iconVersion.current += 1; setFetchedIcon(undefined); form.setFieldValue("icon_asset_id", null); setIcon(undefined); }} /></Tooltip></Space></Form.Item>
         <Form.Item name="sort_order" label="排序"><InputNumber min={-1000000} max={1000000} /></Form.Item>
         <Form.Item name="is_published" label="发布" valuePropName="checked"><Switch /></Form.Item>
       </Form>

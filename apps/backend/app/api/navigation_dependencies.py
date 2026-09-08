@@ -4,9 +4,11 @@ from fastapi import Depends, Request
 
 from app.api.dependencies import CurrentAdmin, DatabaseSession, get_current_admin, get_request_settings, get_resources
 from app.core.request_metadata import request_metadata
+from app.domains.navigation.metadata import HtmlMetadataSource
 from app.domains.navigation.reader_schemas import ReaderIdentityRead
 from app.services.nav_reader import READER_COOKIE, NavReaderService
 from app.services.navigation import NavigationService
+from app.services.navigation_metadata import NavigationMetadataService
 
 
 def get_reader_service(request: Request, session: DatabaseSession) -> NavReaderService:
@@ -49,3 +51,10 @@ def get_admin_navigation_service(
 
 NavigationServiceDependency = Annotated[NavigationService, Depends(get_navigation_service)]
 AdminNavigationServiceDependency = Annotated[NavigationService, Depends(get_admin_navigation_service)]
+
+
+def get_metadata_service(request: Request) -> NavigationMetadataService:
+    return NavigationMetadataService(HtmlMetadataSource(get_resources(request).public_http))
+
+
+NavigationMetadataServiceDependency = Annotated[NavigationMetadataService, Depends(get_metadata_service)]

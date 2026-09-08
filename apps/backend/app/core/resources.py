@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from .config import Settings
+from .public_http import PublicHttpClient, create_public_http_client
 from .redis import create_redis_client
 from .security import PasswordManager
 
@@ -15,8 +16,10 @@ class AppResources:
     redis: Redis | None
     password_manager: PasswordManager
     settings_media_ready: bool = False
+    public_http: PublicHttpClient = field(default_factory=create_public_http_client)
 
     async def close(self) -> None:
+        await self.public_http.close()
         if self.redis is not None:
             await self.redis.aclose()
         await self.engine.dispose()
