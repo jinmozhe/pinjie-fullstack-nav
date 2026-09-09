@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import hashlib
 import struct
 import uuid
@@ -37,14 +38,15 @@ SCENE = "navigation_icon"
 STORAGE_DRIVER = "local"
 
 # 抓取策略
-CONCURRENCY = 3        # 并发请求数
-BATCH_DELAY = 1.0      # 批次间隔（秒）
-FETCH_TIMEOUT = 25.0   # 单站超时（秒）
-MAX_HTML_BYTES = 1024 * 1024       # 1 MB HTML
+CONCURRENCY = 3  # 并发请求数
+BATCH_DELAY = 1.0  # 批次间隔（秒）
+FETCH_TIMEOUT = 25.0  # 单站超时（秒）
+MAX_HTML_BYTES = 1024 * 1024  # 1 MB HTML
 MAX_ICON_BYTES = 2 * 1024 * 1024  # 2 MB 图标
 
 
 # ─── 图标处理 ─────────────────────────────────────────────────────────────────
+
 
 def _validate_ico_frames(body: bytes) -> None:
     """校验 ICO 文件帧偏移，防止 Pillow 解析越界分配。"""
@@ -79,6 +81,7 @@ def normalize_icon(raw: bytes) -> bytes:
 
 # ─── 简单 HTML 解析器 ─────────────────────────────────────────────────────────
 
+
 class _SimpleParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -95,7 +98,11 @@ class _SimpleParser(HTMLParser):
         elif tag == "meta":
             key = (values.get("property") or values.get("name") or "").lower()
             content = values.get("content")
-            if key in {"og:title", "og:site_name", "description", "og:description"} and content and not self.meta.get(key):
+            if (
+                key in {"og:title", "og:site_name", "description", "og:description"}
+                and content
+                and not self.meta.get(key)
+            ):
                 self.meta[key] = content
         elif tag == "base" and self.base is None:
             self.base = values.get("href")
@@ -184,6 +191,7 @@ def _icon_candidates(page_url: str, parser: _SimpleParser) -> tuple[list[str], l
 
 # ─── 资产存储 ─────────────────────────────────────────────────────────────────
 
+
 def _save_icon(png_bytes: bytes, asset_id: uuid.UUID) -> tuple[str, str]:
     """保存 PNG 文件，返回 (file_key, public_url)。"""
     date_bucket = datetime.now(UTC).strftime("%Y%m%d")
@@ -197,6 +205,7 @@ def _save_icon(png_bytes: bytes, asset_id: uuid.UUID) -> tuple[str, str]:
 
 
 # ─── 抓取单个站点 ──────────────────────────────────────────────────────────────
+
 
 class _FetchResult:
     __slots__ = ("site_id", "name", "description", "png_bytes", "error")
@@ -233,7 +242,7 @@ async def _fetch_site(client: httpx.AsyncClient, site_id: uuid.UUID, url: str) -
                 try:
                     result.png_bytes = await asyncio.to_thread(normalize_icon, raw[:MAX_ICON_BYTES])
                     break
-                except (UnidentifiedImageError, ValueError, OSError):
+                except UnidentifiedImageError, ValueError, OSError:
                     continue
 
             if not result.png_bytes:
@@ -246,10 +255,10 @@ async def _fetch_site(client: httpx.AsyncClient, site_id: uuid.UUID, url: str) -
                             raw = icon_resp.content[:MAX_ICON_BYTES]
                             try:
                                 result.png_bytes = await asyncio.to_thread(normalize_icon, raw)
-                            except (UnidentifiedImageError, ValueError, OSError):
+                            except UnidentifiedImageError, ValueError, OSError:
                                 continue
                             break
-                    except (httpx.HTTPError, asyncio.TimeoutError, OSError):
+                    except httpx.HTTPError, asyncio.TimeoutError, OSError:
                         continue
     except asyncio.TimeoutError:
         result.error = "请求超时"
@@ -261,6 +270,7 @@ async def _fetch_site(client: httpx.AsyncClient, site_id: uuid.UUID, url: str) -
 
 
 # ─── 写入数据库 ────────────────────────────────────────────────────────────────
+
 
 async def _write_result(
     conn: asyncpg.Connection,
@@ -277,7 +287,8 @@ async def _write_result(
             # 重复文件去重：同 scene + hash 的资产已存在则复用
             existing = await conn.fetchrow(
                 "SELECT id, url FROM assets WHERE file_hash = $1 AND scene = $2 LIMIT 1",
-                file_hash, SCENE,
+                file_hash,
+                SCENE,
             )
             if existing:
                 asset_id: uuid.UUID = existing["id"]
@@ -292,14 +303,22 @@ async def _write_result(
                     VALUES ($1, 'admin', $1, $2, $3, $4, 'image/png', $5, $6, $7, $8, $9, $9)
                     ON CONFLICT DO NOTHING
                     """,
-                    asset_id, STORAGE_DRIVER, file_key,
+                    asset_id,
+                    STORAGE_DRIVER,
+                    file_key,
                     f"icon_{asset_id.hex[:8]}.png",
-                    len(result.png_bytes), file_hash, icon_url, SCENE, now,
+                    len(result.png_bytes),
+                    file_hash,
+                    icon_url,
+                    SCENE,
+                    now,
                 )
 
             await conn.execute(
                 "UPDATE nav_sites SET icon_asset_id = $1, updated_at = $2 WHERE id = $3",
-                asset_id, now, result.site_id,
+                asset_id,
+                now,
+                result.site_id,
             )
             parts.append("图标已保存")
 
@@ -307,7 +326,9 @@ async def _write_result(
         if result.name and not orig_name:
             await conn.execute(
                 "UPDATE nav_sites SET name = $1, updated_at = $2 WHERE id = $3",
-                result.name[:100], now, result.site_id,
+                result.name[:100],
+                now,
+                result.site_id,
             )
             parts.append(f"名称={result.name[:20]}")
 
@@ -315,7 +336,9 @@ async def _write_result(
         if result.description and not orig_desc:
             await conn.execute(
                 "UPDATE nav_sites SET description = $1, updated_at = $2 WHERE id = $3",
-                result.description[:2000], now, result.site_id,
+                result.description[:2000],
+                now,
+                result.site_id,
             )
             parts.append("描述已更新")
 
@@ -323,6 +346,7 @@ async def _write_result(
 
 
 # ─── 主流程 ───────────────────────────────────────────────────────────────────
+
 
 async def main() -> None:
     print("=" * 60)

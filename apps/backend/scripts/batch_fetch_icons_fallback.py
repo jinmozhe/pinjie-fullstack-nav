@@ -29,8 +29,8 @@ UPLOAD_BASE_URL = "/static/uploads"
 SCENE = "navigation_icon"
 STORAGE_DRIVER = "local"
 
-CONCURRENCY = 5        # 并发数（Google 接口较快）
-FETCH_TIMEOUT = 10.0   # 单站超时
+CONCURRENCY = 5  # 并发数（Google 接口较快）
+FETCH_TIMEOUT = 10.0  # 单站超时
 MAX_ICON_BYTES = 512 * 1024  # Google 返回的图标一般很小
 
 
@@ -102,7 +102,8 @@ async def _fetch_and_save(
         # 重复文件去重
         existing = await conn.fetchrow(
             "SELECT id FROM assets WHERE file_hash = $1 AND scene = $2 LIMIT 1",
-            file_hash, SCENE,
+            file_hash,
+            SCENE,
         )
         if existing:
             asset_id: uuid.UUID = existing["id"]
@@ -117,13 +118,21 @@ async def _fetch_and_save(
                 VALUES ($1, 'admin', $1, $2, $3, $4, 'image/png', $5, $6, $7, $8, $9, $9)
                 ON CONFLICT DO NOTHING
                 """,
-                asset_id, STORAGE_DRIVER, file_key,
+                asset_id,
+                STORAGE_DRIVER,
+                file_key,
                 f"icon_{asset_id.hex[:8]}.png",
-                len(png_bytes), file_hash, icon_url, SCENE, now,
+                len(png_bytes),
+                file_hash,
+                icon_url,
+                SCENE,
+                now,
             )
         await conn.execute(
             "UPDATE nav_sites SET icon_asset_id = $1, updated_at = $2 WHERE id = $3",
-            asset_id, now, site_id,
+            asset_id,
+            now,
+            site_id,
         )
     return "图标已保存 (Google 兜底)"
 
