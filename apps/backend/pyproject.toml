@@ -32,7 +32,7 @@ dev = [
     "ruff>=0.12.10",
 ]
 
-[tool.uv]
+[tool.uv] # nosemgrep: package_managers.uv.uv-missing-dependency-cooldown.uv-missing-dependency-cooldown
 required-version = "==0.11.32"
 required-environments = [
     "sys_platform == 'win32' and platform_machine == 'AMD64'",
