@@ -152,10 +152,17 @@ async def public_sites(
     search: Search = "",
     category_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
+    pinned_only: Annotated[bool, Query(description="仅返回当前身份可见的置顶站点，不改变原排序")] = False,
 ) -> ResponseModel[PublicNavSitePage]:
     response.headers["Cache-Control"] = "no-store"
     data = await service.list_sites(
-        page=page, page_size=page_size, search=search, category_id=category_id, tag_id=tag_id, public=True
+        page=page,
+        page_size=page_size,
+        search=search,
+        category_id=category_id,
+        tag_id=tag_id,
+        public=True,
+        pinned_only=pinned_only,
     )
     return success_response(data=cast(PublicNavSitePage, data), request_id=current_request_id())
 
@@ -218,10 +225,18 @@ async def reader_sites(
     search: Search = "",
     category_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
+    pinned_only: Annotated[bool, Query(description="仅返回当前身份可见的置顶站点，不改变原排序")] = False,
 ) -> ResponseModel[PublicNavSitePage]:
     response.headers["Cache-Control"] = "no-store"
     data = await service.list_sites(
-        page=page, page_size=page_size, search=search, category_id=category_id, tag_id=tag_id, public=True, reader=True
+        page=page,
+        page_size=page_size,
+        search=search,
+        category_id=category_id,
+        tag_id=tag_id,
+        public=True,
+        reader=True,
+        pinned_only=pinned_only,
     )
     return success_response(data=cast(PublicNavSitePage, data), request_id=current_request_id())
 

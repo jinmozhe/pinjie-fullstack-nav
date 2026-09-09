@@ -142,17 +142,20 @@ class NavigationRepository:
         public: bool,
         deleted: bool,
         reader: bool = False,
+        pinned_only: bool = False,
     ) -> tuple[list[NavSite], int]:
         query = select(NavSite).join(NavCategory).options(selectinload(NavSite.category), selectinload(NavSite.tags))
         query = query.where(NavSite.deleted_at.is_not(None) if deleted and not public else NavSite.deleted_at.is_(None))
         if public:
             query = query.where(*self.visible_sites(reader=reader))
+        if pinned_only:
+            query = query.where(NavSite.is_pinned.is_(True))
         if search:
             pattern = "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
-            name_matches = NavSite.name.ilike(pattern, escape="\\")
-            query = query.where(
-                name_matches if public else name_matches | NavSite.description.ilike(pattern, escape="\\")
-            )
+            # Match only the host, excluding scheme, port, path, query and fragment.
+            hostname = func.btrim(func.substring(NavSite.url, r"(?i)^https?://(\[[^]]+\]|[^/:?#]+)"), "[]")
+            site_matches = NavSite.name.ilike(pattern, escape="\\") | hostname.ilike(pattern, escape="\\")
+            query = query.where(site_matches)
         if category_id:
             query = query.where(NavSite.category_id == category_id)
         if tag_id:
@@ -193,8 +196,10 @@ class NavigationRepository:
     async def accounts(self, site_id: uuid.UUID, *, public: bool = False) -> list[NavSiteAccount]:
         query = select(NavSiteAccount).where(NavSiteAccount.site_id == site_id)
         if public:
-            query = query.where(NavSiteAccount.is_active)
-        return list(await self.session.scalars(query.order_by(NavSiteAccount.sort_order, NavSiteAccount.id)))
+            query = query.order_by(NavSiteAccount.is_active.desc(), NavSiteAccount.updated_at.desc(), NavSiteAccount.id)
+        else:
+            query = query.order_by(NavSiteAccount.sort_order, NavSiteAccount.id)
+        return list(await self.session.scalars(query))
 
     async def account_targets(self, site_id: uuid.UUID, ids: list[uuid.UUID]) -> list[NavSiteAccount]:
         return list(

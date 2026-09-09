@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_SITE_PROFILE } from "@/features/site";
 import { server } from "@/test/setup";
+import { TOP_LOCATION } from "@/lib/navigation-location";
 import { Navigation } from "./Navigation";
 
 const category: NavCategoryRead = { id: "01900000-0000-7000-8000-000000000001", name: "Private category", description: "", sort_order: 0, is_active: true, requires_login: true, icon_key: "tool" };
@@ -31,6 +32,33 @@ function mount() {
 }
 
 describe("navigation category access", () => {
+  it("loads pinned sites across pages and clears private pins on logout while staying on top", async () => {
+    window.history.replaceState(null, "", "/top");
+    let requestedPage = "";
+    server.use(http.get("http://localhost:3000/api/v1/nav-reader/sites", ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      expect(params.get("pinned_only")).toBe("true");
+      requestedPage = params.get("page") ?? "";
+      return response({ ...privateSites, page: Number(requestedPage), total: 25, total_pages: 2 });
+    }));
+    server.use(http.get("http://localhost:3000/api/v1/navigation/sites", ({ request }) => {
+      expect(new URL(request.url).searchParams.get("pinned_only")).toBe("true");
+      return response(empty);
+    }));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} autoLogin={false} initialLocation={TOP_LOCATION} initial={{ reader, sites: privateSites, categories: [category], tags: [] }} /></QueryClientProvider>);
+    await screen.findByRole("heading", { name: "Private site" });
+    await waitFor(() => expect(screen.getByRole("button", { name: "下一页" })).toBeEnabled());
+    await userEvent.click(screen.getByRole("button", { name: "下一页" }));
+    await waitFor(() => expect(requestedPage).toBe("2"));
+    expect(window.location.pathname + window.location.search).toBe("/top?page=2");
+    await userEvent.click(screen.getByRole("button", { name: "退出登录" }));
+    await screen.findByText("暂无可见的置顶站点，可在后台编辑站点并开启置顶");
+    expect(window.location.pathname + window.location.search).toBe("/top");
+    expect(screen.queryByRole("heading", { name: "Private site" })).not.toBeInTheDocument();
+    expect(client.getQueriesData({ queryKey: ["reader-navigation"] })).toEqual([]);
+    expect(screen.getByRole("link", { name: "管理员登录" })).toHaveAttribute("href", "/api/navigation/start?return_to=/top");
+  });
   it("reports a failed private category tag request and retries through the reader endpoint", async () => {
     let requests = 0;
     server.use(http.get("http://localhost:3000/api/v1/nav-reader/taxonomy/tags", ({ request }) => {
@@ -125,17 +153,17 @@ describe("navigation category access", () => {
     if (status !== 401) expect(screen.getByRole("alert")).toHaveTextContent("查阅失败");
   });
 
-  it("searches names without carrying the current category and preserves the URL", async () => {
+  it.each(["git", "example.com"])("searches %s without carrying the current category and preserves the URL", async (keyword) => {
     let requestUrl = "";
     server.use(http.get("http://localhost:3000/api/v1/nav-reader/sites", ({ request }) => { requestUrl = request.url; return response(privateSites); }));
     mount();
     await userEvent.click(await screen.findByRole("link", { name: category.name }));
     await waitFor(() => expect(requestUrl).toContain("category_id="));
-    await userEvent.type(screen.getByRole("searchbox", { name: "搜索站点名称" }), "git{Enter}");
-    await waitFor(() => expect(requestUrl).toContain("search=git"));
+    await userEvent.type(screen.getByRole("searchbox", { name: "搜索站点名称或域名" }), `${keyword}{Enter}`);
+    await waitFor(() => expect(requestUrl).toContain(`search=${keyword}`));
     expect(requestUrl).not.toContain("category_id");
     expect(requestUrl).not.toContain("tag_id");
-    expect(window.location.search).toBe("?search=git");
+    expect(window.location.search).toBe(`?search=${keyword}`);
     expect(screen.queryByRole("combobox", { name: "筛选标签" })).not.toBeInTheDocument();
   });
 
@@ -163,8 +191,11 @@ describe("navigation category access", () => {
   });
 
   it("keeps the external link separate and clears plaintext accounts on close", async () => {
+    const user = userEvent.setup();
     const account: NavAccountRead = { id: "01900000-0000-7000-8000-000000000004", site_id: privateSites.items[0]!.id, label: "示例帐号", username: "demo@example.com", password: "  sample-only\nvalue  ", notes: "", sort_order: 0, is_active: true, updated_at: "2026-09-07T00:00:00Z" };
-    server.use(http.get("http://localhost:3000/api/v1/navigation/sites/:id/accounts", () => response([account])));
+    const inactivePassword = "inactive-sample-only";
+    const inactive: NavAccountRead = { ...account, id: "01900000-0000-7000-8000-000000000005", label: "备用帐号", password: inactivePassword, is_active: false, updated_at: "2026-09-09T00:00:00Z" };
+    server.use(http.get("http://localhost:3000/api/v1/navigation/sites/:id/accounts", () => response([account, inactive])));
     const client = mount();
     const external = await screen.findByRole("link", { name: "访问 Private site（新窗口）" });
     expect(external).toHaveAttribute("target", "_blank");
@@ -172,10 +203,19 @@ describe("navigation category access", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "查看 Private site 详情" }));
     await screen.findByRole("heading", { name: "示例帐号" });
+    const inactiveHeading = await screen.findByRole("heading", { name: "备用帐号" });
+    const inactiveRow = inactiveHeading.closest("article");
+    if (!inactiveRow) throw new Error("停用帐号不存在");
+    expect(within(inactiveRow).getByText("已停用")).toBeVisible();
+    expect(screen.getByText("已启用")).toBeVisible();
+    expect(screen.getAllByRole("heading", { level: 4 }).map((heading) => heading.textContent)).toEqual(["示例帐号", "备用帐号"]);
+    await user.click(within(inactiveRow).getByRole("button", { name: "复制密码" }));
+    expect(await window.navigator.clipboard.readText()).toBe(inactivePassword);
     expect(screen.getByText("sample-only value").textContent).toBe(account.password);
     expect(screen.queryByRole("button", { name: "复制备注" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "关闭详情" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(client.getQueriesData({ queryKey: ["reader-accounts"] })).toEqual([]);
+    expect(screen.queryByText(inactivePassword)).not.toBeInTheDocument();
   });
 });

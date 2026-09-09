@@ -26,6 +26,7 @@ export async function fetchNavigation(location: NavigationLocation = HOME_LOCATI
   const scope = reader ? "nav-reader" : "navigation";
   const home = isNavigationHome(location);
   const params = new globalThis.URLSearchParams({ page: String(location.page), page_size: "24" });
+  if (location.top) params.set("pinned_only", "true");
   if (location.search) params.set("search", location.search);
   else {
     if (location.category) params.set("category_id", location.category);

@@ -35,7 +35,10 @@ function Accounts({ siteId }: { siteId: string }) {
   return <section className="nav-accounts" aria-labelledby="nav-accounts-heading">
     <div className="nav-accounts-heading"><h3 id="nav-accounts-heading">帐号资料</h3><span>{query.data.length} 个帐号</span></div>
     {query.data.map((account, index) => <article key={account.id} className="nav-account">
-      <h4>{account.label || `帐号 ${index + 1}`}</h4>
+      <div className="nav-account-heading">
+        <h4>{account.label || `帐号 ${index + 1}`}</h4>
+        <span className="nav-account-state" data-active={account.is_active}>{account.is_active ? "已启用" : "已停用"}</span>
+      </div>
       {([["用户名", account.username], ["密码", account.password], ["备注", account.notes]] as const).map(([label, value]) => value && <div className="nav-secret-row" key={label}>
         <span>{label}</span><pre>{value}</pre><IconButton title={`复制${label}`} onClick={() => void copy(value)}><Copy size={16} /></IconButton>
       </div>)}

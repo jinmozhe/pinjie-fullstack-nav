@@ -85,6 +85,7 @@ class NavSiteIn(BaseModel):
     icon_asset_id: uuid.UUID | None = None
     sort_order: int = Field(default=0, ge=-1000000, le=1000000)
     is_published: bool = False
+    is_pinned: bool = Field(default=False, description="是否在独立置顶页面展示，不影响首页排序")
 
     @field_validator("name")
     @classmethod

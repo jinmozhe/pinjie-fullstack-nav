@@ -38,7 +38,8 @@ export async function startReaderLogin(request: Request) {
     const cfg = config();
     const jar = await cookies();
     const silent = new URL(request.url).searchParams.get("silent") === "1";
-    if (silent && (jar.has(SUPPRESSED) || jar.has(ATTEMPTED))) return privateResponse(NextResponse.redirect(cfg.web));
+    const returnTo = new URL(request.url).searchParams.get("return_to") === "/top" ? "/top" : "/";
+    if (silent && (jar.has(SUPPRESSED) || jar.has(ATTEMPTED))) return privateResponse(NextResponse.redirect(new URL(returnTo, cfg.web)));
     const state = randomBytes(32).toString("base64url");
     const verifier = randomBytes(32).toString("base64url");
     const challenge = createHash("sha256").update(verifier).digest("base64url");
@@ -48,7 +49,7 @@ export async function startReaderLogin(request: Request) {
     target.searchParams.set("redirect_uri", `${cfg.web}/navigation/callback`);
     if (silent) target.searchParams.set("silent", "1");
     const response = privateResponse(NextResponse.redirect(target));
-    response.cookies.set(FLOW, JSON.stringify({ state, verifier, expires: Date.now() + 300000 }), { path: "/api/navigation", httpOnly: true, secure: cfg.secure, sameSite: "lax", maxAge: 300 });
+    response.cookies.set(FLOW, JSON.stringify({ state, verifier, returnTo, expires: Date.now() + 300000 }), { path: "/api/navigation", httpOnly: true, secure: cfg.secure, sameSite: "lax", maxAge: 300 });
     response.cookies.set(ATTEMPTED, "1", { path: "/", httpOnly: true, secure: cfg.secure, sameSite: "lax", maxAge: 60 });
     return response;
   } catch {
@@ -61,16 +62,17 @@ export async function readerCallback(request: Request) {
   try { cfg = config(); } catch { return failure("导航登录配置不可用"); }
   if (request.headers.get("origin") !== cfg.web) return failure("请求来源不匹配", 403);
   const jar = await cookies();
-  const response = privateResponse(NextResponse.json({ code: "SUCCESS", data: null, message: "登录已完成", request_id: "" }));
-  response.cookies.set(FLOW, "", { path: "/api/navigation", httpOnly: true, secure: cfg.secure, sameSite: "lax", maxAge: 0 });
   const invalid = () => { const result = failure("导航登录已失效，请重新登录", 401); result.cookies.set(FLOW, "", { path: "/api/navigation", httpOnly: true, secure: cfg.secure, sameSite: "lax", maxAge: 0 }); return result; };
   try {
     const payload: unknown = await request.json();
     if (!payload || typeof payload !== "object" || !("state" in payload) || typeof payload.state !== "string") return invalid();
     const flow: unknown = JSON.parse(jar.get(FLOW)?.value ?? "null");
     if (!flow || typeof flow !== "object" || !("state" in flow) || !("verifier" in flow) || !("expires" in flow) || typeof flow.state !== "string" || typeof flow.verifier !== "string" || typeof flow.expires !== "number" || flow.expires <= Date.now()) return invalid();
+    if (!("returnTo" in flow) || (flow.returnTo !== "/" && flow.returnTo !== "/top")) return invalid();
     const state = payload.state;
     if (!/^[A-Za-z0-9_-]{43}$/.test(state) || state.length !== flow.state.length || !timingSafeEqual(Buffer.from(state), Buffer.from(flow.state))) return invalid();
+    const response = privateResponse(NextResponse.json({ code: "SUCCESS", data: { return_to: flow.returnTo }, message: "登录已完成", request_id: "" }));
+    response.cookies.set(FLOW, "", { path: "/api/navigation", httpOnly: true, secure: cfg.secure, sameSite: "lax", maxAge: 0 });
     if ("error" in payload && payload.error === "login_required") return response;
     const code = "code" in payload ? payload.code : null;
     if (typeof code !== "string" || !/^[A-Za-z0-9_-]{43,128}$/.test(code)) return invalid();

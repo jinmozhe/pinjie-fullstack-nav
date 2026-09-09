@@ -197,6 +197,7 @@ class NavigationService:
             icon_asset_id=row.icon_asset_id,
             sort_order=row.sort_order,
             is_published=row.is_published,
+            is_pinned=row.is_pinned,
             category=NavCategoryRead.model_validate(row.category),
             tags=[NavTaxonomyRead.model_validate(tag) for tag in row.tags],
             icon_url=icons.get(row.icon_asset_id) if row.icon_asset_id else None,
@@ -215,6 +216,7 @@ class NavigationService:
         public: bool = False,
         deleted: bool = False,
         reader: bool = False,
+        pinned_only: bool = False,
     ) -> NavSitePage | PublicNavSitePage:
         if public:
             search = search.strip()
@@ -232,6 +234,7 @@ class NavigationService:
             public=public,
             deleted=deleted,
             reader=reader,
+            pinned_only=pinned_only,
         )
         icons = await self.repo.icons([row.icon_asset_id for row in rows if row.icon_asset_id])
         reads = [self.site_read(row, icons) for row in rows]

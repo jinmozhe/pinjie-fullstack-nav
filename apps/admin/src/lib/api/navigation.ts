@@ -11,7 +11,12 @@ export const navigationApi = {
   taxonomy: (kind: TaxonomyKind) => apiRequest<(NavCategoryRead | NavTaxonomyRead)[]>(`${root}/taxonomy/${kind}`),
   saveTaxonomy: (kind: TaxonomyKind, input: NavCategoryIn | NavTaxonomyIn, id?: string) => apiRequest<NavCategoryRead | NavTaxonomyRead>(`${root}/taxonomy/${kind}${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: jsonBody(input) }),
   bulkTaxonomy: (kind: TaxonomyKind, input: NavBulkIn) => apiRequest<NavBulkRead>(`${root}/taxonomy/${kind}/bulk`, { method: "POST", body: jsonBody(input) }),
-  sites: (page: number, search: string, deleted: boolean) => apiRequest<PageResultNavSiteRead>(`${root}/sites?${new URLSearchParams({ page: String(page), page_size: "20", search, deleted: String(deleted) })}`),
+  sites: (page: number, search: string, deleted: boolean, categoryId?: string, tagId?: string) => {
+    const params = new URLSearchParams({ page: String(page), page_size: "20", search, deleted: String(deleted) });
+    if (categoryId) params.set("category_id", categoryId);
+    if (tagId) params.set("tag_id", tagId);
+    return apiRequest<PageResultNavSiteRead>(`${root}/sites?${params}`);
+  },
   saveSite: (input: NavSiteIn, id?: string) => apiRequest<NavSiteRead>(`${root}/sites${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: jsonBody(input) }),
   bulkSites: (input: NavBulkIn) => apiRequest<NavBulkRead>(`${root}/sites/bulk`, { method: "POST", body: jsonBody(input) }),
   purgeSites: (input: NavSitePurgeIn) => apiRequest<NavBulkRead>(`${root}/sites/purge`, { method: "POST", body: jsonBody(input) }),

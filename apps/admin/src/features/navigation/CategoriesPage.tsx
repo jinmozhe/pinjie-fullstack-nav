@@ -1,10 +1,10 @@
-import { PageContainer } from "@ant-design/pro-components";
+import { PageFrame } from "@/components/PageFrame";
 import { TaxonomyManager } from "./TaxonomyManager";
 
 export default function CategoriesPage() {
   return (
-    <PageContainer title="分类管理">
+    <PageFrame title="分类管理">
       <TaxonomyManager kind="categories" />
-    </PageContainer>
+    </PageFrame>
   );
 }
