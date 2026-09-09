@@ -37,6 +37,27 @@ function renderSites(principal = admin, deleted = false, rows: NavSiteRead[] = [
 }
 
 describe("SitesManager metadata", () => {
+  it("saves pin state independently of publication and sort order", async () => {
+    const user = userEvent.setup();
+    const saved: unknown[] = [];
+    server.use(http.put(`${root}/sites/${site.id}`, async ({ request }) => {
+      saved.push(await request.json());
+      return ok({ ...site, is_pinned: false });
+    }));
+    renderSites(admin, false, [{ ...site, is_pinned: true, is_published: true, sort_order: 7 }]);
+    expect(await screen.findByRole("switch", { name: `${site.name}置顶` })).toBeChecked();
+    const row = (await screen.findByRole("link", { name: site.name })).closest("tr");
+    if (!row) throw new Error("站点行不存在");
+    await user.click(within(row).getByRole("button", { name: "edit" }));
+    const dialog = await screen.findByRole("dialog", { name: "编辑站点" });
+    const pin = within(dialog).getByRole("switch", { name: "置顶" });
+    expect(pin).toBeChecked();
+    await user.click(pin);
+    await user.click(within(dialog).getByRole("button", { name: /确\s*定/ }));
+    await waitFor(() => expect(saved).toHaveLength(1));
+    expect(saved[0]).toMatchObject({ is_pinned: false, is_published: true, sort_order: 7 });
+  });
+
   it("uploads a fetched icon only on save and reuses it after a site save failure", async () => {
     const user = userEvent.setup();
     let uploads = 0;

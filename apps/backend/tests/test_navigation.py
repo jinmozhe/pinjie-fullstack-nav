@@ -178,12 +178,43 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
             )
             site_id = site.id
             account = await service.save_account(site.id, NavAccountIn(password=" sample-test-value "))
+            recent = await service.save_account(site.id, NavAccountIn(notes="recent", sort_order=100))
+            tied = await service.save_account(site.id, NavAccountIn(notes="same time", sort_order=-100))
+            inactive = await service.save_account(
+                site.id, NavAccountIn(password="inactive-sample-only", is_active=False, sort_order=-200)
+            )
+            baseline = datetime(2020, 1, 1, tzinfo=UTC)
+            async with transaction_scope(session):
+                for item, days in [(account, 0), (recent, 1), (tied, 1), (inactive, 2)]:
+                    stored = await session.get(NavSiteAccount, item.id)
+                    assert stored is not None
+                    stored.updated_at = baseline + timedelta(days=days)
+            expected_ties = sorted([recent.id, tied.id])
+            assert [item.id for item in await service.accounts(site.id, public=True)] == [
+                *expected_ties,
+                account.id,
+                inactive.id,
+            ]
+            assert [item.id for item in await service.accounts(site.id)] == [
+                inactive.id,
+                tied.id,
+                account.id,
+                recent.id,
+            ]
             app = create_app(settings)
             app.state.resources = resources
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as browser:
                 denied = await browser.get(f"/api/v1/navigation/sites/{site.id}/accounts")
                 assert denied.status_code == 401
                 assert account.password not in denied.text
+                assert inactive.password not in denied.text
+            await service.bulk_accounts(site.id, NavBulkIn(ids=[recent.id, tied.id, inactive.id], action="delete"))
+            assert [item.id for item in await service.accounts(site.id, public=True)] == [account.id]
+            await service.bulk_accounts(site.id, NavBulkIn(ids=[account.id], action="disable"))
+            disabled_accounts = await service.accounts(site.id, public=True)
+            assert len(disabled_accounts) == 1 and disabled_accounts[0].is_active is False
+            assert disabled_accounts[0].updated_at > baseline
+            await service.bulk_accounts(site.id, NavBulkIn(ids=[account.id], action="enable"))
             assert (await service.accounts(site.id, public=True))[0].password == account.password
             public = await service.list_sites(
                 page=1, page_size=100, search="", category_id=category.id, tag_id=None, public=True
@@ -274,6 +305,13 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
                 assert visible.json()["data"]["items"][0]["category"]["icon_key"] == "tool"
                 assert visible.headers["cache-control"] == "no-store"
                 assert account.password not in visible.text
+                await navigation.bulk_accounts(site.id, NavBulkIn(ids=[account.id], action="disable"))
+                credentials = await browser.get(f"/api/v1/navigation/sites/{site.id}/accounts")
+                assert credentials.status_code == 200
+                assert credentials.headers["cache-control"] == "no-store"
+                assert credentials.json()["data"][0]["is_active"] is False
+                assert credentials.json()["data"][0]["password"] == account.password
+                await navigation.bulk_accounts(site.id, NavBulkIn(ids=[account.id], action="enable"))
                 visible_categories = await browser.get("/api/v1/nav-reader/taxonomy/categories")
                 assert visible_categories.status_code == 200 and str(category_id) in visible_categories.text
                 still_public = await browser.get(f"/api/v1/navigation/sites?category_id={category_id}")

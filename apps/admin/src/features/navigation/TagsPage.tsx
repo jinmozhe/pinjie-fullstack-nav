@@ -1,10 +1,10 @@
-import { PageContainer } from "@ant-design/pro-components";
+import { PageFrame } from "@/components/PageFrame";
 import { TaxonomyManager } from "./TaxonomyManager";
 
 export default function TagsPage() {
   return (
-    <PageContainer title="标签管理">
+    <PageFrame title="标签管理">
       <TaxonomyManager kind="tags" />
-    </PageContainer>
+    </PageFrame>
   );
 }

@@ -6,6 +6,7 @@ export function NavigationLink({ location, onNavigate, children, ...props }: {
   onNavigate: (location: NavigationLocation) => void;
   children: ReactNode;
   className?: string;
+  title?: string;
   "aria-current"?: "page";
   "aria-label"?: string;
 }) {

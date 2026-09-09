@@ -2,7 +2,7 @@ import { PageContainer } from "@ant-design/pro-components";
 import type { ReactNode } from "react";
 import { Alert, Button, Card, Empty, Spin, Typography } from "antd";
 
-export function PageFrame({ title, description, action, children }: { title: string; description: string; action?: ReactNode; children: ReactNode }) {
+export function PageFrame({ title, description, action, children }: { title: string; description?: string; action?: ReactNode; children: ReactNode }) {
   return (
     <PageContainer
       className="workspace-page"

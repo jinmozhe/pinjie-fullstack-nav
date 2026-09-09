@@ -1190,6 +1190,12 @@ export type NavSiteIn = {
      * Is Published
      */
     is_published?: boolean;
+    /**
+     * Is Pinned
+     *
+     * 是否在独立置顶页面展示，不影响首页排序
+     */
+    is_pinned?: boolean;
 };
 
 /**
@@ -1246,6 +1252,12 @@ export type NavSiteRead = {
      * Is Published
      */
     is_published?: boolean;
+    /**
+     * Is Pinned
+     *
+     * 是否在独立置顶页面展示，不影响首页排序
+     */
+    is_pinned?: boolean;
     /**
      * Id
      *
@@ -4455,6 +4467,12 @@ export type ReaderSitesApiV1NavReaderSitesGetData = {
          * Tag Id
          */
         tag_id?: string | null;
+        /**
+         * Pinned Only
+         *
+         * 仅返回当前身份可见的置顶站点，不改变原排序
+         */
+        pinned_only?: boolean;
     };
     url: '/api/v1/nav-reader/sites';
 };
@@ -5112,6 +5130,12 @@ export type PublicSitesApiV1NavigationSitesGetData = {
          * Tag Id
          */
         tag_id?: string | null;
+        /**
+         * Pinned Only
+         *
+         * 仅返回当前身份可见的置顶站点，不改变原排序
+         */
+        pinned_only?: boolean;
     };
     url: '/api/v1/navigation/sites';
 };

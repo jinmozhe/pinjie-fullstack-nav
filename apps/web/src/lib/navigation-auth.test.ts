@@ -41,7 +41,7 @@ describe("independent reader login", () => {
   });
 
   it("rejects a callback with a different browser state without exchange", async () => {
-    jar.set("pinjie_reader_flow", JSON.stringify({ state: "a".repeat(43), verifier: "v".repeat(43), expires: Date.now() + 60000 }));
+    jar.set("pinjie_reader_flow", JSON.stringify({ state: "a".repeat(43), verifier: "v".repeat(43), returnTo: "/", expires: Date.now() + 60000 }));
     const response = await readerCallback(new Request("http://localhost:3000/api/navigation/callback", {
       method: "POST", headers: { origin: "http://localhost:3000", "content-type": "application/json" },
       body: JSON.stringify({ state: "b".repeat(43), code: "c".repeat(43) }),
@@ -51,7 +51,7 @@ describe("independent reader login", () => {
   });
 
   it("sets only reader cookies, excludes session secrets from the callback body", async () => {
-    jar.set("pinjie_reader_flow", JSON.stringify({ state: "s".repeat(43), verifier: "v".repeat(43), expires: Date.now() + 60000 }));
+    jar.set("pinjie_reader_flow", JSON.stringify({ state: "s".repeat(43), verifier: "v".repeat(43), returnTo: "/top", expires: Date.now() + 60000 }));
     const headers = new Headers();
     headers.append("set-cookie", "pinjie_reader_session=reader-test-value; Path=/; HttpOnly; SameSite=Lax");
     headers.append("set-cookie", "pinjie_admin_access=must-not-forward; Path=/; HttpOnly");
@@ -63,7 +63,34 @@ describe("independent reader login", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("set-cookie")).toContain("reader-test-value");
     expect(response.headers.get("set-cookie")).not.toContain("must-not-forward");
-    expect(await response.text()).not.toContain("reader-test-value");
+    const body = await response.text();
+    expect(body).not.toContain("reader-test-value");
+    expect(JSON.parse(body).data).toEqual({ return_to: "/top" });
+  });
+
+  it("retains top for silent anonymous return and rejects external return targets", async () => {
+    const start = await startReaderLogin(new Request("http://localhost:3000/api/navigation/start?return_to=/top"));
+    const cookie = start.cookies.get("pinjie_reader_flow");
+    const flow = JSON.parse(cookie?.value ?? "{}");
+    jar.set("pinjie_reader_flow", cookie?.value ?? "");
+    const callback = await readerCallback(new Request("http://localhost:3000/api/navigation/callback", {
+      method: "POST", headers: { origin: "http://localhost:3000" },
+      body: JSON.stringify({ state: flow.state, error: "login_required" }),
+    }));
+    expect((await callback.json()).data).toEqual({ return_to: "/top" });
+    expect(fetchMock).not.toHaveBeenCalled();
+    jar.set("pinjie_reader_suppressed", "1");
+    const suppressed = await startReaderLogin(new Request("http://localhost:3000/api/navigation/start?silent=1&return_to=/top"));
+    expect(suppressed.headers.get("location")).toBe("http://localhost:3000/top");
+    const external = await startReaderLogin(new Request("http://localhost:3000/api/navigation/start?silent=1&return_to=https://evil.example"));
+    expect(external.headers.get("location")).toBe("http://localhost:3000/");
+    jar.set("pinjie_reader_flow", JSON.stringify({ ...flow, returnTo: "//evil.example" }));
+    const invalid = await readerCallback(new Request("http://localhost:3000/api/navigation/callback", {
+      method: "POST", headers: { origin: "http://localhost:3000" },
+      body: JSON.stringify({ state: flow.state, error: "login_required" }),
+    }));
+    expect(invalid.status).toBe(401);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("logout revokes only the reader profile and sets the suppression marker", async () => {

@@ -1,7 +1,7 @@
 import type { NavBulkIn, NavCategoryIn, NavCategoryRead, NavTaxonomyRead } from "@pinjie/api-client";
 import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined, StopOutlined } from "@ant-design/icons";
 import { ProTable, type ProColumns } from "@ant-design/pro-components";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useMutationState, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, InputNumber, Modal, Space, Switch, Tag, Tooltip, message } from "antd";
 import { useState, type Key } from "react";
 import { StandardConfirmModal } from "@/components/StandardConfirmModal";
@@ -12,6 +12,7 @@ import { errorMessage } from "@/lib/api/http";
 import { CategoryIcon, CategoryIconSelect } from "./CategoryIcon";
 
 type TaxonomyRow = NavCategoryRead | NavTaxonomyRead;
+type StatusChange = { id: string; active: boolean };
 
 export function TaxonomyManager({ kind }: { kind: TaxonomyKind }) {
   const writable = canAccess(useCurrentAdmin(), "navigation:write");
@@ -24,22 +25,44 @@ export function TaxonomyManager({ kind }: { kind: TaxonomyKind }) {
   const refresh = () => { setSelected([]); void client.invalidateQueries({ queryKey: ["navigation"] }); };
   const save = useMutation({ mutationFn: (input: NavCategoryIn) => navigationApi.saveTaxonomy(kind, input, editing?.id), onSuccess: () => { setEditing(undefined); refresh(); message.success("已保存"); }, onError: (error) => message.error(errorMessage(error)) });
   const bulk = useMutation({ mutationFn: (input: NavBulkIn) => navigationApi.bulkTaxonomy(kind, input), onSuccess: () => { setDeleting(undefined); refresh(); message.success("操作完成"); }, onError: (error) => message.error(errorMessage(error)) });
+  const status = useMutation({
+    mutationKey: ["navigation", kind, "status"],
+    mutationFn: ({ id, active }: StatusChange) => navigationApi.bulkTaxonomy(kind, { ids: [id], action: active ? "enable" : "disable" }),
+    retry: false,
+    onSuccess: async (_, { id, active }) => {
+      await client.cancelQueries({ queryKey: ["navigation", kind] });
+      client.setQueryData<TaxonomyRow[]>(["navigation", kind], (data) => data?.map((row) => row.id === id ? { ...row, is_active: active } : row));
+      message.success(active ? "已启用" : "已停用");
+      await client.invalidateQueries({ queryKey: ["navigation"] });
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+  const changing = useMutationState({
+    filters: { mutationKey: ["navigation", kind, "status"], status: "pending" },
+    select: (mutation) => mutation.state.variables as StatusChange,
+  });
+  const isChanging = (id: string) => changing.some((change) => change.id === id);
+  const selectedChanging = selected.some((id) => isChanging(String(id)));
   const edit = (row: TaxonomyRow | null) => { form.resetFields(); form.setFieldsValue(row ?? { name: "", description: "", sort_order: 0, is_active: true, ...(kind === "categories" ? { requires_login: false, icon_key: null } : {}) }); setEditing(row); };
   const columns: ProColumns<TaxonomyRow>[] = [
     ...(kind === "categories" ? [{ title: "图标", dataIndex: "icon_key", width: 64, render: (_: unknown, row: TaxonomyRow) => <CategoryIcon value={"requires_login" in row ? row.icon_key : null} /> }] : []),
-    { title: "名称", dataIndex: "name", ellipsis: true },
+    { title: "名称", dataIndex: "name", width: kind === "tags" ? 200 : undefined, ellipsis: true },
     { title: "说明", dataIndex: "description", ellipsis: true },
     { title: "排序", dataIndex: "sort_order", width: 80 },
-    { title: "状态", dataIndex: "is_active", render: (_, row) => <Tag color={row.is_active ? "green" : "default"}>{row.is_active ? "启用" : "停用"}</Tag> },
+    { title: "状态", dataIndex: "is_active", width: kind === "tags" ? 100 : undefined, render: (_, row) => writable ? <Tooltip title={row.is_active ? "停用" : "启用"}>
+      <Switch checked={row.is_active === true} checkedChildren="开" unCheckedChildren="关" aria-label={`${row.name}状态`}
+        loading={isChanging(row.id)} disabled={bulk.isPending || save.isPending || editing !== undefined || Boolean(deleting)}
+        onChange={(active) => { if (!isChanging(row.id)) status.mutate({ id: row.id, active }); }} />
+    </Tooltip> : <Tag color={row.is_active ? "green" : "default"}>{row.is_active ? "启用" : "停用"}</Tag> },
     ...(kind === "categories" ? [{ title: "可见范围", render: (_: unknown, row: TaxonomyRow) => <Tag color={"requires_login" in row && row.requires_login ? "blue" : "default"}>{"requires_login" in row && row.requires_login ? "登录可见" : "公开"}</Tag> }] : []),
-    ...(writable ? [{ title: "操作", width: "1%", render: (_: unknown, row: NavTaxonomyRead) => <Space wrap={false}><Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => edit(row)} /></Tooltip><Tooltip title="删除"><Button danger icon={<DeleteOutlined />} onClick={() => setDeleting([row.id])} /></Tooltip></Space> }] : []),
+    ...(writable ? [{ title: "操作", width: "1%", render: (_: unknown, row: NavTaxonomyRead) => <Space wrap={false}><Tooltip title="编辑"><Button disabled={isChanging(row.id)} icon={<EditOutlined />} onClick={() => edit(row)} /></Tooltip><Tooltip title="删除"><Button danger disabled={isChanging(row.id)} icon={<DeleteOutlined />} onClick={() => setDeleting([row.id])} /></Tooltip></Space> }] : []),
   ];
   return <>
     <QueryState loading={false} error={query.isError ? errorMessage(query.error) : undefined} onRetry={() => void query.refetch()} />
-    <ProTable<TaxonomyRow> rowKey="id" headerTitle={`${kind === "categories" ? "分类" : "标签"}列表`} columns={columns} dataSource={query.data} loading={query.isPending} search={false} options={{ reload: () => void query.refetch() }} scroll={{ x: "max-content" }} onChange={() => setSelected([])}
-      rowSelection={writable ? { selectedRowKeys: selected, onChange: setSelected } : false}
+    <ProTable<TaxonomyRow> className="responsive-data-table" rowKey="id" headerTitle={`${kind === "categories" ? "分类" : "标签"}列表`} columns={columns} dataSource={query.data} loading={query.isPending} search={false} options={{ reload: () => void query.refetch() }} scroll={{ x: "max-content" }} onChange={() => setSelected([])}
+      rowSelection={writable ? { selectedRowKeys: selected, onChange: setSelected, getCheckboxProps: (row) => ({ disabled: bulk.isPending || isChanging(row.id) }) } : false}
       toolBarRender={() => writable ? [<Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => edit(null)}>新增{kind === "categories" ? "分类" : "标签"}</Button>] : []}
-      tableAlertOptionRender={() => <Space><Button icon={<CheckOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "enable" })}>启用</Button><Button icon={<StopOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "disable" })}>停用</Button><Button danger icon={<DeleteOutlined />} onClick={() => setDeleting(selected.map(String))}>删除</Button></Space>} />
+      tableAlertOptionRender={() => <Space><Button disabled={selectedChanging} icon={<CheckOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "enable" })}>启用</Button><Button disabled={selectedChanging} icon={<StopOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "disable" })}>停用</Button><Button danger disabled={bulk.isPending || selectedChanging} icon={<DeleteOutlined />} onClick={() => setDeleting(selected.map(String))}>删除</Button></Space>} />
     <Modal title={editing ? "编辑" : "新增"} open={editing !== undefined} onCancel={() => setEditing(undefined)} onOk={() => form.submit()} confirmLoading={save.isPending} destroyOnHidden>
       <Form form={form} layout="vertical" onFinish={(values) => save.mutate(values)}>
         <Form.Item name="name" label="名称" rules={[{ required: true, whitespace: true }]}><Input maxLength={100} /></Form.Item>

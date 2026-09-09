@@ -1,10 +1,12 @@
-export type NavigationLocation = { page: number; search: string; category: string; tag: string };
+export type NavigationLocation = { page: number; search: string; category: string; tag: string; top?: true };
 
 export const HOME_LOCATION: NavigationLocation = { page: 1, search: "", category: "", tag: "" };
+export const TOP_LOCATION: NavigationLocation = { ...HOME_LOCATION, top: true };
 
-export function navigationLocation(params: globalThis.URLSearchParams): NavigationLocation {
+export function navigationLocation(params: globalThis.URLSearchParams, pathname = "/"): NavigationLocation {
   const search = (params.get("search") ?? "").trim().slice(0, 100);
   const page = Number(params.get("page") ?? 1);
+  if (pathname === "/top") return { ...TOP_LOCATION, page: Number.isSafeInteger(page) && page > 0 ? page : 1 };
   return {
     page: Number.isSafeInteger(page) && page > 0 ? page : 1,
     search,
@@ -14,6 +16,7 @@ export function navigationLocation(params: globalThis.URLSearchParams): Navigati
 }
 
 export function navigationHref(location: NavigationLocation): string {
+  if (location.top) return location.page > 1 ? `/top?page=${location.page}` : "/top";
   const params = new globalThis.URLSearchParams();
   if (location.search) params.set("search", location.search);
   else {
@@ -25,5 +28,5 @@ export function navigationHref(location: NavigationLocation): string {
 }
 
 export function isNavigationHome(location: NavigationLocation): boolean {
-  return !location.search && !location.category && !location.tag;
+  return !location.top && !location.search && !location.category && !location.tag;
 }

@@ -4,8 +4,9 @@ import { webRequest } from "@/lib/api/http";
 export const navigationApi = {
   groups: (page: number, reader: boolean, signal?: globalThis.AbortSignal) => webRequest<PageResultNavSiteGroupRead>(`/api/v1/${reader ? "nav-reader" : "navigation"}/groups?page=${page}&page_size=6`, { cache: "no-store", signal }, false, signal),
   site: (id: string, reader: boolean, signal?: globalThis.AbortSignal) => webRequest<PublicNavSiteRead>(`/api/v1/${reader ? "nav-reader" : "navigation"}/sites/${id}`, { cache: "no-store", signal }, false, signal),
-  sites: (page: number, search: string, category: string, tag: string, reader: boolean, signal?: globalThis.AbortSignal) => {
+  sites: (page: number, search: string, category: string, tag: string, reader: boolean, signal?: globalThis.AbortSignal, pinnedOnly = false) => {
     const params = new globalThis.URLSearchParams({ page: String(page), page_size: "24", search });
+    if (pinnedOnly) params.set("pinned_only", "true");
     if (!search && category) params.set("category_id", category);
     if (!search && tag) params.set("tag_id", tag);
     return webRequest<PageResultPublicNavSiteRead>(`/api/v1/${reader ? "nav-reader" : "navigation"}/sites?${params}`, { cache: "no-store", signal }, false, signal);
