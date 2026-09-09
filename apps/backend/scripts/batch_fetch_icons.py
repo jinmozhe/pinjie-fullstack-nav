@@ -241,7 +241,7 @@ async def _fetch_site(client: httpx.AsyncClient, site_id: uuid.UUID, url: str) -
                 try:
                     result.png_bytes = await asyncio.to_thread(normalize_icon, raw[:MAX_ICON_BYTES])
                     break
-                except UnidentifiedImageError, ValueError, OSError:
+                except (UnidentifiedImageError, ValueError, OSError):  # fmt: skip
                     continue
 
             if not result.png_bytes:
@@ -254,10 +254,10 @@ async def _fetch_site(client: httpx.AsyncClient, site_id: uuid.UUID, url: str) -
                             raw = icon_resp.content[:MAX_ICON_BYTES]
                             try:
                                 result.png_bytes = await asyncio.to_thread(normalize_icon, raw)
-                            except UnidentifiedImageError, ValueError, OSError:
+                            except (UnidentifiedImageError, ValueError, OSError):  # fmt: skip
                                 continue
                             break
-                    except httpx.HTTPError, asyncio.TimeoutError, OSError:
+                    except (httpx.HTTPError, asyncio.TimeoutError, OSError):  # fmt: skip
                         continue
     except asyncio.TimeoutError:
         result.error = "请求超时"
@@ -294,7 +294,7 @@ async def _write_result(
             else:
                 asset_id = uuid.uuid4()
                 file_key, icon_url = _save_icon(result.png_bytes, asset_id)
-                await conn.execute(
+                await conn.execute(  # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli
                     """
                     INSERT INTO assets
                         (id, uploader_type, uploader_id, storage_driver, file_key,

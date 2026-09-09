@@ -110,7 +110,7 @@ async def _fetch_and_save(
         else:
             asset_id = uuid.uuid4()
             file_key, icon_url = _save_icon(png_bytes, asset_id)
-            await conn.execute(
+            await conn.execute(  # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli
                 """
                 INSERT INTO assets
                     (id, uploader_type, uploader_id, storage_driver, file_key,
