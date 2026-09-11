@@ -591,6 +591,23 @@ describe("stage C admin workspace", () => {
     await waitFor(() => expect(assignPayload).toEqual({ permission_codes: ["roles:update", "system:overview:read", "reports:export"] }));
   }, 60_000);
 
+  it("updates permission selection when a visible tree item is checked", async () => {
+    const user = userEvent.setup();
+    const catalog: PermissionRead[] = [
+      { id: "permission-users", code: "users:read", name: "查看用户", description: null, is_active: true, catalog_version: "v1", assignable_to_roles: true },
+    ];
+    server.use(
+      http.get("http://localhost:3000/api/v1/admin/permissions", () => HttpResponse.json({ code: "OK", message: "操作成功", data: catalog, request_id: "test-request" })),
+    );
+    renderPage(<RolesPage />);
+    await user.click(await screen.findByRole("button", { name: /权限/ }));
+    await screen.findByRole("tree");
+
+    const item = screen.getByRole("treeitem", { name: /查看用户/ });
+    fireEvent.click(item);
+    expect(screen.getByText((_, element) => element?.textContent?.replaceAll(" ", "") === "已选1/1")).toBeInTheDocument();
+  }, 60_000);
+
   it("selects roles and sends one atomic bulk hard-delete request", async () => {
     const user = userEvent.setup();
     let bulkPayload: unknown;
