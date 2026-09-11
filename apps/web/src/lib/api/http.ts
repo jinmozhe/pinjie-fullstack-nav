@@ -82,7 +82,13 @@ export async function webRequest<T>(
     const csrf = readCookie(reader ? "pinjie_reader_csrf" : "pinjie_web_csrf");
     if (csrf) headers.set("X-CSRF-Token", csrf);
   }
-  const response = await fetch(new URL(path, window.location.origin), { ...init, method, headers, credentials: "include" });
+  // jsdom's AbortSignal belongs to a different realm than the Node fetch
+  // implementation used by MSW. Keep cancellation checks above and below the
+  // request, while omitting the incompatible signal only in that test realm.
+  const requestSignal = typeof globalThis.navigator !== "undefined" && /jsdom/i.test(globalThis.navigator.userAgent)
+    ? undefined
+    : init.signal;
+  const response = await fetch(new URL(path, window.location.origin), { ...init, method, headers, credentials: "include", signal: requestSignal });
   throwIfCancelled(cancellationSignal);
   if (!response.ok) {
     const error = await parseError(response);

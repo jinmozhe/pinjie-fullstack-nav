@@ -241,7 +241,9 @@ async def reader_sites(
     return success_response(data=cast(PublicNavSitePage, data), request_id=current_request_id())
 
 
-@public_router.get("/sites/{site_id}/accounts", response_model=ResponseModel[list[NavAccountRead]])
+@public_router.get(
+    "/sites/{site_id}/accounts", response_model=ResponseModel[list[NavAccountRead]], summary="查阅站点帐号资料"
+)
 async def reader_accounts(
     site_id: uuid.UUID, service: NavigationServiceDependency, current: CurrentReaderDependency, response: Response
 ) -> ResponseModel[list[NavAccountRead]]:
@@ -276,6 +278,7 @@ async def fetch_metadata(
 @admin_router.get(
     "/taxonomy/{kind}",
     response_model=ResponseModel[list[TaxonomyRead]],
+    summary="获取导航分类或标签",
     dependencies=[Depends(require_permission(PermissionCode.NAVIGATION_READ))],
 )
 async def admin_taxonomy(
@@ -287,6 +290,7 @@ async def admin_taxonomy(
 @admin_router.post(
     "/taxonomy/{kind}",
     response_model=ResponseModel[TaxonomyRead],
+    summary="创建导航分类或标签",
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def create_taxonomy(
@@ -298,6 +302,7 @@ async def create_taxonomy(
 @admin_router.put(
     "/taxonomy/{kind}/{id}",
     response_model=ResponseModel[TaxonomyRead],
+    summary="更新导航分类或标签",
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def update_taxonomy(
@@ -309,6 +314,7 @@ async def update_taxonomy(
 @admin_router.post(
     "/taxonomy/{kind}/bulk",
     response_model=ResponseModel[NavBulkRead],
+    summary="批量操作导航分类或标签",
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def bulk_taxonomy(
@@ -320,6 +326,7 @@ async def bulk_taxonomy(
 @admin_router.get(
     "/sites",
     response_model=ResponseModel[NavSitePage],
+    summary="获取后台导航站点列表",
     dependencies=[Depends(require_permission(PermissionCode.NAVIGATION_READ))],
 )
 async def admin_sites(
@@ -340,6 +347,7 @@ async def admin_sites(
 @admin_router.post(
     "/sites",
     response_model=ResponseModel[NavSiteRead],
+    summary="创建导航站点",
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def create_site(payload: NavSiteIn, service: AdminNavigationServiceDependency) -> ResponseModel[NavSiteRead]:
@@ -349,6 +357,7 @@ async def create_site(payload: NavSiteIn, service: AdminNavigationServiceDepende
 @admin_router.put(
     "/sites/{id}",
     response_model=ResponseModel[NavSiteRead],
+    summary="更新导航站点",
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def update_site(
@@ -360,6 +369,7 @@ async def update_site(
 @admin_router.post(
     "/sites/bulk",
     response_model=ResponseModel[NavBulkRead],
+    summary="批量操作导航站点",
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_WRITE))],
 )
 async def bulk_sites(payload: NavBulkIn, service: AdminNavigationServiceDependency) -> ResponseModel[NavBulkRead]:
@@ -386,6 +396,7 @@ async def purge_sites(payload: NavSitePurgeIn, service: AdminNavigationServiceDe
 @admin_router.get(
     "/sites/{site_id}/accounts",
     response_model=ResponseModel[list[NavAccountRead]],
+    summary="获取站点帐号资料",
     dependencies=[Depends(require_permission(PermissionCode.NAVIGATION_CREDENTIALS_READ))],
 )
 async def admin_accounts(
@@ -398,6 +409,7 @@ async def admin_accounts(
 @admin_router.post(
     "/sites/{site_id}/accounts",
     response_model=ResponseModel[NavAccountRead],
+    summary="创建站点帐号资料",
     dependencies=[
         Depends(require_admin_csrf),
         Depends(require_permission(PermissionCode.NAVIGATION_CREDENTIALS_WRITE)),
@@ -413,6 +425,7 @@ async def create_account(
 @admin_router.put(
     "/sites/{site_id}/accounts/{id}",
     response_model=ResponseModel[NavAccountRead],
+    summary="更新站点帐号资料",
     dependencies=[
         Depends(require_admin_csrf),
         Depends(require_permission(PermissionCode.NAVIGATION_CREDENTIALS_WRITE)),
@@ -432,6 +445,7 @@ async def update_account(
 @admin_router.post(
     "/sites/{site_id}/accounts/bulk",
     response_model=ResponseModel[NavBulkRead],
+    summary="批量操作站点帐号资料",
     dependencies=[
         Depends(require_admin_csrf),
         Depends(require_permission(PermissionCode.NAVIGATION_CREDENTIALS_WRITE)),

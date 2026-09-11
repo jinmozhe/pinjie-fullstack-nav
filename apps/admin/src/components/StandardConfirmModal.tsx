@@ -38,13 +38,13 @@ export function StandardConfirmModal({ children, description, loading, open, tit
       cancelText="取消"
       closable={!busy}
       confirmLoading={busy}
-      destroyOnHidden
       keyboard={!busy}
       maskClosable={!busy}
       okButtonProps={{ danger: true }}
       okText="确定"
       open={open}
-      title={title}
+      aria-label={title}
+      title={<span id="standard-confirm-title">{title}</span>}
       onCancel={() => { if (!loading && !submitting.current) onCancel(); }}
       onOk={() => void confirm()}
     >

@@ -23,7 +23,7 @@ export function TaxonomyManager({ kind }: { kind: TaxonomyKind }) {
   const [form] = Form.useForm<NavCategoryIn>();
   const query = useQuery({ queryKey: ["navigation", kind], queryFn: () => navigationApi.taxonomy(kind) });
   const refresh = () => { setSelected([]); void client.invalidateQueries({ queryKey: ["navigation"] }); };
-  const save = useMutation({ mutationFn: (input: NavCategoryIn) => navigationApi.saveTaxonomy(kind, input, editing?.id), onSuccess: () => { setEditing(undefined); refresh(); message.success("已保存"); }, onError: (error) => message.error(errorMessage(error)) });
+  const save = useMutation({ mutationFn: (input: NavCategoryIn) => navigationApi.saveTaxonomy(kind, input, editing?.id), onSuccess: () => { setEditing(undefined); refresh(); message.success("已保存"); }, onError: (error) => { message.error(errorMessage(error)); save.reset(); } });
   const bulk = useMutation({ mutationFn: (input: NavBulkIn) => navigationApi.bulkTaxonomy(kind, input), onSuccess: () => { setDeleting(undefined); refresh(); message.success("操作完成"); }, onError: (error) => message.error(errorMessage(error)) });
   const status = useMutation({
     mutationKey: ["navigation", kind, "status"],
@@ -63,7 +63,7 @@ export function TaxonomyManager({ kind }: { kind: TaxonomyKind }) {
       rowSelection={writable ? { selectedRowKeys: selected, onChange: setSelected, getCheckboxProps: (row) => ({ disabled: bulk.isPending || isChanging(row.id) }) } : false}
       toolBarRender={() => writable ? [<Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => edit(null)}>新增{kind === "categories" ? "分类" : "标签"}</Button>] : []}
       tableAlertOptionRender={() => <Space><Button disabled={selectedChanging} icon={<CheckOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "enable" })}>启用</Button><Button disabled={selectedChanging} icon={<StopOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "disable" })}>停用</Button><Button danger disabled={bulk.isPending || selectedChanging} icon={<DeleteOutlined />} onClick={() => setDeleting(selected.map(String))}>删除</Button></Space>} />
-    <Modal title={editing ? "编辑" : "新增"} open={editing !== undefined} onCancel={() => setEditing(undefined)} onOk={() => form.submit()} confirmLoading={save.isPending} destroyOnHidden>
+    <Modal aria-label={editing ? "编辑" : "新增"} title={<span id="taxonomy-editor-title">{editing ? "编辑" : "新增"}</span>} open={editing !== undefined} onCancel={() => setEditing(undefined)} onOk={() => form.submit()} confirmLoading={save.isPending} destroyOnHidden>
       <Form form={form} layout="vertical" onFinish={(values) => save.mutate(values)}>
         <Form.Item name="name" label="名称" rules={[{ required: true, whitespace: true }]}><Input maxLength={100} /></Form.Item>
         {kind === "categories" && <Form.Item name="icon_key" label="图标"><CategoryIconSelect disabled={save.isPending} /></Form.Item>}

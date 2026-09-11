@@ -20,7 +20,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    project_name: str = Field(default="Pinjie Fullstack Nav Backend", validation_alias="PROJECT_NAME")
+    project_name: str = Field(default="拾径导航后端 API", validation_alias="PROJECT_NAME")
     environment: Environment = Field(default="local", validation_alias="ENVIRONMENT")
     debug: bool = Field(default=False, validation_alias="DEBUG")
     api_v1_str: str = Field(default="/api/v1", validation_alias="API_V1_STR")

@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Pinjie Fullstack Nav Backend",
+    "title": "拾径导航后端 API",
     "description": "通用全栈母版的后端 API，提供用户认证、账户管理、后台管理和系统状态能力。",
     "version": "0.1.0"
   },
@@ -11,7 +11,7 @@
         "tags": [
           "导航查阅认证"
         ],
-        "summary": "Reader Config",
+        "summary": "获取导航查阅配置",
         "operationId": "reader_config_api_v1_navigation_auth_config_get",
         "responses": {
           "200": {
@@ -32,7 +32,7 @@
         "tags": [
           "导航查阅认证"
         ],
-        "summary": "Authorize Reader",
+        "summary": "授权导航查阅会话",
         "operationId": "authorize_reader_api_v1_admin_nav_reader_authorize_post",
         "parameters": [
           {
@@ -91,7 +91,7 @@
         "tags": [
           "导航查阅认证"
         ],
-        "summary": "Exchange Reader",
+        "summary": "交换导航查阅凭证",
         "operationId": "exchange_reader_api_v1_nav_reader_exchange_post",
         "requestBody": {
           "content": {
@@ -132,7 +132,7 @@
         "tags": [
           "导航查阅认证"
         ],
-        "summary": "Reader Me",
+        "summary": "获取当前查阅身份",
         "operationId": "reader_me_api_v1_nav_reader_me_get",
         "responses": {
           "200": {
@@ -153,7 +153,7 @@
         "tags": [
           "导航查阅认证"
         ],
-        "summary": "Logout Reader",
+        "summary": "退出导航查阅会话",
         "operationId": "logout_reader_api_v1_nav_reader_logout_post",
         "responses": {
           "200": {
@@ -583,7 +583,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Admin Taxonomy",
+        "summary": "获取导航分类或标签",
         "operationId": "admin_taxonomy_api_v1_admin_navigation_taxonomy__kind__get",
         "parameters": [
           {
@@ -643,7 +643,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Create Taxonomy",
+        "summary": "创建导航分类或标签",
         "operationId": "create_taxonomy_api_v1_admin_navigation_taxonomy__kind__post",
         "parameters": [
           {
@@ -753,7 +753,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Update Taxonomy",
+        "summary": "更新导航分类或标签",
         "operationId": "update_taxonomy_api_v1_admin_navigation_taxonomy__kind___id__put",
         "parameters": [
           {
@@ -873,7 +873,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Bulk Taxonomy",
+        "summary": "批量操作导航分类或标签",
         "operationId": "bulk_taxonomy_api_v1_admin_navigation_taxonomy__kind__bulk_post",
         "parameters": [
           {
@@ -945,7 +945,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Admin Sites",
+        "summary": "获取后台导航站点列表",
         "operationId": "admin_sites_api_v1_admin_navigation_sites_get",
         "parameters": [
           {
@@ -1070,7 +1070,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Create Site",
+        "summary": "创建导航站点",
         "operationId": "create_site_api_v1_admin_navigation_sites_post",
         "parameters": [
           {
@@ -1129,7 +1129,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Update Site",
+        "summary": "更新导航站点",
         "operationId": "update_site_api_v1_admin_navigation_sites__id__put",
         "parameters": [
           {
@@ -1198,7 +1198,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Bulk Sites",
+        "summary": "批量操作导航站点",
         "operationId": "bulk_sites_api_v1_admin_navigation_sites_bulk_post",
         "parameters": [
           {
@@ -1329,7 +1329,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Admin Accounts",
+        "summary": "获取站点帐号资料",
         "operationId": "admin_accounts_api_v1_admin_navigation_sites__site_id__accounts_get",
         "parameters": [
           {
@@ -1386,7 +1386,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Create Account",
+        "summary": "创建站点帐号资料",
         "operationId": "create_account_api_v1_admin_navigation_sites__site_id__accounts_post",
         "parameters": [
           {
@@ -1455,7 +1455,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Update Account",
+        "summary": "更新站点帐号资料",
         "operationId": "update_account_api_v1_admin_navigation_sites__site_id__accounts__id__put",
         "parameters": [
           {
@@ -1534,7 +1534,7 @@
         "tags": [
           "导航管理"
         ],
-        "summary": "Bulk Accounts",
+        "summary": "批量操作站点帐号资料",
         "operationId": "bulk_accounts_api_v1_admin_navigation_sites__site_id__accounts_bulk_post",
         "parameters": [
           {
@@ -1911,7 +1911,7 @@
         "tags": [
           "公开导航"
         ],
-        "summary": "Reader Accounts",
+        "summary": "查阅站点帐号资料",
         "operationId": "reader_accounts_api_v1_navigation_sites__site_id__accounts_get",
         "parameters": [
           {

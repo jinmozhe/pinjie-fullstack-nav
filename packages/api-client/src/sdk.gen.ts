@@ -19,7 +19,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * Reader Config
+ * 获取导航查阅配置
  */
 export const readerConfigApiV1NavigationAuthConfigGet = <ThrowOnError extends boolean = false>(options?: Options<ReaderConfigApiV1NavigationAuthConfigGetData, ThrowOnError>): RequestResult<ReaderConfigApiV1NavigationAuthConfigGetResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ReaderConfigApiV1NavigationAuthConfigGetResponses, unknown, ThrowOnError>({
     responseType: 'json',
@@ -28,7 +28,7 @@ export const readerConfigApiV1NavigationAuthConfigGet = <ThrowOnError extends bo
 });
 
 /**
- * Authorize Reader
+ * 授权导航查阅会话
  */
 export const authorizeReaderApiV1AdminNavReaderAuthorizePost = <ThrowOnError extends boolean = false>(options: Options<AuthorizeReaderApiV1AdminNavReaderAuthorizePostData, ThrowOnError>): RequestResult<AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses, AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors, ThrowOnError> => (options.client ?? client).post<AuthorizeReaderApiV1AdminNavReaderAuthorizePostResponses, AuthorizeReaderApiV1AdminNavReaderAuthorizePostErrors, ThrowOnError>({
     responseType: 'json',
@@ -41,7 +41,7 @@ export const authorizeReaderApiV1AdminNavReaderAuthorizePost = <ThrowOnError ext
 });
 
 /**
- * Exchange Reader
+ * 交换导航查阅凭证
  */
 export const exchangeReaderApiV1NavReaderExchangePost = <ThrowOnError extends boolean = false>(options: Options<ExchangeReaderApiV1NavReaderExchangePostData, ThrowOnError>): RequestResult<ExchangeReaderApiV1NavReaderExchangePostResponses, ExchangeReaderApiV1NavReaderExchangePostErrors, ThrowOnError> => (options.client ?? client).post<ExchangeReaderApiV1NavReaderExchangePostResponses, ExchangeReaderApiV1NavReaderExchangePostErrors, ThrowOnError>({
     responseType: 'json',
@@ -54,7 +54,7 @@ export const exchangeReaderApiV1NavReaderExchangePost = <ThrowOnError extends bo
 });
 
 /**
- * Reader Me
+ * 获取当前查阅身份
  */
 export const readerMeApiV1NavReaderMeGet = <ThrowOnError extends boolean = false>(options?: Options<ReaderMeApiV1NavReaderMeGetData, ThrowOnError>): RequestResult<ReaderMeApiV1NavReaderMeGetResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ReaderMeApiV1NavReaderMeGetResponses, unknown, ThrowOnError>({
     responseType: 'json',
@@ -63,7 +63,7 @@ export const readerMeApiV1NavReaderMeGet = <ThrowOnError extends boolean = false
 });
 
 /**
- * Logout Reader
+ * 退出导航查阅会话
  */
 export const logoutReaderApiV1NavReaderLogoutPost = <ThrowOnError extends boolean = false>(options?: Options<LogoutReaderApiV1NavReaderLogoutPostData, ThrowOnError>): RequestResult<LogoutReaderApiV1NavReaderLogoutPostResponses, unknown, ThrowOnError> => (options?.client ?? client).post<LogoutReaderApiV1NavReaderLogoutPostResponses, unknown, ThrowOnError>({
     responseType: 'json',
@@ -142,7 +142,7 @@ export const fetchMetadataApiV1AdminNavigationMetadataPost = <ThrowOnError exten
 });
 
 /**
- * Admin Taxonomy
+ * 获取导航分类或标签
  */
 export const adminTaxonomyApiV1AdminNavigationTaxonomyKindGet = <ThrowOnError extends boolean = false>(options: Options<AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetData, ThrowOnError>): RequestResult<AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses, AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors, ThrowOnError> => (options.client ?? client).get<AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetResponses, AdminTaxonomyApiV1AdminNavigationTaxonomyKindGetErrors, ThrowOnError>({
     responseType: 'json',
@@ -151,7 +151,7 @@ export const adminTaxonomyApiV1AdminNavigationTaxonomyKindGet = <ThrowOnError ex
 });
 
 /**
- * Create Taxonomy
+ * 创建导航分类或标签
  */
 export const createTaxonomyApiV1AdminNavigationTaxonomyKindPost = <ThrowOnError extends boolean = false>(options: Options<CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostData, ThrowOnError>): RequestResult<CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses, CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors, ThrowOnError> => (options.client ?? client).post<CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostResponses, CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostErrors, ThrowOnError>({
     responseType: 'json',
@@ -164,7 +164,7 @@ export const createTaxonomyApiV1AdminNavigationTaxonomyKindPost = <ThrowOnError 
 });
 
 /**
- * Update Taxonomy
+ * 更新导航分类或标签
  */
 export const updateTaxonomyApiV1AdminNavigationTaxonomyKindIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutData, ThrowOnError>): RequestResult<UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses, UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors, ThrowOnError> => (options.client ?? client).put<UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutResponses, UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutErrors, ThrowOnError>({
     responseType: 'json',
@@ -177,7 +177,7 @@ export const updateTaxonomyApiV1AdminNavigationTaxonomyKindIdPut = <ThrowOnError
 });
 
 /**
- * Bulk Taxonomy
+ * 批量操作导航分类或标签
  */
 export const bulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPost = <ThrowOnError extends boolean = false>(options: Options<BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostData, ThrowOnError>): RequestResult<BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses, BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors, ThrowOnError> => (options.client ?? client).post<BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostResponses, BulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPostErrors, ThrowOnError>({
     responseType: 'json',
@@ -190,7 +190,7 @@ export const bulkTaxonomyApiV1AdminNavigationTaxonomyKindBulkPost = <ThrowOnErro
 });
 
 /**
- * Admin Sites
+ * 获取后台导航站点列表
  */
 export const adminSitesApiV1AdminNavigationSitesGet = <ThrowOnError extends boolean = false>(options?: Options<AdminSitesApiV1AdminNavigationSitesGetData, ThrowOnError>): RequestResult<AdminSitesApiV1AdminNavigationSitesGetResponses, AdminSitesApiV1AdminNavigationSitesGetErrors, ThrowOnError> => (options?.client ?? client).get<AdminSitesApiV1AdminNavigationSitesGetResponses, AdminSitesApiV1AdminNavigationSitesGetErrors, ThrowOnError>({
     responseType: 'json',
@@ -199,7 +199,7 @@ export const adminSitesApiV1AdminNavigationSitesGet = <ThrowOnError extends bool
 });
 
 /**
- * Create Site
+ * 创建导航站点
  */
 export const createSiteApiV1AdminNavigationSitesPost = <ThrowOnError extends boolean = false>(options: Options<CreateSiteApiV1AdminNavigationSitesPostData, ThrowOnError>): RequestResult<CreateSiteApiV1AdminNavigationSitesPostResponses, CreateSiteApiV1AdminNavigationSitesPostErrors, ThrowOnError> => (options.client ?? client).post<CreateSiteApiV1AdminNavigationSitesPostResponses, CreateSiteApiV1AdminNavigationSitesPostErrors, ThrowOnError>({
     responseType: 'json',
@@ -212,7 +212,7 @@ export const createSiteApiV1AdminNavigationSitesPost = <ThrowOnError extends boo
 });
 
 /**
- * Update Site
+ * 更新导航站点
  */
 export const updateSiteApiV1AdminNavigationSitesIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateSiteApiV1AdminNavigationSitesIdPutData, ThrowOnError>): RequestResult<UpdateSiteApiV1AdminNavigationSitesIdPutResponses, UpdateSiteApiV1AdminNavigationSitesIdPutErrors, ThrowOnError> => (options.client ?? client).put<UpdateSiteApiV1AdminNavigationSitesIdPutResponses, UpdateSiteApiV1AdminNavigationSitesIdPutErrors, ThrowOnError>({
     responseType: 'json',
@@ -225,7 +225,7 @@ export const updateSiteApiV1AdminNavigationSitesIdPut = <ThrowOnError extends bo
 });
 
 /**
- * Bulk Sites
+ * 批量操作导航站点
  */
 export const bulkSitesApiV1AdminNavigationSitesBulkPost = <ThrowOnError extends boolean = false>(options: Options<BulkSitesApiV1AdminNavigationSitesBulkPostData, ThrowOnError>): RequestResult<BulkSitesApiV1AdminNavigationSitesBulkPostResponses, BulkSitesApiV1AdminNavigationSitesBulkPostErrors, ThrowOnError> => (options.client ?? client).post<BulkSitesApiV1AdminNavigationSitesBulkPostResponses, BulkSitesApiV1AdminNavigationSitesBulkPostErrors, ThrowOnError>({
     responseType: 'json',
@@ -253,7 +253,7 @@ export const purgeSitesApiV1AdminNavigationSitesPurgePost = <ThrowOnError extend
 });
 
 /**
- * Admin Accounts
+ * 获取站点帐号资料
  */
 export const adminAccountsApiV1AdminNavigationSitesSiteIdAccountsGet = <ThrowOnError extends boolean = false>(options: Options<AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetData, ThrowOnError>): RequestResult<AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses, AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors, ThrowOnError> => (options.client ?? client).get<AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetResponses, AdminAccountsApiV1AdminNavigationSitesSiteIdAccountsGetErrors, ThrowOnError>({
     responseType: 'json',
@@ -262,7 +262,7 @@ export const adminAccountsApiV1AdminNavigationSitesSiteIdAccountsGet = <ThrowOnE
 });
 
 /**
- * Create Account
+ * 创建站点帐号资料
  */
 export const createAccountApiV1AdminNavigationSitesSiteIdAccountsPost = <ThrowOnError extends boolean = false>(options: Options<CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostData, ThrowOnError>): RequestResult<CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses, CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors, ThrowOnError> => (options.client ?? client).post<CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostResponses, CreateAccountApiV1AdminNavigationSitesSiteIdAccountsPostErrors, ThrowOnError>({
     responseType: 'json',
@@ -275,7 +275,7 @@ export const createAccountApiV1AdminNavigationSitesSiteIdAccountsPost = <ThrowOn
 });
 
 /**
- * Update Account
+ * 更新站点帐号资料
  */
 export const updateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutData, ThrowOnError>): RequestResult<UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses, UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors, ThrowOnError> => (options.client ?? client).put<UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutResponses, UpdateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPutErrors, ThrowOnError>({
     responseType: 'json',
@@ -288,7 +288,7 @@ export const updateAccountApiV1AdminNavigationSitesSiteIdAccountsIdPut = <ThrowO
 });
 
 /**
- * Bulk Accounts
+ * 批量操作站点帐号资料
  */
 export const bulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPost = <ThrowOnError extends boolean = false>(options: Options<BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostData, ThrowOnError>): RequestResult<BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses, BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors, ThrowOnError> => (options.client ?? client).post<BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostResponses, BulkAccountsApiV1AdminNavigationSitesSiteIdAccountsBulkPostErrors, ThrowOnError>({
     responseType: 'json',
@@ -345,7 +345,7 @@ export const publicSitesApiV1NavigationSitesGet = <ThrowOnError extends boolean 
 });
 
 /**
- * Reader Accounts
+ * 查阅站点帐号资料
  */
 export const readerAccountsApiV1NavigationSitesSiteIdAccountsGet = <ThrowOnError extends boolean = false>(options: Options<ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetData, ThrowOnError>): RequestResult<ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses, ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors, ThrowOnError> => (options.client ?? client).get<ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetResponses, ReaderAccountsApiV1NavigationSitesSiteIdAccountsGetErrors, ThrowOnError>({
     responseType: 'json',

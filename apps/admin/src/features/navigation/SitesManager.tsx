@@ -54,7 +54,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
       setIcon(asset.url); setFetchedIcon(undefined);
     }
     return navigationApi.saveSite(input, editing?.id);
-  }, retry: false, onSuccess: () => { closeEditor(); refresh(); message.success("已保存"); }, onError: (error) => message.error(errorMessage(error)) });
+  }, retry: false, onSuccess: () => { closeEditor(); refresh(); message.success("已保存"); }, onError: (error) => { message.error(errorMessage(error)); save.reset(); } });
   const pin = useMutation({
     mutationKey: ["navigation", "pin-site"],
     mutationFn: (row: NavSiteRead) => navigationApi.saveSite({
@@ -79,7 +79,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
     select: (mutation) => mutation.state.variables as NavSiteRead,
   });
   const isPinning = (id: string) => pinning.some((row) => row.id === id);
-  const bulk = useMutation({ mutationFn: navigationApi.bulkSites, onSuccess: () => { refresh(); message.success("操作完成"); }, onError: (error) => message.error(errorMessage(error)) });
+  const bulk = useMutation({ mutationFn: navigationApi.bulkSites, onSuccess: () => { refresh(); message.success("操作完成"); }, onError: (error) => { message.error(errorMessage(error)); bulk.reset(); } });
   const purge = useMutation({
     mutationFn: navigationApi.purgeSites,
     retry: false,
@@ -92,6 +92,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
       refresh();
       message.success(`已永久删除 ${result.completed_count} 个站点`);
     },
+    onError: (error) => { message.error(errorMessage(error)); purge.reset(); },
   });
   const busy = bulk.isPending || purge.isPending;
   const selectedPinning = selected.some((id) => isPinning(String(id)));
@@ -167,18 +168,18 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
       toolBarRender={() => [
         <div key="site-toolbar" className="responsive-table-toolbar site-table-toolbar">
           <div className="site-table-filters">
-            <Select className="site-table-filter" aria-label="按分类筛选" placeholder="全部分类" value={categoryId} allowClear showSearch optionFilterProp="label"
+            <Select id="site-category-filter" className="site-table-filter" aria-label="按分类筛选" placeholder="全部分类" value={categoryId} allowClear showSearch optionFilterProp="label"
               loading={categories.isPending || categories.isFetching} disabled={categories.isPending || categories.isError}
               options={categories.data?.map((item) => ({ label: `${item.name}${item.is_active === false ? "（停用）" : ""}`, value: item.id }))}
               onChange={(value: string | undefined) => { setCategoryId(value); setPage(1); setSelected([]); }} />
-            <Select className="site-table-filter" aria-label="按标签筛选" placeholder="全部标签" value={tagId} allowClear showSearch optionFilterProp="label"
+            <Select id="site-tag-filter" className="site-table-filter" aria-label="按标签筛选" placeholder="全部标签" value={tagId} allowClear showSearch optionFilterProp="label"
               loading={tags.isPending || tags.isFetching} disabled={tags.isPending || tags.isError}
               options={tags.data?.map((item) => ({ label: `${item.name}${item.is_active === false ? "（停用）" : ""}`, value: item.id }))}
               onChange={(value: string | undefined) => { setTagId(value); setPage(1); setSelected([]); }} />
             <Tooltip title="清空筛选"><Button aria-label="清空筛选" icon={<ClearOutlined />} disabled={!categoryId && !tagId} onClick={() => { setCategoryId(undefined); setTagId(undefined); setPage(1); setSelected([]); }} /></Tooltip>
           </div>
           <div className="site-table-search-actions">
-            <Input.Search className="site-table-search" aria-label="搜索站点名称或域名" placeholder="搜索名称或域名" allowClear maxLength={100} onSearch={(value) => { setSearch(value); setPage(1); setSelected([]); }} />
+            <Input.Search id="site-search" className="site-table-search" aria-label="搜索站点名称或域名" placeholder="搜索名称或域名" allowClear maxLength={100} onSearch={(value) => { setSearch(value); setPage(1); setSelected([]); }} />
             {writable && !deleted && <Button type="primary" icon={<PlusOutlined />} onClick={() => edit(null)}>新增站点</Button>}
           </div>
         </div>,
@@ -187,7 +188,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
         {writable && <Button icon={<UndoOutlined />} disabled={busy} loading={bulk.isPending} onClick={() => act("restore")}>恢复</Button>}
         {canPurge && <Button danger icon={<DeleteOutlined />} disabled={busy} onClick={() => setDeleting({ kind: "purge", ids: selected.map(String) })}>永久删除</Button>}
       </> : <><Button disabled={selectedPinning} icon={<CheckOutlined />} loading={bulk.isPending} onClick={() => act("publish")}>发布</Button><Button disabled={selectedPinning} icon={<StopOutlined />} loading={bulk.isPending} onClick={() => act("unpublish")}>下架</Button><Button danger disabled={selectedPinning} icon={<DeleteOutlined />} loading={bulk.isPending} onClick={() => act("delete")}>移入回收站</Button></>}</Space>} />
-    <Modal title={editing ? "编辑站点" : "新增站点"} open={editing !== undefined} onCancel={closeEditor} onOk={() => form.submit()} confirmLoading={save.isPending} okButtonProps={{ disabled: metadata.isPending || iconUploading }} cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} keyboard={!save.isPending} maskClosable={!save.isPending} destroyOnHidden>
+    <Modal aria-label={editing ? "编辑站点" : "新增站点"} title={<span id="site-editor-title">{editing ? "编辑站点" : "新增站点"}</span>} open={editing !== undefined} onCancel={closeEditor} onOk={() => form.submit()} confirmLoading={save.isPending} okButtonProps={{ disabled: metadata.isPending || iconUploading }} cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} keyboard={!save.isPending} maskClosable={!save.isPending} destroyOnHidden>
       <QueryState loading={categories.isPending || tags.isPending} error={categories.isError || tags.isError ? "分类或标签加载失败" : undefined} onRetry={() => { void categories.refetch(); void tags.refetch(); }} />
       <Form form={form} layout="vertical" disabled={save.isPending} onValuesChange={(changed) => { if ("url" in changed) cancelFetch(); }} onFinish={(values) => { if (!metadata.isPending && !save.isPending && !iconUploading) save.mutate(values); }}>
         <Form.Item label="网址" required>
@@ -198,8 +199,8 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
         </Form.Item>
         {fetchNotice && <Alert showIcon type={fetchNotice.type} title={fetchNotice.text} style={{ marginBottom: 16 }} />}
         <Form.Item name="name" label="名称" rules={[{ required: true, whitespace: true }]}><Input maxLength={100} /></Form.Item>
-        <Form.Item name="category_id" label="分类" extra="可暂不分类；未分类站点不能发布或置顶。"><Select allowClear placeholder="暂不分类" showSearch optionFilterProp="label" options={categories.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
-        <Form.Item name="tag_ids" label="标签"><Select mode="multiple" optionFilterProp="label" options={tags.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
+        <Form.Item name="category_id" label="分类" extra="可暂不分类；未分类站点不能发布或置顶。"><Select id="site-editor-category" allowClear placeholder="暂不分类" showSearch optionFilterProp="label" options={categories.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
+        <Form.Item name="tag_ids" label="标签"><Select id="site-editor-tags" mode="multiple" optionFilterProp="label" options={tags.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
         <Form.Item name="description" label="简介"><Input.TextArea maxLength={2000} rows={3} /></Form.Item>
         <Form.Item name="icon_asset_id" hidden><Input /></Form.Item>
         <Form.Item label="图标"><Space wrap>{icon && <Image src={icon} width={40} height={40} alt="站点图标" />}<ImageUploader key={editorVersion} scene="navigation_icon" disabled={save.isPending || metadata.isPending} onUploadingChange={(uploading) => { if (editorVersion === formVersion.current) setIconUploading(uploading); }} onAsset={(asset) => { if (editorVersion !== formVersion.current) return; iconVersion.current += 1; setFetchedIcon(undefined); form.setFieldValue("icon_asset_id", asset.id); setIcon(asset.url); }} /><Tooltip title="移除图标"><Button disabled={iconUploading || save.isPending} icon={<DeleteOutlined />} onClick={() => { iconVersion.current += 1; setFetchedIcon(undefined); form.setFieldValue("icon_asset_id", null); setIcon(undefined); }} /></Tooltip></Space></Form.Item>
