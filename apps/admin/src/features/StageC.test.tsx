@@ -268,6 +268,29 @@ describe("stage C admin workspace", () => {
     expect(screen.queryByLabelText("当前密码")).not.toBeInTheDocument();
   }, 60_000);
 
+  it("keeps administrator controls available after status and identity failures", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("http://localhost:3000/api/v1/admin/admins", () => HttpResponse.json({
+        code: "OK",
+        message: "操作成功",
+        data: { items: [otherAdmin], page: 1, page_size: 20, total: 1, total_pages: 1 },
+        request_id: "test-request",
+      })),
+      http.patch("http://localhost:3000/api/v1/admin/admins/:id/status", () =>
+        HttpResponse.json({ code: "CONFLICT", message: "状态更新失败" }, { status: 409 })),
+      http.patch("http://localhost:3000/api/v1/admin/admins/:id/superuser", () =>
+        HttpResponse.json({ code: "CONFLICT", message: "身份更新失败" }, { status: 409 })),
+    );
+    renderPage(<AdminsPage />);
+    await screen.findByText("Other Admin");
+
+    await user.click(screen.getByRole("button", { name: "停用管理员：other-admin" }));
+    expect(await screen.findByText("状态更新失败")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "设为超级管理员：other-admin" }));
+    expect(await screen.findByText("身份更新失败")).toBeInTheDocument();
+  }, 60_000);
+
   it("edits administrator avatar and display name", async () => {
     const user = userEvent.setup();
     let updatePayload: unknown;
