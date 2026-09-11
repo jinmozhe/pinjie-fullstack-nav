@@ -13,7 +13,7 @@ import { TaxonomyManager } from "./TaxonomyManager";
 const root = "http://localhost:3000/api/v1/admin/navigation/taxonomy";
 const now = "2026-09-07T00:00:00Z";
 const admin: AdminRead = { id: "01900000-0000-7000-8000-000000000001", username: "admin", display_name: "管理员", is_active: true, is_superuser: true, roles: [], permissions: [], created_at: now, updated_at: now };
-const category: NavCategoryRead = { id: "01900000-0000-7000-8000-000000000002", name: "常用工具", requires_login: false, icon_key: "tool" };
+const category: NavCategoryRead = { id: "01900000-0000-7000-8000-000000000002", name: "常用工具", requires_login: false, icon_key: "tool", is_active: true };
 const ok = (data: unknown) => HttpResponse.json({ code: "OK", message: "操作成功", data, request_id: "test" });
 
 function mount(kind: "categories" | "tags" = "categories", principal = admin) {
@@ -87,5 +87,15 @@ describe("category icon configuration", () => {
     expect(screen.getByLabelText("工具图标")).toBeVisible();
     expect(screen.queryByRole("button", { name: "edit" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /新增分类/ })).not.toBeInTheDocument();
+  });
+
+  it("updates status through the row switch", async () => {
+    const user = userEvent.setup();
+    const payloads: unknown[] = [];
+    server.use(http.post(`${root}/categories/bulk`, async ({ request }) => { payloads.push(await request.json()); return ok({ completed_count: 1 }); }));
+    mount();
+    const toggle = await screen.findByRole("switch", { name: `${category.name}状态` });
+    await user.click(toggle);
+    await waitFor(() => expect(payloads).toEqual([{ ids: [category.id], action: "disable" }]));
   });
 });

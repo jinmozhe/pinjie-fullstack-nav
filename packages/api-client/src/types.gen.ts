@@ -897,6 +897,8 @@ export type LoginEventRead = {
 export type NavAccountIn = {
     /**
      * Label
+     *
+     * 帐号标签
      */
     label?: string;
     /**
@@ -907,20 +909,26 @@ export type NavAccountIn = {
     username?: string;
     /**
      * Password
+     *
+     * 登录密码
      */
     password?: string;
     /**
      * Notes
+     *
+     * 帐号备注
      */
     notes?: string;
     /**
      * Sort Order
+     *
+     * 帐号排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Active
      *
-     * 资源当前是否启用
+     * 帐号是否启用
      */
     is_active?: boolean;
 };
@@ -931,6 +939,8 @@ export type NavAccountIn = {
 export type NavAccountRead = {
     /**
      * Label
+     *
+     * 帐号标签
      */
     label?: string;
     /**
@@ -941,20 +951,26 @@ export type NavAccountRead = {
     username?: string;
     /**
      * Password
+     *
+     * 登录密码
      */
     password?: string;
     /**
      * Notes
+     *
+     * 帐号备注
      */
     notes?: string;
     /**
      * Sort Order
+     *
+     * 帐号排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Active
      *
-     * 资源当前是否启用
+     * 帐号是否启用
      */
     is_active?: boolean;
     /**
@@ -965,6 +981,8 @@ export type NavAccountRead = {
     id: string;
     /**
      * Site Id
+     *
+     * 所属站点唯一标识
      */
     site_id: string;
     /**
@@ -981,12 +999,14 @@ export type NavAccountRead = {
 export type NavBulkIn = {
     /**
      * Ids
+     *
+     * 待批量操作的目标唯一标识列表
      */
     ids: Array<string>;
     /**
      * Action
      *
-     * 操作代码
+     * 批量操作类型
      */
     action: 'enable' | 'disable' | 'delete' | 'restore' | 'publish' | 'unpublish';
 };
@@ -997,6 +1017,8 @@ export type NavBulkIn = {
 export type NavBulkRead = {
     /**
      * Completed Count
+     *
+     * 本次批量操作完成的目标数量
      */
     completed_count: number;
 };
@@ -1008,23 +1030,25 @@ export type NavCategoryIn = {
     /**
      * Name
      *
-     * 资源名称
+     * 名称，长度为 1 至 100 个字符
      */
     name: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 分类或标签描述
      */
     description?: string;
     /**
      * Sort Order
+     *
+     * 显示排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Active
      *
-     * 资源当前是否启用
+     * 是否启用
      */
     is_active?: boolean;
     /**
@@ -1048,23 +1072,25 @@ export type NavCategoryRead = {
     /**
      * Name
      *
-     * 资源名称
+     * 名称，长度为 1 至 100 个字符
      */
     name: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 分类或标签描述
      */
     description?: string;
     /**
      * Sort Order
+     *
+     * 显示排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Active
      *
-     * 资源当前是否启用
+     * 是否启用
      */
     is_active?: boolean;
     /**
@@ -1106,13 +1132,13 @@ export type NavMetadataRead = {
     /**
      * Name
      *
-     * 资源名称
+     * 抓取到的站点名称
      */
     name?: string | null;
     /**
      * Description
      *
-     * 资源说明文本
+     * 抓取到的站点描述
      */
     description?: string | null;
     /**
@@ -1133,6 +1159,9 @@ export type NavMetadataRead = {
  * NavSiteGroupRead
  */
 export type NavSiteGroupRead = {
+    /**
+     * 分组所属分类详情
+     */
     category: NavCategoryRead;
     /**
      * Total
@@ -1155,39 +1184,49 @@ export type NavSiteIn = {
     /**
      * Name
      *
-     * 资源名称
+     * 名称，长度为 1 至 100 个字符
      */
     name: string;
     /**
      * Url
      *
-     * 文件的公开访问 URL 或站内路径
+     * 不带登录信息的 HTTP 或 HTTPS 网址
      */
     url: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 站点描述
      */
     description?: string;
     /**
      * Category Id
+     *
+     * 所属分类唯一标识，未分类时为空
      */
     category_id?: string | null;
     /**
      * Tag Ids
+     *
+     * 关联标签唯一标识列表
      */
     tag_ids?: Array<string>;
     /**
      * Icon Asset Id
+     *
+     * 站点图标资产唯一标识
      */
     icon_asset_id?: string | null;
     /**
      * Sort Order
+     *
+     * 显示排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Published
+     *
+     * 是否在公开导航中发布
      */
     is_published?: boolean;
     /**
@@ -1217,39 +1256,49 @@ export type NavSiteRead = {
     /**
      * Name
      *
-     * 资源名称
+     * 名称，长度为 1 至 100 个字符
      */
     name: string;
     /**
      * Url
      *
-     * 文件的公开访问 URL 或站内路径
+     * 不带登录信息的 HTTP 或 HTTPS 网址
      */
     url: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 站点描述
      */
     description?: string;
     /**
      * Category Id
+     *
+     * 所属分类唯一标识，未分类时为空
      */
     category_id: string | null;
     /**
      * Tag Ids
+     *
+     * 关联标签唯一标识列表
      */
     tag_ids?: Array<string>;
     /**
      * Icon Asset Id
+     *
+     * 站点图标资产唯一标识
      */
     icon_asset_id?: string | null;
     /**
      * Sort Order
+     *
+     * 显示排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Published
+     *
+     * 是否在公开导航中发布
      */
     is_published?: boolean;
     /**
@@ -1264,17 +1313,26 @@ export type NavSiteRead = {
      * 资源唯一标识
      */
     id: string;
+    /**
+     * 所属分类详情，未分类时为空
+     */
     category: NavCategoryRead | null;
     /**
      * Tags
+     *
+     * 关联标签详情列表
      */
     tags: Array<NavTaxonomyRead>;
     /**
      * Icon Url
+     *
+     * 站点图标公开地址
      */
     icon_url: string | null;
     /**
      * Deleted At
+     *
+     * 移入回收站的时间，未删除时为空
      */
     deleted_at: string | null;
     /**
@@ -1292,23 +1350,25 @@ export type NavTaxonomyIn = {
     /**
      * Name
      *
-     * 资源名称
+     * 名称，长度为 1 至 100 个字符
      */
     name: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 分类或标签描述
      */
     description?: string;
     /**
      * Sort Order
+     *
+     * 显示排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Active
      *
-     * 资源当前是否启用
+     * 是否启用
      */
     is_active?: boolean;
 };
@@ -1320,23 +1380,25 @@ export type NavTaxonomyRead = {
     /**
      * Name
      *
-     * 资源名称
+     * 名称，长度为 1 至 100 个字符
      */
     name: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 分类或标签描述
      */
     description?: string;
     /**
      * Sort Order
+     *
+     * 显示排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Active
      *
-     * 资源当前是否启用
+     * 是否启用
      */
     is_active?: boolean;
     /**
@@ -1351,23 +1413,25 @@ export type NavTaxonomyResult = (NavCategoryRead | NavTaxonomyRead) & {
     /**
      * Name
      *
-     * 资源名称
+     * 名称，长度为 1 至 100 个字符
      */
     name: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 分类或标签描述
      */
     description?: string;
     /**
      * Sort Order
+     *
+     * 显示排序值，数值越小越靠前
      */
     sort_order?: number;
     /**
      * Is Active
      *
-     * 资源当前是否启用
+     * 是否启用
      */
     is_active?: boolean;
     /**
@@ -1859,34 +1923,41 @@ export type PublicNavSiteRead = {
     /**
      * Id
      *
-     * 资源唯一标识
+     * 站点唯一标识
      */
     id: string;
     /**
      * Name
      *
-     * 资源名称
+     * 站点名称
      */
     name: string;
     /**
      * Url
      *
-     * 文件的公开访问 URL 或站内路径
+     * 站点网址
      */
     url: string;
     /**
      * Description
      *
-     * 资源说明文本
+     * 站点描述
      */
     description: string;
+    /**
+     * 所属分类详情
+     */
     category: NavCategoryRead;
     /**
      * Tags
+     *
+     * 关联标签详情列表
      */
     tags: Array<NavTaxonomyRead>;
     /**
      * Icon Url
+     *
+     * 站点图标公开地址
      */
     icon_url: string | null;
 };
@@ -1898,7 +1969,7 @@ export type ReaderAuthorizationRead = {
     /**
      * Code
      *
-     * 稳定程序代码
+     * 一次性授权码
      */
     code: string;
 };
@@ -1909,14 +1980,20 @@ export type ReaderAuthorizationRead = {
 export type ReaderAuthorizeIn = {
     /**
      * Challenge
+     *
+     * 授权挑战值
      */
     challenge: string;
     /**
      * State
+     *
+     * 客户端状态值
      */
     state: string;
     /**
      * Redirect Uri
+     *
+     * 授权完成后的回调地址
      */
     redirect_uri: string;
 };
@@ -1927,6 +2004,8 @@ export type ReaderAuthorizeIn = {
 export type ReaderConfigRead = {
     /**
      * Callback Urls
+     *
+     * 允许的导航查阅回调地址列表
      */
     callback_urls: Array<string>;
 };
@@ -1938,19 +2017,25 @@ export type ReaderExchangeIn = {
     /**
      * Code
      *
-     * 稳定程序代码
+     * 一次性授权码
      */
     code: string;
     /**
      * Verifier
+     *
+     * 客户端校验值
      */
     verifier: string;
     /**
      * State
+     *
+     * 客户端状态值
      */
     state: string;
     /**
      * Redirect Uri
+     *
+     * 授权完成后的回调地址
      */
     redirect_uri: string;
 };
@@ -1961,18 +2046,20 @@ export type ReaderExchangeIn = {
 export type ReaderIdentityRead = {
     /**
      * Admin Id
+     *
+     * 管理员唯一标识
      */
     admin_id: string;
     /**
      * Display Name
      *
-     * 展示名称
+     * 管理员显示名称
      */
     display_name: string;
     /**
      * Expires At
      *
-     * 凭据过期时间
+     * 查阅凭证过期时间
      */
     expires_at: string;
 };
@@ -4572,18 +4659,26 @@ export type CreateTaxonomyApiV1AdminNavigationTaxonomyKindPostData = {
     body: (NavCategoryIn | NavTaxonomyIn) & {
         /**
          * Name
+         *
+         * 名称，长度为 1 至 100 个字符
          */
         name: string;
         /**
          * Description
+         *
+         * 分类或标签描述
          */
         description?: string;
         /**
          * Sort Order
+         *
+         * 显示排序值，数值越小越靠前
          */
         sort_order?: number;
         /**
          * Is Active
+         *
+         * 是否启用
          */
         is_active?: boolean;
     };
@@ -4619,18 +4714,26 @@ export type UpdateTaxonomyApiV1AdminNavigationTaxonomyKindIdPutData = {
     body: (NavCategoryIn | NavTaxonomyIn) & {
         /**
          * Name
+         *
+         * 名称，长度为 1 至 100 个字符
          */
         name: string;
         /**
          * Description
+         *
+         * 分类或标签描述
          */
         description?: string;
         /**
          * Sort Order
+         *
+         * 显示排序值，数值越小越靠前
          */
         sort_order?: number;
         /**
          * Is Active
+         *
+         * 是否启用
          */
         is_active?: boolean;
     };

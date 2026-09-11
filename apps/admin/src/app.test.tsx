@@ -145,4 +145,16 @@ describe("admin runtime lifecycle", () => {
     expect(ready.siderWidth).toBe(256);
     expect(ready.token?.pageContainer?.paddingInlinePageContainerContent).toBe(40);
   });
+
+  it("renders menu links and footer configuration", () => {
+    const runtime = layout({ initialState: { settings: defaultSettings, currentAdmin } });
+    const link = runtime.menuItemRender?.({ path: "/users" }, <span>用户</span>);
+    const plain = runtime.menuItemRender?.({}, <span>普通</span>);
+    expect(link).toHaveProperty("props.to", "/users");
+    expect(plain).toHaveProperty("props.children", "普通");
+    expect(typeof runtime.actionsRender === "function" ? runtime.actionsRender() : runtime.actionsRender).toEqual([]);
+    const footerValue = typeof runtime.footerRender === "function" ? runtime.footerRender() : runtime.footerRender;
+    const footer = render(rootContainer(footerValue ?? null));
+    expect(footer.getByText(/Pinjie Console/)).toBeInTheDocument();
+  });
 });
