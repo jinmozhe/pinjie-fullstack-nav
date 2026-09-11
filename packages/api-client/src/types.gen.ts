@@ -1235,7 +1235,7 @@ export type NavSiteRead = {
     /**
      * Category Id
      */
-    category_id?: string | null;
+    category_id: string | null;
     /**
      * Tag Ids
      */

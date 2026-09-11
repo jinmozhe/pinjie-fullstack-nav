@@ -8060,6 +8060,7 @@
         "required": [
           "name",
           "url",
+          "category_id",
           "id",
           "category",
           "tags",

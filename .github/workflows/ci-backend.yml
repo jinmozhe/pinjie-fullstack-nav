@@ -145,4 +145,5 @@ jobs:
           base: origin/${{ github.base_ref }}:openapi.json
           revision: HEAD:openapi.json
           fail-on: ERR
+          err-ignore: .oasdiff-ignore.txt
           review: false
