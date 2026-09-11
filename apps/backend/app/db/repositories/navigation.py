@@ -144,7 +144,9 @@ class NavigationRepository:
         reader: bool = False,
         pinned_only: bool = False,
     ) -> tuple[list[NavSite], int]:
-        query = select(NavSite).join(NavCategory).options(selectinload(NavSite.category), selectinload(NavSite.tags))
+        query = (
+            select(NavSite).outerjoin(NavCategory).options(selectinload(NavSite.category), selectinload(NavSite.tags))
+        )
         query = query.where(NavSite.deleted_at.is_not(None) if deleted and not public else NavSite.deleted_at.is_(None))
         if public:
             query = query.where(*self.visible_sites(reader=reader))

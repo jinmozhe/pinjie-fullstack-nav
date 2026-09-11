@@ -101,7 +101,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
       setSelected([]);
     }
   }, [page, query.isSuccess, query.isFetching, query.data]);
-  const edit = (row: NavSiteRead | null) => { cancelFetch(); formVersion.current += 1; iconVersion.current += 1; setIconUploading(false); setFetchedIcon(undefined); form.resetFields(); form.setFieldsValue(row ?? { name: "", url: "", description: "", tag_ids: [], icon_asset_id: null, sort_order: 0, is_published: false, is_pinned: false }); setIcon(row?.icon_url ?? undefined); setEditing(row); };
+  const edit = (row: NavSiteRead | null) => { cancelFetch(); formVersion.current += 1; iconVersion.current += 1; setIconUploading(false); setFetchedIcon(undefined); form.resetFields(); form.setFieldsValue(row ?? { name: "", url: "", description: "", category_id: null, tag_ids: [], icon_asset_id: null, sort_order: 0, is_published: false, is_pinned: false }); setIcon(row?.icon_url ?? undefined); setEditing(row); };
   const fetchMetadata = async () => {
     if (metadata.isPending || save.isPending || iconUploading) return;
     try { await form.validateFields(["url"]); } catch { return; }
@@ -138,7 +138,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
   const columns: ProColumns<NavSiteRead>[] = [
     { title: "LOGO", dataIndex: "icon_url", width: 80, align: "center", render: (_, row) => <Avatar className="site-logo" shape="square" size={40} src={row.icon_url || undefined} alt={`${row.name} LOGO`} aria-label={`${row.name} LOGO`} icon={<GlobalOutlined />} /> },
     { title: "站点", dataIndex: "name", width: 220, ellipsis: true, render: (_, row) => <a href={row.url} target="_blank" rel="noopener noreferrer">{row.name}</a> },
-    { title: "分类", width: 140, render: (_, row) => row.category.name, ellipsis: true },
+    { title: "分类", width: 140, render: (_, row) => row.category?.name ?? "未分类", ellipsis: true },
     { title: "网址", dataIndex: "url", ellipsis: true, render: (_, row) => <a href={row.url} title={row.url} target="_blank" rel="noopener noreferrer">{row.url}</a> },
     { title: "标签", render: (_, row) => row.tags.map((tag) => tag.name).join("、"), ellipsis: true },
     { title: "排序", dataIndex: "sort_order", width: 80 },
@@ -198,7 +198,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
         </Form.Item>
         {fetchNotice && <Alert showIcon type={fetchNotice.type} title={fetchNotice.text} style={{ marginBottom: 16 }} />}
         <Form.Item name="name" label="名称" rules={[{ required: true, whitespace: true }]}><Input maxLength={100} /></Form.Item>
-        <Form.Item name="category_id" label="分类" rules={[{ required: true }]}><Select showSearch optionFilterProp="label" options={categories.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
+        <Form.Item name="category_id" label="分类" extra="可暂不分类；未分类站点不能发布或置顶。"><Select allowClear placeholder="暂不分类" showSearch optionFilterProp="label" options={categories.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
         <Form.Item name="tag_ids" label="标签"><Select mode="multiple" optionFilterProp="label" options={tags.data?.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
         <Form.Item name="description" label="简介"><Input.TextArea maxLength={2000} rows={3} /></Form.Item>
         <Form.Item name="icon_asset_id" hidden><Input /></Form.Item>

@@ -81,6 +81,11 @@ def test_category_icons_are_optional_and_reject_unsupported_values() -> None:
         NavTaxonomyIn.model_validate({"name": "Tag", "icon_key": "code"})
 
 
+def test_site_category_is_optional() -> None:
+    site = NavSiteIn(name="Uncategorized", url="https://example.com")
+    assert site.category_id is None
+
+
 @pytest.mark.parametrize(
     "url",
     [
@@ -128,7 +133,7 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
     settings.validate_runtime()
     resources = create_resources(settings)
     admin_id = uuid.uuid7()
-    category_id = tag_id = site_id = None
+    category_id = tag_id = site_id = uncategorized_site_id = None
     metadata = RequestMetadata(str(uuid.uuid7()), str(uuid.uuid7()), "127.0.0.1", "navigation-test", "test")
     try:
         async with resources.session_factory() as session:
@@ -167,6 +172,26 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
                     await service.save_taxonomy(
                         "tags", NavCategoryIn.model_validate({"name": tag.name, "icon_key": icon_key}), tag.id
                     )
+            uncategorized_site = await service.save_site(
+                NavSiteIn(name="Uncategorized", url="https://uncategorized.example.com")
+            )
+            uncategorized_site_id = uncategorized_site.id
+            assert uncategorized_site.category_id is None and uncategorized_site.category is None
+            assert (
+                await service.list_sites(
+                    page=1, page_size=100, search="Uncategorized", category_id=None, tag_id=None, public=True
+                )
+            ).total == 0
+            with pytest.raises(AppException, match="未分类站点不能发布或置顶"):
+                await service.save_site(
+                    NavSiteIn(name="Published without category", url="https://published.example.com", is_published=True)
+                )
+            with pytest.raises(AppException, match="未分类站点不能发布或置顶"):
+                await service.save_site(
+                    NavSiteIn(name="Pinned without category", url="https://pinned.example.com", is_pinned=True)
+                )
+            with pytest.raises(AppException, match="未分类站点不能发布或置顶"):
+                await service.bulk_sites(NavBulkIn(ids=[uncategorized_site.id], action="publish"))
             site = await service.save_site(
                 NavSiteIn(
                     name="Example",
@@ -379,6 +404,8 @@ async def test_real_navigation_lifecycle_and_reader_isolation() -> None:
             if site_id:
                 await session.execute(delete(NavSiteAccount).where(NavSiteAccount.site_id == site_id))
                 await session.execute(delete(NavSite).where(NavSite.id == site_id))
+            if uncategorized_site_id:
+                await session.execute(delete(NavSite).where(NavSite.id == uncategorized_site_id))
             if tag_id:
                 await session.execute(delete(NavTag).where(NavTag.id == tag_id))
             if category_id:

@@ -80,7 +80,7 @@ class NavSiteIn(BaseModel):
     name: Name
     url: str = Field(min_length=1, max_length=2000)
     description: str = Field(default="", max_length=2000)
-    category_id: uuid.UUID
+    category_id: uuid.UUID | None = None
     tag_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100)
     icon_asset_id: uuid.UUID | None = None
     sort_order: int = Field(default=0, ge=-1000000, le=1000000)
@@ -119,7 +119,7 @@ class NavSiteIn(BaseModel):
 
 class NavSiteRead(NavSiteIn):
     id: uuid.UUID
-    category: NavCategoryRead
+    category: NavCategoryRead | None
     tags: list[NavTaxonomyRead]
     icon_url: str | None
     deleted_at: datetime | None
