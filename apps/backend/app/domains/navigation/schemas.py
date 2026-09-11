@@ -119,7 +119,8 @@ class NavSiteIn(BaseModel):
 
 class NavSiteRead(NavSiteIn):
     id: uuid.UUID
-    category: NavCategoryRead | None
+    category_id: uuid.UUID | None = Field(...)
+    category: NavCategoryRead | None = Field(...)
     tags: list[NavTaxonomyRead]
     icon_url: str | None
     deleted_at: datetime | None

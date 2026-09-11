@@ -1,0 +1,16 @@
+# ADR 0007 / NAV-004 / NAV-007: 允许导航站点分类为空，管理端站点列表及单站点响应中的分类字段扩展为 nullable
+.*in API GET /api/v1/admin/navigation/sites response property `data/items/items/category_id` list-of-types was widened by adding types `null`.*
+.*in API GET /api/v1/admin/navigation/sites the `data/items/items/category` response's property `type` changed from `object` to `any`.*
+.*in API GET /api/v1/admin/navigation/sites removed the required property `data/items/items/category/id`.*
+.*in API GET /api/v1/admin/navigation/sites removed the required property `data/items/items/category/name`.*
+.*in API GET /api/v1/admin/navigation/sites removed the required property `data/items/items/category/requires_login`.*
+.*in API POST /api/v1/admin/navigation/sites response property `data/category_id` list-of-types was widened by adding types `null`.*
+.*in API POST /api/v1/admin/navigation/sites the `data/category` response's property `type` changed from `object` to `any`.*
+.*in API POST /api/v1/admin/navigation/sites removed the required property `data/category/id`.*
+.*in API POST /api/v1/admin/navigation/sites removed the required property `data/category/name`.*
+.*in API POST /api/v1/admin/navigation/sites removed the required property `data/category/requires_login`.*
+.*in API PUT /api/v1/admin/navigation/sites/.* response property `data/category_id` list-of-types was widened by adding types `null`.*
+.*in API PUT /api/v1/admin/navigation/sites/.* the `data/category` response's property `type` changed from `object` to `any`.*
+.*in API PUT /api/v1/admin/navigation/sites/.* removed the required property `data/category/id`.*
+.*in API PUT /api/v1/admin/navigation/sites/.* removed the required property `data/category/name`.*
+.*in API PUT /api/v1/admin/navigation/sites/.* removed the required property `data/category/requires_login`.*
