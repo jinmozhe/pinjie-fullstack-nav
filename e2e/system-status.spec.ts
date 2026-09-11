@@ -9,7 +9,7 @@ test.describe("system status foundation", () => {
     page.on("console", (message) => {
       if (message.type() === "error") consoleErrors.push(message.text());
     });
-    await page.goto("/");
+    await page.goto("/system-status");
     const siteProfileResponse = await page.request.get("/api/v1/system/site-profile");
     expect(siteProfileResponse.ok()).toBe(true);
     const siteName = (await siteProfileResponse.json()).data.name as string;

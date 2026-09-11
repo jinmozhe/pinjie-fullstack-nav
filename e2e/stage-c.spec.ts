@@ -51,9 +51,10 @@ test.describe("stage C cross-stack journeys", () => {
     expect(siteProfileResponse.ok()).toBe(true);
     const siteName = (await siteProfileResponse.json()).data.name as string;
     await expect(page.getByRole("link", { name: `${siteName}首页`, exact: true })).toBeVisible();
-    await expect(page.getByRole("link", { name: "登录" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /管理员登录/ })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "创建账户" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: /用户中心/ })).toBeVisible();
+    await expect(page.getByText("Stage C Browser User", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "退出登录" })).toBeVisible();
     await expectNoClientTokenPersistence(page);
     await expectPageQuality(page);
     await page.goto("/account");
