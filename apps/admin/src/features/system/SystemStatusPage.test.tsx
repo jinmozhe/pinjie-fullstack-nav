@@ -74,6 +74,19 @@ describe("SystemStatusPage", () => {
     expect(screen.getByText("Redis 缓存中间件")).toBeInTheDocument();
   });
 
+  it("changes the automatic refresh interval", async () => {
+    server.use(
+      http.get("http://localhost:3000/api/v1/admin/system/overview", () =>
+        HttpResponse.json({ code: "OK", message: "操作成功", data: mockOverview, request_id: "interval-req" }),
+      ),
+    );
+    renderPage();
+    await screen.findByText("所有系统组件运行正常");
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "自动刷新频率" }));
+    fireEvent.click(await screen.findByText("每 15 秒"));
+  });
+
   it("shows an error and recovers after retry", async () => {
     server.use(
       http.get("http://localhost:3000/api/v1/admin/system/overview", () =>

@@ -83,4 +83,14 @@ describe("AuthorizePage", () => {
     render(<AuthorizePage />);
     expect(await screen.findByText("授权服务失败")).toBeInTheDocument();
   });
+
+  it("shows reader configuration failures without redirecting", async () => {
+    setQuery("?state=s6&challenge=c6&redirect_uri=https%3A%2F%2Freader.example.com%2Fcallback");
+    mocks.readerConfig.mockRejectedValue(new Error("读取配置失败"));
+
+    render(<AuthorizePage />);
+
+    expect(await screen.findByText("读取配置失败")).toBeInTheDocument();
+    expect(locationReplace).not.toHaveBeenCalled();
+  });
 });
