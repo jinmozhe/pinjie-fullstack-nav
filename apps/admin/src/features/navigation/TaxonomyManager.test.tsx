@@ -98,4 +98,46 @@ describe("category icon configuration", () => {
     await user.click(toggle);
     await waitFor(() => expect(payloads).toEqual([{ ids: [category.id], action: "disable" }]));
   });
+
+  it("creates a tag and exercises status, bulk enable and delete actions", async () => {
+    const user = userEvent.setup();
+    const payloads: unknown[] = [];
+    server.use(
+      http.post(`${root}/tags`, async ({ request }) => { payloads.push(await request.json()); return ok({ id: category.id, name: "新标签", is_active: true }); }),
+      http.post(`${root}/tags/bulk`, async ({ request }) => { payloads.push(await request.json()); return ok({ completed_count: 1 }); }),
+    );
+    mount("tags");
+    const row = (await screen.findByText("推荐")).closest("tr");
+    if (!row) throw new Error("标签行不存在");
+    const toggle = within(row).getByRole("switch", { name: "推荐状态" });
+    await user.click(toggle);
+    await waitFor(() => expect(payloads[0]).toEqual({ ids: [category.id], action: "enable" }));
+
+    await user.click(screen.getByRole("button", { name: /新增标签/ }));
+    const dialogTitle = await screen.findByText("新增");
+    const dialog = dialogTitle.closest('[role="dialog"]');
+    if (!(dialog instanceof globalThis.HTMLElement)) throw new Error("新增标签弹窗不存在");
+    await user.type(within(dialog).getByRole("textbox", { name: "名称" }), "新标签");
+    await user.click(within(dialog).getByRole("button", { name: /确\s*定/ }));
+    await waitFor(() => expect(payloads).toHaveLength(2));
+    expect(payloads[1]).toMatchObject({ name: "新标签" });
+
+    await user.click(within(row).getByRole("checkbox"));
+    const enableIcon = screen.getByRole("img", { name: "check" });
+    const enableButton = enableIcon.closest("button");
+    if (!enableButton) throw new Error("批量启用按钮不存在");
+    await user.click(enableButton);
+    await waitFor(() => expect(payloads).toHaveLength(3));
+    expect(payloads[2]).toEqual({ ids: [category.id], action: "enable" });
+    const deleteIcons = screen.getAllByRole("img", { name: "delete" });
+    const bulkDeleteButton = deleteIcons.at(-1)?.closest("button");
+    if (!bulkDeleteButton) throw new Error("批量删除按钮不存在");
+    await user.click(bulkDeleteButton);
+    const confirmTitle = await screen.findByText("删除资料");
+    const confirm = confirmTitle.closest('[role="dialog"]');
+    if (!(confirm instanceof globalThis.HTMLElement)) throw new Error("删除标签确认框不存在");
+    await user.click(within(confirm).getByRole("button", { name: /确\s*定/ }));
+    await waitFor(() => expect(payloads).toHaveLength(4));
+    expect(payloads[3]).toEqual({ ids: [category.id], action: "delete" });
+  });
 });
