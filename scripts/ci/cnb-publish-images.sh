@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly EXPECTED_REGISTRY="ccr.ccs.tencentyun.com"
 readonly EXPECTED_NAMESPACE="pinjie-fullstack-base"
-readonly EXPECTED_SOURCE_REPOSITORY="https://github.com/jinmozhe/pinjie-fullstack-base"
+readonly EXPECTED_SOURCE_REPOSITORY="https://github.com/jinmozhe/pinjie-fullstack-nav"
 
 require_env() {
   local name="$1"
@@ -28,15 +28,15 @@ resolve_image() {
   case "${IMAGE_KEY:-}" in
     backend)
       IMAGE_DOCKERFILE="apps/backend/Dockerfile"
-      IMAGE_NAME="pinjie-fullstack-backend"
+      IMAGE_NAME="pinjie-nav-backend"
       ;;
     web)
       IMAGE_DOCKERFILE="apps/web/Dockerfile"
-      IMAGE_NAME="pinjie-fullstack-web"
+      IMAGE_NAME="pinjie-nav-web"
       ;;
     admin)
       IMAGE_DOCKERFILE="apps/admin/Dockerfile"
-      IMAGE_NAME="pinjie-fullstack-admin"
+      IMAGE_NAME="pinjie-nav-admin"
       ;;
     *)
       fail_validation "IMAGE_KEY must be one of backend, web, or admin."

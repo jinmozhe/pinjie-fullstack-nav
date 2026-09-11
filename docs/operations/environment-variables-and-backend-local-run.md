@@ -11,13 +11,13 @@
 VS Code 打开整个全栈仓库作为工作区。下文以通用克隆路径为例：
 
 ```text
-C:\path\to\pinjie-fullstack-base
+C:\path\to\pinjie-fullstack-nav
 ```
 
 Backend 项目目录为：
 
 ```text
-C:\path\to\pinjie-fullstack-base\apps\backend
+C:\path\to\pinjie-fullstack-nav\apps\backend
 ```
 
 日常保持 VS Code 工作区根目录不变。需要运行后端命令时，只在对应终端进入 `apps\backend`，无需把 VS Code 重新打开到 Backend 子目录。
@@ -40,9 +40,9 @@ C:\path\to\pinjie-fullstack-base\apps\backend
 根 `.env` 是部署控制文件，不是某个应用容器的通用运行配置。当前保存三张 TCR 镜像的完整不可变引用和 Web 公开 Origin：
 
 ```dotenv
-BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-backend@sha256:<64位十六进制摘要>
-WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-web@sha256:<64位十六进制摘要>
-ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-admin@sha256:<64位十六进制摘要>
+BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-backend@sha256:<64位十六进制摘要>
+WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-web@sha256:<64位十六进制摘要>
+ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<64位十六进制摘要>
 WEB_PUBLIC_ORIGIN=https://www.example.com
 ```
 
@@ -115,7 +115,7 @@ Admin 生产镜像不依赖运行时公开 API 环境变量，代理目标由容
 ### 4.1 启动本地 Redis
 
 ```powershell
-Set-Location C:\path\to\pinjie-fullstack-base
+Set-Location C:\path\to\pinjie-fullstack-nav
 docker compose up -d redis
 docker compose exec redis redis-cli ping
 ```
@@ -125,7 +125,7 @@ docker compose exec redis redis-cli ping
 ### 4.2 进入 Backend 目录
 
 ```powershell
-Set-Location C:\path\to\pinjie-fullstack-base\apps\backend
+Set-Location C:\path\to\pinjie-fullstack-nav\apps\backend
 ```
 
 从仓库根目录使用相对路径也可以：
@@ -255,7 +255,7 @@ uv run python -m scripts.verify_local_database_recovery `
 全仓库治理检查从根目录运行：
 
 ```powershell
-Set-Location C:\path\to\pinjie-fullstack-base
+Set-Location C:\path\to\pinjie-fullstack-nav
 pnpm check:governance
 ```
 
@@ -297,7 +297,7 @@ uv run python -m scripts.consume_request_logs
 VS Code 保持打开全栈仓库根目录，并将 Python 解释器选择为：
 
 ```text
-C:\path\to\pinjie-fullstack-base\apps\backend\.venv\Scripts\python.exe
+C:\path\to\pinjie-fullstack-nav\apps\backend\.venv\Scripts\python.exe
 ```
 
 该设置只影响编辑器的补全、类型分析和调试。终端命令仍使用 `uv run`，避免终端激活状态、系统 Python、Conda 和项目 `.venv` 混用。

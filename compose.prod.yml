@@ -1,3 +1,5 @@
+name: pinjie-fullstack-nav
+
 # 生产部署使用。
 # PostgreSQL 和 Redis 由 1Panel 作为服务器级共享服务管理。
 # 应用容器只绑定本机环回地址，由 1Panel OpenResty 提供反向代理。

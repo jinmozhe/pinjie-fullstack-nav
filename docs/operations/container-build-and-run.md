@@ -21,17 +21,17 @@ Admin/Web Dockerfile 的依赖层只复制根清单、锁文件、pnpm 配置与
 从仓库根目录执行：
 
 ```powershell
-docker build -f apps/backend/Dockerfile -t pinjie-fullstack-backend:local .
-docker build -f apps/web/Dockerfile -t pinjie-fullstack-web:local .
-docker build -f apps/admin/Dockerfile -t pinjie-fullstack-admin:local .
+docker build -f apps/backend/Dockerfile -t pinjie-nav-backend:local .
+docker build -f apps/web/Dockerfile -t pinjie-nav-web:local .
+docker build -f apps/admin/Dockerfile -t pinjie-nav-admin:local .
 ```
 
 构建完成后检查镜像用户和架构：
 
 ```powershell
-docker image inspect pinjie-fullstack-backend:local --format '{{.Architecture}} {{.Config.User}}'
-docker image inspect pinjie-fullstack-web:local --format '{{.Architecture}} {{.Config.User}}'
-docker image inspect pinjie-fullstack-admin:local --format '{{.Architecture}} {{.Config.User}}'
+docker image inspect pinjie-nav-backend:local --format '{{.Architecture}} {{.Config.User}}'
+docker image inspect pinjie-nav-web:local --format '{{.Architecture}} {{.Config.User}}'
+docker image inspect pinjie-nav-admin:local --format '{{.Architecture}} {{.Config.User}}'
 ```
 
 Backend、Web 和 Admin 应分别以非 root 用户运行。具体 UID 属于镜像实现细节，检查结果必须确认不是空值或 `0`。
@@ -58,6 +58,7 @@ TCR_PUBLISH_PASSWORD: "<TCR 固定密码>"
 
 allow_slugs:
   - "pjwl/pinjie-fullstack-base"
+  - "pjwl/pinjie-fullstack-nav"
 allow_events:
   - "push"
   - "web_trigger_full_release"
@@ -87,9 +88,9 @@ CNB 发布身份和生产服务器拉取身份必须分离。`tcr-publisher` 只
 根 `.env` 只写三个 TCR 完整镜像 digest 和 Web 公开 Origin：
 
 ```dotenv
-BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-backend@sha256:<64位十六进制摘要>
-WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-web@sha256:<64位十六进制摘要>
-ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-admin@sha256:<64位十六进制摘要>
+BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-backend@sha256:<64位十六进制摘要>
+WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-web@sha256:<64位十六进制摘要>
+ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<64位十六进制摘要>
 WEB_PUBLIC_ORIGIN=https://www.example.com
 ```
 
