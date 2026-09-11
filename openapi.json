@@ -691,6 +691,7 @@
                 ],
                 "properties": {
                   "name": {
+                    "description": "名称，长度为 1 至 100 个字符",
                     "maxLength": 100,
                     "minLength": 1,
                     "title": "Name",
@@ -698,12 +699,14 @@
                   },
                   "description": {
                     "default": "",
+                    "description": "分类或标签描述",
                     "maxLength": 1000,
                     "title": "Description",
                     "type": "string"
                   },
                   "sort_order": {
                     "default": 0,
+                    "description": "显示排序值，数值越小越靠前",
                     "maximum": 1000000,
                     "minimum": -1000000,
                     "title": "Sort Order",
@@ -711,6 +714,7 @@
                   },
                   "is_active": {
                     "default": true,
+                    "description": "是否启用",
                     "title": "Is Active",
                     "type": "boolean"
                   }
@@ -811,6 +815,7 @@
                 ],
                 "properties": {
                   "name": {
+                    "description": "名称，长度为 1 至 100 个字符",
                     "maxLength": 100,
                     "minLength": 1,
                     "title": "Name",
@@ -818,12 +823,14 @@
                   },
                   "description": {
                     "default": "",
+                    "description": "分类或标签描述",
                     "maxLength": 1000,
                     "title": "Description",
                     "type": "string"
                   },
                   "sort_order": {
                     "default": 0,
+                    "description": "显示排序值，数值越小越靠前",
                     "maximum": 1000000,
                     "minimum": -1000000,
                     "title": "Sort Order",
@@ -831,6 +838,7 @@
                   },
                   "is_active": {
                     "default": true,
+                    "description": "是否启用",
                     "title": "Is Active",
                     "type": "boolean"
                   }
@@ -7410,25 +7418,28 @@
             "type": "string",
             "maxLength": 100,
             "title": "Label",
+            "description": "帐号标签",
             "default": ""
           },
           "username": {
             "type": "string",
             "maxLength": 500,
             "title": "Username",
-            "default": "",
-            "description": "登录用户名"
+            "description": "登录用户名",
+            "default": ""
           },
           "password": {
             "type": "string",
             "maxLength": 10000,
             "title": "Password",
+            "description": "登录密码",
             "default": ""
           },
           "notes": {
             "type": "string",
             "maxLength": 10000,
             "title": "Notes",
+            "description": "帐号备注",
             "default": ""
           },
           "sort_order": {
@@ -7436,13 +7447,14 @@
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "帐号排序值，数值越小越靠前",
             "default": 0
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "default": true,
-            "description": "资源当前是否启用"
+            "description": "帐号是否启用",
+            "default": true
           }
         },
         "additionalProperties": false,
@@ -7455,25 +7467,28 @@
             "type": "string",
             "maxLength": 100,
             "title": "Label",
+            "description": "帐号标签",
             "default": ""
           },
           "username": {
             "type": "string",
             "maxLength": 500,
             "title": "Username",
-            "default": "",
-            "description": "登录用户名"
+            "description": "登录用户名",
+            "default": ""
           },
           "password": {
             "type": "string",
             "maxLength": 10000,
             "title": "Password",
+            "description": "登录密码",
             "default": ""
           },
           "notes": {
             "type": "string",
             "maxLength": 10000,
             "title": "Notes",
+            "description": "帐号备注",
             "default": ""
           },
           "sort_order": {
@@ -7481,13 +7496,14 @@
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "帐号排序值，数值越小越靠前",
             "default": 0
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "default": true,
-            "description": "资源当前是否启用"
+            "description": "帐号是否启用",
+            "default": true
           },
           "id": {
             "type": "string",
@@ -7498,7 +7514,8 @@
           "site_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Site Id"
+            "title": "Site Id",
+            "description": "所属站点唯一标识"
           },
           "updated_at": {
             "type": "string",
@@ -7526,7 +7543,8 @@
             "type": "array",
             "maxItems": 100,
             "minItems": 1,
-            "title": "Ids"
+            "title": "Ids",
+            "description": "待批量操作的目标唯一标识列表"
           },
           "action": {
             "type": "string",
@@ -7539,7 +7557,7 @@
               "unpublish"
             ],
             "title": "Action",
-            "description": "操作代码"
+            "description": "批量操作类型"
           }
         },
         "additionalProperties": false,
@@ -7554,7 +7572,8 @@
         "properties": {
           "completed_count": {
             "type": "integer",
-            "title": "Completed Count"
+            "title": "Completed Count",
+            "description": "本次批量操作完成的目标数量"
           }
         },
         "type": "object",
@@ -7570,27 +7589,28 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Name",
-            "description": "资源名称"
+            "description": "名称，长度为 1 至 100 个字符"
           },
           "description": {
             "type": "string",
             "maxLength": 1000,
             "title": "Description",
-            "default": "",
-            "description": "资源说明文本"
+            "description": "分类或标签描述",
+            "default": ""
           },
           "sort_order": {
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "显示排序值，数值越小越靠前",
             "default": 0
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "default": true,
-            "description": "资源当前是否启用"
+            "description": "是否启用",
+            "default": true
           },
           "requires_login": {
             "type": "boolean",
@@ -7647,27 +7667,28 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Name",
-            "description": "资源名称"
+            "description": "名称，长度为 1 至 100 个字符"
           },
           "description": {
             "type": "string",
             "maxLength": 1000,
             "title": "Description",
-            "default": "",
-            "description": "资源说明文本"
+            "description": "分类或标签描述",
+            "default": ""
           },
           "sort_order": {
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "显示排序值，数值越小越靠前",
             "default": 0
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "default": true,
-            "description": "资源当前是否启用"
+            "description": "是否启用",
+            "default": true
           },
           "id": {
             "type": "string",
@@ -7754,7 +7775,7 @@
               }
             ],
             "title": "Name",
-            "description": "资源名称"
+            "description": "抓取到的站点名称"
           },
           "description": {
             "anyOf": [
@@ -7767,7 +7788,7 @@
               }
             ],
             "title": "Description",
-            "description": "资源说明文本"
+            "description": "抓取到的站点描述"
           },
           "icon_base64": {
             "anyOf": [
@@ -7798,7 +7819,8 @@
       "NavSiteGroupRead": {
         "properties": {
           "category": {
-            "$ref": "#/components/schemas/NavCategoryRead"
+            "$ref": "#/components/schemas/NavCategoryRead",
+            "description": "分组所属分类详情"
           },
           "total": {
             "type": "integer",
@@ -7831,21 +7853,21 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Name",
-            "description": "资源名称"
+            "description": "名称，长度为 1 至 100 个字符"
           },
           "url": {
             "type": "string",
             "maxLength": 2000,
             "minLength": 1,
             "title": "Url",
-            "description": "文件的公开访问 URL 或站内路径"
+            "description": "不带登录信息的 HTTP 或 HTTPS 网址"
           },
           "description": {
             "type": "string",
             "maxLength": 2000,
             "title": "Description",
-            "default": "",
-            "description": "资源说明文本"
+            "description": "站点描述",
+            "default": ""
           },
           "category_id": {
             "anyOf": [
@@ -7857,7 +7879,8 @@
                 "type": "null"
               }
             ],
-            "title": "Category Id"
+            "title": "Category Id",
+            "description": "所属分类唯一标识，未分类时为空"
           },
           "tag_ids": {
             "items": {
@@ -7866,7 +7889,8 @@
             },
             "type": "array",
             "maxItems": 100,
-            "title": "Tag Ids"
+            "title": "Tag Ids",
+            "description": "关联标签唯一标识列表"
           },
           "icon_asset_id": {
             "anyOf": [
@@ -7878,18 +7902,21 @@
                 "type": "null"
               }
             ],
-            "title": "Icon Asset Id"
+            "title": "Icon Asset Id",
+            "description": "站点图标资产唯一标识"
           },
           "sort_order": {
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "显示排序值，数值越小越靠前",
             "default": 0
           },
           "is_published": {
             "type": "boolean",
             "title": "Is Published",
+            "description": "是否在公开导航中发布",
             "default": false
           },
           "is_pinned": {
@@ -7935,21 +7962,21 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Name",
-            "description": "资源名称"
+            "description": "名称，长度为 1 至 100 个字符"
           },
           "url": {
             "type": "string",
             "maxLength": 2000,
             "minLength": 1,
             "title": "Url",
-            "description": "文件的公开访问 URL 或站内路径"
+            "description": "不带登录信息的 HTTP 或 HTTPS 网址"
           },
           "description": {
             "type": "string",
             "maxLength": 2000,
             "title": "Description",
-            "default": "",
-            "description": "资源说明文本"
+            "description": "站点描述",
+            "default": ""
           },
           "category_id": {
             "anyOf": [
@@ -7961,7 +7988,8 @@
                 "type": "null"
               }
             ],
-            "title": "Category Id"
+            "title": "Category Id",
+            "description": "所属分类唯一标识，未分类时为空"
           },
           "tag_ids": {
             "items": {
@@ -7970,7 +7998,8 @@
             },
             "type": "array",
             "maxItems": 100,
-            "title": "Tag Ids"
+            "title": "Tag Ids",
+            "description": "关联标签唯一标识列表"
           },
           "icon_asset_id": {
             "anyOf": [
@@ -7982,18 +8011,21 @@
                 "type": "null"
               }
             ],
-            "title": "Icon Asset Id"
+            "title": "Icon Asset Id",
+            "description": "站点图标资产唯一标识"
           },
           "sort_order": {
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "显示排序值，数值越小越靠前",
             "default": 0
           },
           "is_published": {
             "type": "boolean",
             "title": "Is Published",
+            "description": "是否在公开导航中发布",
             "default": false
           },
           "is_pinned": {
@@ -8016,14 +8048,16 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "所属分类详情，未分类时为空"
           },
           "tags": {
             "items": {
               "$ref": "#/components/schemas/NavTaxonomyRead"
             },
             "type": "array",
-            "title": "Tags"
+            "title": "Tags",
+            "description": "关联标签详情列表"
           },
           "icon_url": {
             "anyOf": [
@@ -8034,7 +8068,8 @@
                 "type": "null"
               }
             ],
-            "title": "Icon Url"
+            "title": "Icon Url",
+            "description": "站点图标公开地址"
           },
           "deleted_at": {
             "anyOf": [
@@ -8046,7 +8081,8 @@
                 "type": "null"
               }
             ],
-            "title": "Deleted At"
+            "title": "Deleted At",
+            "description": "移入回收站的时间，未删除时为空"
           },
           "updated_at": {
             "type": "string",
@@ -8077,27 +8113,28 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Name",
-            "description": "资源名称"
+            "description": "名称，长度为 1 至 100 个字符"
           },
           "description": {
             "type": "string",
             "maxLength": 1000,
             "title": "Description",
-            "default": "",
-            "description": "资源说明文本"
+            "description": "分类或标签描述",
+            "default": ""
           },
           "sort_order": {
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "显示排序值，数值越小越靠前",
             "default": 0
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "default": true,
-            "description": "资源当前是否启用"
+            "description": "是否启用",
+            "default": true
           }
         },
         "additionalProperties": false,
@@ -8114,27 +8151,28 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Name",
-            "description": "资源名称"
+            "description": "名称，长度为 1 至 100 个字符"
           },
           "description": {
             "type": "string",
             "maxLength": 1000,
             "title": "Description",
-            "default": "",
-            "description": "资源说明文本"
+            "description": "分类或标签描述",
+            "default": ""
           },
           "sort_order": {
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "显示排序值，数值越小越靠前",
             "default": 0
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "default": true,
-            "description": "资源当前是否启用"
+            "description": "是否启用",
+            "default": true
           },
           "id": {
             "type": "string",
@@ -8166,27 +8204,28 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Name",
-            "description": "资源名称"
+            "description": "名称，长度为 1 至 100 个字符"
           },
           "description": {
             "type": "string",
             "maxLength": 1000,
             "title": "Description",
-            "default": "",
-            "description": "资源说明文本"
+            "description": "分类或标签描述",
+            "default": ""
           },
           "sort_order": {
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
+            "description": "显示排序值，数值越小越靠前",
             "default": 0
           },
           "is_active": {
             "type": "boolean",
             "title": "Is Active",
-            "default": true,
-            "description": "资源当前是否启用"
+            "description": "是否启用",
+            "default": true
           },
           "id": {
             "type": "string",
@@ -8825,32 +8864,34 @@
             "type": "string",
             "format": "uuid",
             "title": "Id",
-            "description": "资源唯一标识"
+            "description": "站点唯一标识"
           },
           "name": {
             "type": "string",
             "title": "Name",
-            "description": "资源名称"
+            "description": "站点名称"
           },
           "url": {
             "type": "string",
             "title": "Url",
-            "description": "文件的公开访问 URL 或站内路径"
+            "description": "站点网址"
           },
           "description": {
             "type": "string",
             "title": "Description",
-            "description": "资源说明文本"
+            "description": "站点描述"
           },
           "category": {
-            "$ref": "#/components/schemas/NavCategoryRead"
+            "$ref": "#/components/schemas/NavCategoryRead",
+            "description": "所属分类详情"
           },
           "tags": {
             "items": {
               "$ref": "#/components/schemas/NavTaxonomyRead"
             },
             "type": "array",
-            "title": "Tags"
+            "title": "Tags",
+            "description": "关联标签详情列表"
           },
           "icon_url": {
             "anyOf": [
@@ -8861,7 +8902,8 @@
                 "type": "null"
               }
             ],
-            "title": "Icon Url"
+            "title": "Icon Url",
+            "description": "站点图标公开地址"
           }
         },
         "type": "object",
@@ -8881,7 +8923,7 @@
           "code": {
             "type": "string",
             "title": "Code",
-            "description": "稳定程序代码"
+            "description": "一次性授权码"
           }
         },
         "type": "object",
@@ -8897,19 +8939,22 @@
             "maxLength": 43,
             "minLength": 43,
             "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "Challenge"
+            "title": "Challenge",
+            "description": "授权挑战值"
           },
           "state": {
             "type": "string",
             "maxLength": 128,
             "minLength": 43,
             "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "State"
+            "title": "State",
+            "description": "客户端状态值"
           },
           "redirect_uri": {
             "type": "string",
             "maxLength": 500,
-            "title": "Redirect Uri"
+            "title": "Redirect Uri",
+            "description": "授权完成后的回调地址"
           }
         },
         "additionalProperties": false,
@@ -8928,7 +8973,8 @@
               "type": "string"
             },
             "type": "array",
-            "title": "Callback Urls"
+            "title": "Callback Urls",
+            "description": "允许的导航查阅回调地址列表"
           }
         },
         "type": "object",
@@ -8945,26 +8991,29 @@
             "minLength": 43,
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Code",
-            "description": "稳定程序代码"
+            "description": "一次性授权码"
           },
           "verifier": {
             "type": "string",
             "maxLength": 128,
             "minLength": 43,
             "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "Verifier"
+            "title": "Verifier",
+            "description": "客户端校验值"
           },
           "state": {
             "type": "string",
             "maxLength": 128,
             "minLength": 43,
             "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "State"
+            "title": "State",
+            "description": "客户端状态值"
           },
           "redirect_uri": {
             "type": "string",
             "maxLength": 500,
-            "title": "Redirect Uri"
+            "title": "Redirect Uri",
+            "description": "授权完成后的回调地址"
           }
         },
         "additionalProperties": false,
@@ -8982,18 +9031,19 @@
           "admin_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Admin Id"
+            "title": "Admin Id",
+            "description": "管理员唯一标识"
           },
           "display_name": {
             "type": "string",
             "title": "Display Name",
-            "description": "展示名称"
+            "description": "管理员显示名称"
           },
           "expires_at": {
             "type": "string",
             "format": "date-time",
             "title": "Expires At",
-            "description": "凭据过期时间"
+            "description": "查阅凭证过期时间"
           }
         },
         "type": "object",

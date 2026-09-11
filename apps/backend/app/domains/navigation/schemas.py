@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from app.core.pagination import PageResult
 
-Name = Annotated[str, Field(min_length=1, max_length=100)]
+Name = Annotated[str, Field(min_length=1, max_length=100, description="名称，长度为 1 至 100 个字符")]
 CategoryIconKey = Literal[
     "code",
     "book",
@@ -35,9 +35,9 @@ CategoryIconKey = Literal[
 class NavTaxonomyIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: Name
-    description: str = Field(default="", max_length=1000)
-    sort_order: int = Field(default=0, ge=-1000000, le=1000000)
-    is_active: bool = True
+    description: str = Field(default="", max_length=1000, description="分类或标签描述")
+    sort_order: int = Field(default=0, ge=-1000000, le=1000000, description="显示排序值，数值越小越靠前")
+    is_active: bool = Field(default=True, description="是否启用")
 
     @field_validator("name")
     @classmethod
@@ -78,13 +78,13 @@ type NavTaxonomyResult = Annotated[
 class NavSiteIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: Name
-    url: str = Field(min_length=1, max_length=2000)
-    description: str = Field(default="", max_length=2000)
-    category_id: uuid.UUID | None = None
-    tag_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100)
-    icon_asset_id: uuid.UUID | None = None
-    sort_order: int = Field(default=0, ge=-1000000, le=1000000)
-    is_published: bool = False
+    url: str = Field(min_length=1, max_length=2000, description="不带登录信息的 HTTP 或 HTTPS 网址")
+    description: str = Field(default="", max_length=2000, description="站点描述")
+    category_id: uuid.UUID | None = Field(default=None, description="所属分类唯一标识，未分类时为空")
+    tag_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100, description="关联标签唯一标识列表")
+    icon_asset_id: uuid.UUID | None = Field(default=None, description="站点图标资产唯一标识")
+    sort_order: int = Field(default=0, ge=-1000000, le=1000000, description="显示排序值，数值越小越靠前")
+    is_published: bool = Field(default=False, description="是否在公开导航中发布")
     is_pinned: bool = Field(default=False, description="是否在独立置顶页面展示，不影响首页排序")
 
     @field_validator("name")
@@ -119,12 +119,12 @@ class NavSiteIn(BaseModel):
 
 class NavSiteRead(NavSiteIn):
     id: uuid.UUID
-    category_id: uuid.UUID | None = Field(...)
-    category: NavCategoryRead | None = Field(...)
-    tags: list[NavTaxonomyRead]
-    icon_url: str | None
-    deleted_at: datetime | None
-    updated_at: datetime
+    category_id: uuid.UUID | None = Field(..., description="所属分类唯一标识，未分类时为空")
+    category: NavCategoryRead | None = Field(..., description="所属分类详情，未分类时为空")
+    tags: list[NavTaxonomyRead] = Field(description="关联标签详情列表")
+    icon_url: str | None = Field(description="站点图标公开地址")
+    deleted_at: datetime | None = Field(description="移入回收站的时间，未删除时为空")
+    updated_at: datetime = Field(description="最近更新时间")
 
 
 class NavMetadataIn(BaseModel):
@@ -138,8 +138,8 @@ class NavMetadataIn(BaseModel):
 
 
 class NavMetadataRead(BaseModel):
-    name: str | None = Field(default=None, max_length=100)
-    description: str | None = Field(default=None, max_length=2000)
+    name: str | None = Field(default=None, max_length=100, description="抓取到的站点名称")
+    description: str | None = Field(default=None, max_length=2000, description="抓取到的站点描述")
     icon_base64: str | None = Field(
         default=None, max_length=400000, description="经校验缩放的 PNG Base64，保存前只在表单内存中使用"
     )
@@ -147,29 +147,29 @@ class NavMetadataRead(BaseModel):
 
 
 class PublicNavSiteRead(BaseModel):
-    id: uuid.UUID
-    name: str
-    url: str
-    description: str
-    category: NavCategoryRead
-    tags: list[NavTaxonomyRead]
-    icon_url: str | None
+    id: uuid.UUID = Field(description="站点唯一标识")
+    name: str = Field(description="站点名称")
+    url: str = Field(description="站点网址")
+    description: str = Field(description="站点描述")
+    category: NavCategoryRead = Field(description="所属分类详情")
+    tags: list[NavTaxonomyRead] = Field(description="关联标签详情列表")
+    icon_url: str | None = Field(description="站点图标公开地址")
 
 
 class NavSiteGroupRead(BaseModel):
-    category: NavCategoryRead
+    category: NavCategoryRead = Field(description="分组所属分类详情")
     total: int = Field(ge=1, description="当前身份可见的分类站点总数")
     items: list[PublicNavSiteRead] = Field(max_length=8, description="按站点排序的最多八项预览")
 
 
 class NavAccountIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    label: str = Field(default="", max_length=100)
-    username: str = Field(default="", max_length=500)
-    password: str = Field(default="", max_length=10000)
-    notes: str = Field(default="", max_length=10000)
-    sort_order: int = Field(default=0, ge=-1000000, le=1000000)
-    is_active: bool = True
+    label: str = Field(default="", max_length=100, description="帐号标签")
+    username: str = Field(default="", max_length=500, description="登录用户名")
+    password: str = Field(default="", max_length=10000, description="登录密码")
+    notes: str = Field(default="", max_length=10000, description="帐号备注")
+    sort_order: int = Field(default=0, ge=-1000000, le=1000000, description="帐号排序值，数值越小越靠前")
+    is_active: bool = Field(default=True, description="帐号是否启用")
 
     @model_validator(mode="after")
     def require_content(self) -> Self:
@@ -181,14 +181,16 @@ class NavAccountIn(BaseModel):
 class NavAccountRead(NavAccountIn):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    site_id: uuid.UUID
-    updated_at: datetime
+    site_id: uuid.UUID = Field(description="所属站点唯一标识")
+    updated_at: datetime = Field(description="最近更新时间")
 
 
 class NavBulkIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    ids: list[uuid.UUID] = Field(min_length=1, max_length=100)
-    action: Literal["enable", "disable", "delete", "restore", "publish", "unpublish"]
+    ids: list[uuid.UUID] = Field(min_length=1, max_length=100, description="待批量操作的目标唯一标识列表")
+    action: Literal["enable", "disable", "delete", "restore", "publish", "unpublish"] = Field(
+        description="批量操作类型"
+    )
 
     @field_validator("ids")
     @classmethod
@@ -199,7 +201,7 @@ class NavBulkIn(BaseModel):
 
 
 class NavBulkRead(BaseModel):
-    completed_count: int
+    completed_count: int = Field(description="本次批量操作完成的目标数量")
 
 
 class NavSitePurgeIn(BaseModel):
