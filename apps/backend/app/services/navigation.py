@@ -181,7 +181,9 @@ class NavigationService:
         if not rows:
             raise missing()
         row = rows[0]
-        if public and (row.deleted_at is not None or not row.is_published or not row.category.is_active):
+        if public and (
+            row.deleted_at is not None or not row.is_published or row.category is None or not row.category.is_active
+        ):
             raise missing()
         return row
 
@@ -198,7 +200,7 @@ class NavigationService:
             sort_order=row.sort_order,
             is_published=row.is_published,
             is_pinned=row.is_pinned,
-            category=NavCategoryRead.model_validate(row.category),
+            category=NavCategoryRead.model_validate(row.category) if row.category is not None else None,
             tags=[NavTaxonomyRead.model_validate(tag) for tag in row.tags],
             icon_url=icons.get(row.icon_asset_id) if row.icon_asset_id else None,
             deleted_at=row.deleted_at,
@@ -245,6 +247,8 @@ class NavigationService:
 
     @staticmethod
     def public_read(row: NavSite, icons: dict[uuid.UUID, str]) -> PublicNavSiteRead:
+        if row.category is None:
+            raise RuntimeError("公开站点缺少分类")
         return PublicNavSiteRead(
             id=row.id,
             name=row.name,
@@ -264,6 +268,8 @@ class NavigationService:
         icons = await self.repo.icons([row.icon_asset_id for row, _ in rows if row.icon_asset_id])
         groups: dict[uuid.UUID, NavSiteGroupRead] = {}
         for row, count in rows:
+            if row.category_id is None or row.category is None:
+                raise RuntimeError("公开分组包含未分类站点")
             if row.category_id not in groups:
                 groups[row.category_id] = NavSiteGroupRead(
                     category=NavCategoryRead.model_validate(row.category), total=count, items=[]
@@ -273,6 +279,8 @@ class NavigationService:
 
     async def public_site(self, id: uuid.UUID, *, reader: bool = False) -> PublicNavSiteRead:
         row = await self.site(id, public=True)
+        if row.category is None:
+            raise missing()
         if row.category.requires_login and not reader:
             raise missing()
         icons = await self.repo.icons([row.icon_asset_id] if row.icon_asset_id else [])
@@ -280,9 +288,13 @@ class NavigationService:
 
     async def save_site(self, payload: NavSiteIn, id: uuid.UUID | None = None) -> NavSiteRead:
         async def operation() -> NavSiteRead:
-            categories = await self.repo.taxonomy_targets("categories", [payload.category_id])
+            if (payload.is_published or payload.is_pinned) and payload.category_id is None:
+                raise conflict("未分类站点不能发布或置顶")
+            categories = (
+                await self.repo.taxonomy_targets("categories", [payload.category_id]) if payload.category_id else []
+            )
             tags = await self.repo.taxonomy_targets("tags", payload.tag_ids)
-            if not categories or len(tags) != len(payload.tag_ids):
+            if (payload.category_id is not None and not categories) or len(tags) != len(payload.tag_ids):
                 raise missing()
             if payload.icon_asset_id:
                 asset = await AssetRepository(self.session).get(payload.icon_asset_id, for_update=True)
@@ -293,7 +305,7 @@ class NavigationService:
                 raise conflict("请先恢复回收站站点")
             for key, value in payload.model_dump(exclude={"tag_ids"}).items():
                 setattr(row, key, value)
-            row.category = cast(NavCategory, categories[0])
+            row.category = cast(NavCategory, categories[0]) if categories else None
             row.tags = cast(list[NavTag], tags)
             await self.repo.save(row)
             return self.site_read(row, await self.repo.icons([row.icon_asset_id] if row.icon_asset_id else []))
@@ -307,6 +319,8 @@ class NavigationService:
             rows = await self.repo.site_targets(payload.ids)
             if len(rows) != len(payload.ids):
                 raise missing()
+            if payload.action == "publish" and any(row.category_id is None for row in rows):
+                raise conflict("未分类站点不能发布或置顶")
             for row in rows:
                 if payload.action == "restore":
                     if row.deleted_at is None:

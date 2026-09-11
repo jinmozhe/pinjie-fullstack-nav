@@ -1173,7 +1173,7 @@ export type NavSiteIn = {
     /**
      * Category Id
      */
-    category_id: string;
+    category_id?: string | null;
     /**
      * Tag Ids
      */
@@ -1235,7 +1235,7 @@ export type NavSiteRead = {
     /**
      * Category Id
      */
-    category_id: string;
+    category_id?: string | null;
     /**
      * Tag Ids
      */
@@ -1264,7 +1264,7 @@ export type NavSiteRead = {
      * 资源唯一标识
      */
     id: string;
-    category: NavCategoryRead;
+    category: NavCategoryRead | null;
     /**
      * Tags
      */

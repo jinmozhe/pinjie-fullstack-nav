@@ -7848,8 +7848,15 @@
             "description": "资源说明文本"
           },
           "category_id": {
-            "type": "string",
-            "format": "uuid",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Category Id"
           },
           "tag_ids": {
@@ -7896,8 +7903,7 @@
         "type": "object",
         "required": [
           "name",
-          "url",
-          "category_id"
+          "url"
         ],
         "title": "NavSiteIn"
       },
@@ -7946,8 +7952,15 @@
             "description": "资源说明文本"
           },
           "category_id": {
-            "type": "string",
-            "format": "uuid",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Category Id"
           },
           "tag_ids": {
@@ -7996,7 +8009,14 @@
             "description": "资源唯一标识"
           },
           "category": {
-            "$ref": "#/components/schemas/NavCategoryRead"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NavCategoryRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "tags": {
             "items": {
@@ -8040,7 +8060,6 @@
         "required": [
           "name",
           "url",
-          "category_id",
           "id",
           "category",
           "tags",
