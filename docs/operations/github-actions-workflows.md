@@ -270,7 +270,7 @@ Web 和 Admin 当前均为 `ready`，两个质量 Job 可以并行执行。
 
 ### 8.4 交接证据与 Nav 范围
 
-Nav 未接入母版可选的候选镜像组合验收工作流与工具。既有发布配置仍含母版 CNB/TCR 模板，启用前必须按独立 Nav 环境核对并适配；本手册描述继承的操作机制，不证明发布环境已就绪。
+Nav 当前沿用单镜像发布证据和固定 digest 部署流程，未接入母版可选的候选镜像组合验收工作流与工具。CNB 仓库、共享密钥引用、TCR 命名空间、三端镜像名和来源校验已经切换为 Nav 配置；实际构建、推送和部署仍须按独立授权执行。
 
 Handoff 使用 `cnb-source-handoff-main` 统一串行组，避免两个不同 SHA 同时推进同一 CNB 分支；GitHub concurrency 不承诺 FIFO，尚在等待的运行可能被更新的等待项替换，操作人员应核对最终 Run 状态。交接成功后保存模式、快速模式理由、Full Validation Run、目标 SHA 和 attempt 的结构化 Artifact。
 
@@ -414,22 +414,22 @@ GitHub 工作流只支持 `workflow_dispatch` 人工触发。执行前必须取�
 验证通过后，`handoff` Job 绑定 `cnb-source-handoff` Environment，并执行：
 
 1. 再次检出和核对批准的 Commit SHA。
-2. 校验 CNB 仓库 URL 固定为 `https://cnb.cool/pjwl/pinjie-fullstack-base`，目标分支固定为 `main`，HTTPS 用户名固定为 `cnb`，Token 非空。
+2. 校验 CNB 仓库 URL 固定为 `https://cnb.cool/pjwl/pinjie-fullstack-nav`，目标分支固定为 `main`，HTTPS 用户名固定为 `cnb`，Token 非空。
 3. 使用临时 `GIT_ASKPASS` 读取 Token，不把凭证写入远程 URL、Git 配置或日志。
 4. 查询 CNB `main`。仓库为空时允许首次创建；已有分支时要求远端 SHA 是目标 SHA 的祖先。
 5. 执行普通 Git Push，禁止强制推送；写后再次查询 CNB `main` 并要求等于批准 SHA。
 
 ### 11.4 CNB 构建与候选发布
 
-CNB `.cnb.yml` 声明三个具名 `main.push` Pipeline，并提供受控的 `main.web_trigger_full_release` 人工全量入口。每条 Pipeline 使用 4 核 Linux AMD64 社区构建节点、固定 digest 的构建环境、独立 Docker 配置目录和按应用划分的 TCR 发布锁。CNB 密钥仓库文件只允许 `pjwl/pinjie-fullstack-base` 的 `main` Push 与 `web_trigger_full_release` 引用，并提供 TCR Registry 登录所需参数。
+CNB `.cnb.yml` 声明三个具名 `main.push` Pipeline，并提供受控的 `main.web_trigger_full_release` 人工全量入口。每条 Pipeline 使用 4 核 Linux AMD64 社区构建节点、固定 digest 的构建环境、独立 Docker 配置目录和按应用划分的 TCR 发布锁。共享 CNB 密钥仓库文件允许 `pjwl/pinjie-fullstack-base` 与 `pjwl/pinjie-fullstack-nav` 的 `main` Push 及 `web_trigger_full_release` 引用，并提供 TCR Registry 登录所需参数。
 
 三条 Pipeline 可以并行运行，每条只处理一个固定应用，并使用该应用自己的 TCR Registry 缓存：
 
 | 应用 | Dockerfile | TCR 镜像名 |
 | --- | --- | --- |
-| Backend | `apps/backend/Dockerfile` | `pinjie-fullstack-backend` |
-| Web | `apps/web/Dockerfile` | `pinjie-fullstack-web` |
-| Admin | `apps/admin/Dockerfile` | `pinjie-fullstack-admin` |
+| Backend | `apps/backend/Dockerfile` | `pinjie-nav-backend` |
+| Web | `apps/web/Dockerfile` | `pinjie-nav-web` |
+| Admin | `apps/admin/Dockerfile` | `pinjie-nav-admin` |
 
 每个应用执行：
 

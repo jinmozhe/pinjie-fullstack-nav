@@ -261,7 +261,7 @@ jobs:
           CNB_REPOSITORY_URL: ${{ vars.CNB_REPOSITORY_URL }}
         run: |
           set -euo pipefail
-          test "$CNB_REPOSITORY_URL" = "https://cnb.cool/pjwl/pinjie-fullstack-base"
+          test "$CNB_REPOSITORY_URL" = "https://cnb.cool/pjwl/pinjie-fullstack-nav"
           test "$CNB_RELEASE_BRANCH" = "main"
           test "$CNB_PUSH_USERNAME" = "cnb"
           test -n "$CNB_PUSH_TOKEN"

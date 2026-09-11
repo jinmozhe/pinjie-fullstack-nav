@@ -10,9 +10,9 @@
 - 使用免费的腾讯云 TCR 个人版。
 - TCR 个人版命名空间为 `pinjie-fullstack-base`。
 - 已经创建三个私有镜像仓库：
-  - `pinjie-fullstack-backend`
-  - `pinjie-fullstack-web`
-  - `pinjie-fullstack-admin`
+  - `pinjie-nav-backend`
+  - `pinjie-nav-web`
+  - `pinjie-nav-admin`
 - CNB 使用 `tcr-publisher` 发布镜像。
 - 腾讯云生产服务器通过 1Panel 和 Docker Compose 拉取镜像。
 
@@ -198,12 +198,12 @@ TCRPersonalPullerPinjieFullstackBase
       "effect": "allow",
       "resource": [
         "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base",
-        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-fullstack-backend",
-        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-fullstack-backend/*",
-        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-fullstack-web",
-        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-fullstack-web/*",
-        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-fullstack-admin",
-        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-fullstack-admin/*"
+        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-nav-backend",
+        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-nav-backend/*",
+        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-nav-web",
+        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-nav-web/*",
+        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-nav-admin",
+        "qcs::tcr::uin/<主账号UIN>:repo/pinjie-fullstack-base/pinjie-nav-admin/*"
       ]
     }
   ]
@@ -409,9 +409,9 @@ Commit 时，必须等待预期触发的 Pipeline 全部成功，并核对三份
 `latest`、`candidate-*`、`buildcache-main` 或只写 SHA 标签。
 
 ```bash
-docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-backend@sha256:<backend-digest>
-docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-web@sha256:<web-digest>
-docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-admin@sha256:<admin-digest>
+docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-backend@sha256:<backend-digest>
+docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-web@sha256:<web-digest>
+docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<admin-digest>
 ```
 
 每条命令必须显示拉取成功，最终 digest 必须与对应发布证据一致。

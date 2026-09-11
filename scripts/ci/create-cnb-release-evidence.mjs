@@ -2,13 +2,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const imageDefinitions = {
-  backend: "pinjie-fullstack-backend",
-  web: "pinjie-fullstack-web",
-  admin: "pinjie-fullstack-admin",
+  backend: "pinjie-nav-backend",
+  web: "pinjie-nav-web",
+  admin: "pinjie-nav-admin",
 };
 const expectedRegistry = "ccr.ccs.tencentyun.com";
 const expectedNamespace = "pinjie-fullstack-base";
-const expectedSourceRepository = "https://github.com/jinmozhe/pinjie-fullstack-base";
+const expectedSourceRepository = "https://github.com/jinmozhe/pinjie-fullstack-nav";
 
 function requiredEnv(name) {
   const value = process.env[name];

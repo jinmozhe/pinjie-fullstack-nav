@@ -20,7 +20,7 @@
     - /root/.cache/trivy:copy-on-write
 
 .image-env: &image-env
-  EXPECTED_CNB_REPOSITORY: pjwl/pinjie-fullstack-base
+  EXPECTED_CNB_REPOSITORY: pjwl/pinjie-fullstack-nav
   EXPECTED_CNB_BRANCH: main
 
 .image-stages: &image-stages
@@ -86,7 +86,7 @@
   runner: *image-runner
   lock:
     <<: *image-lock
-    key: pinjie-fullstack-base-tcr-backend-main
+    key: pinjie-fullstack-nav-tcr-backend-main
   services: *image-services
   imports: *image-imports
   docker: *image-docker
@@ -105,7 +105,7 @@
   runner: *image-runner
   lock:
     <<: *image-lock
-    key: pinjie-fullstack-base-tcr-web-main
+    key: pinjie-fullstack-nav-tcr-web-main
   services: *image-services
   imports: *image-imports
   docker: *image-docker
@@ -124,7 +124,7 @@
   runner: *image-runner
   lock:
     <<: *image-lock
-    key: pinjie-fullstack-base-tcr-admin-main
+    key: pinjie-fullstack-nav-tcr-admin-main
   services: *image-services
   imports: *image-imports
   docker: *image-docker

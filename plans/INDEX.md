@@ -24,6 +24,7 @@
 
 | 计划 | 状态 | 结果 | 影响范围 | 用途 |
 | --- | --- | --- | --- | --- |
+| `plans/2026-09-11_Nav生产镜像发布配置计划.md` | 已结束 | 已完成；CNB、TCR 镜像映射、发布证据、生产 Compose 模板和 Backend 项目标识已切换，实际云构建与部署未执行 | CNB、TCR、GitHub Actions、Deployment、Documentation | 将 Nav 镜像发布校验切换到已创建的 CNB 仓库和 TCR 镜像 |
 | `plans/2026-09-11_站点可选分类计划.md` | 已结束 | 已完成；未分类站点可保存，发布与置顶保护、迁移、契约、Admin 适配和轻量门禁已完成，实际迁移与重型验证未执行 | Backend、Admin、API Client、Database、Documentation | 允许未分类站点先保存，保持公开可见性与发布保护 |
 | `plans/2026-09-09_站点名称与域名搜索计划.md` | 已结束 | 已完成；追加 Admin 简介搜索移除与窄屏布局修复通过范围内轻量检查，重型验证未执行 | Backend、Admin、Web、Documentation | 两端名称及域名搜索，Admin 移动端工具栏适配，保留原筛选与可见范围 |
 | `plans/2026-09-09_Admin站点分类标签筛选计划.md` | 已结束 | 已完成；筛选及轻量检查完成，重型验证未执行 | Admin、Documentation | 站点及回收站分类标签筛选，复用后端分页与总数 |

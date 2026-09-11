@@ -14,9 +14,9 @@ set -eu
 [ "$EVIDENCE_ROOT" = ".cnb/evidence/$IMAGE_KEY" ]
 
 case "$IMAGE_KEY" in
-  backend) image_name="pinjie-fullstack-backend" ;;
-  web) image_name="pinjie-fullstack-web" ;;
-  admin) image_name="pinjie-fullstack-admin" ;;
+  backend) image_name="pinjie-nav-backend" ;;
+  web) image_name="pinjie-nav-web" ;;
+  admin) image_name="pinjie-nav-admin" ;;
   *)
     echo "IMAGE_KEY must be one of backend, web, or admin."
     exit 1

@@ -21,7 +21,7 @@ GitHub Actions
 
 ## 2. 发布前准备
 
-Nav 目前保留继承的 CNB/TCR 配置模板，本文中的母版仓库与镜像地址不能直接作为 Nav 生产目标。首次启用发布前，必须在专项计划中确认 Nav 独立的 CNB 仓库、TCR 命名空间、来源校验及凭据引用；本次母版更新未执行这些环境配置或远端动作。
+Nav 当前使用独立的 CNB 源仓库 `pjwl/pinjie-fullstack-nav`，复用共享密钥仓库 `pjwl/pinjie-fullstack-base-secrets`，并将三个应用发布到 TCR 命名空间 `pinjie-fullstack-base` 下的 `pinjie-nav-backend`、`pinjie-nav-web` 和 `pinjie-nav-admin`。来源校验和镜像映射已经写入仓库配置；用户仍需在 GitHub、CNB 和 1Panel 界面完成对应的远端授权、构建和部署操作。
 
 先判断是否需要发布：仅文档、计划或 AI 规则变化且不影响构建输入与运行配置时，完成 Git 交付即可，无需 Full Validation、源码交接、CNB 构建或更新容器。生产允许继续使用较早的已验证镜像，不要求镜像 SHA 随每次文档提交推进。源码、依赖、Dockerfile、共享契约、迁移或生产运行配置变化时，按实际影响确定构建、部署和验证范围；服务器配置变更可能只需更新配置并重建对应容器。
 
@@ -43,7 +43,7 @@ Git Commit SHA 用于追溯源码，TCR `sha-<Commit SHA>` 标签用于查找镜
 当前项目生产目录是：
 
 ```text
-/home/ubuntu/projects/pinjie-fullstack-base/
+/home/ubuntu/projects/pinjie-fullstack-nav/
 ├── compose.prod.yml
 ├── .env
 └── apps/
@@ -119,13 +119,13 @@ GitHub Handoff 成功只代表 CNB 收到源码。此时镜像可能仍在构建
 
 ## 7. 在 CNB 核对三端构建
 
-打开 CNB 仓库 `pjwl/pinjie-fullstack-base` 的构建记录。`main` 收到 GitHub 交接后，根据实际变更路径自动触发：
+打开 CNB 仓库 `pjwl/pinjie-fullstack-nav` 的构建记录。`main` 收到 GitHub 交接后，根据实际变更路径自动触发：
 
 | Pipeline | 产物 |
 | --- | --- |
-| `backend-image` | `pinjie-fullstack-backend` |
-| `web-image` | `pinjie-fullstack-web` |
-| `admin-image` | `pinjie-fullstack-admin` |
+| `backend-image` | `pinjie-nav-backend` |
+| `web-image` | `pinjie-nav-web` |
+| `admin-image` | `pinjie-nav-admin` |
 
 每个实际触发的 Pipeline 必须依次成功：
 
@@ -182,9 +182,9 @@ admin-release-manifest.json
 生产部署复制 `image.reference`，格式如下：
 
 ```text
-ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-backend@sha256:<64位摘要>
-ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-web@sha256:<64位摘要>
-ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-admin@sha256:<64位摘要>
+ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-backend@sha256:<64位摘要>
+ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-web@sha256:<64位摘要>
+ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<64位摘要>
 ```
 
 ### 8.1 TCR 三类标签和时间
@@ -220,9 +220,9 @@ CNB 的 `candidate-*` 标签属于现有单镜像构建发布步骤，继续承�
 根 `.env` 至少包含：
 
 ```dotenv
-BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-backend@sha256:<64位摘要>
-WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-web@sha256:<64位摘要>
-ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-fullstack-admin@sha256:<64位摘要>
+BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-backend@sha256:<64位摘要>
+WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-web@sha256:<64位摘要>
+ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<64位摘要>
 WEB_PUBLIC_ORIGIN=https://<Web正式域名>
 ```
 
@@ -255,7 +255,7 @@ REDIS_URL=redis://default:<URL编码后的密码>@redis:6379/1
 通过 1Panel 终端或 SSH 进入项目目录：
 
 ```bash
-cd /home/ubuntu/projects/pinjie-fullstack-base
+cd /home/ubuntu/projects/pinjie-fullstack-nav
 sudo docker compose --env-file .env -f compose.prod.yml config --quiet
 sudo docker compose --env-file .env -f compose.prod.yml run --rm backend alembic upgrade head
 sudo docker compose --env-file .env -f compose.prod.yml run --rm backend python -m scripts.sync_permissions --apply --confirm-database <项目数据库名>
@@ -277,7 +277,7 @@ sudo docker compose --env-file .env -f compose.prod.yml run --rm backend python 
 在 1Panel 执行：
 
 1. 打开“容器 > 编排”。
-2. 选择 `pinjie-fullstack-base`。
+2. 选择 `pinjie-fullstack-nav`。
 3. 确认 Compose 内容与服务器当前 `compose.prod.yml` 一致。
 4. 确认编排环境变量与根 `.env` 一致。
 5. 点击“保存”或“更新编排”。
@@ -297,7 +297,7 @@ sudo docker compose --env-file .env -f compose.prod.yml run --rm backend python 
 4. 同步修改 1Panel 编排的环境变量页面。
 5. Backend 包含 Alembic 迁移时，先备份项目数据库，再执行 `alembic upgrade head`。
 6. 权限目录变化时执行 `sync_permissions --apply`，随后执行 `--check`。
-7. 在“容器 > 编排”打开 `pinjie-fullstack-base`，点击“保存”或“更新编排”。
+7. 在“容器 > 编排”打开 `pinjie-fullstack-nav`，点击“保存”或“更新编排”。
 8. 等待日志显示更新成功和服务达到 `healthy`。
 
 只需严格重建单个服务时，可在服务器执行：
@@ -306,7 +306,7 @@ sudo docker compose --env-file .env -f compose.prod.yml run --rm backend python 
 sudo docker compose --env-file .env -f compose.prod.yml up -d --no-deps --wait <backend|web|admin>
 ```
 
-1Panel 保存整个编排时会重新计算全部服务。配置和镜像引用没有变化的服务通常保持运行，镜像 digest 变化的服务会创建新容器并替换旧容器。容器名称继续使用 `pinjie-fullstack-base-<service>-1`，名称不随镜像 digest 改变。
+1Panel 保存整个编排时会重新计算全部服务。配置和镜像引用没有变化的服务通常保持运行，镜像 digest 变化的服务会创建新容器并替换旧容器。容器名称继续使用 `pinjie-fullstack-nav-<service>-1`，名称不随镜像 digest 改变。
 
 ## 13. 部署后验证
 

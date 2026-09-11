@@ -6,6 +6,8 @@
 
 ### Added
 
+- 将 Nav 生产镜像发布边界切换到 `pjwl/pinjie-fullstack-nav`、共享 `pjwl/pinjie-fullstack-base-secrets` 和 TCR `pinjie-fullstack-base` namespace 下的 `pinjie-nav-backend`、`pinjie-nav-web`、`pinjie-nav-admin`；同步 CNB/TCR 证据校验、扫描映射、Compose 项目名与 Backend 默认项目标识。CNB 构建、TCR 推送和 1Panel 部署未执行。
+
 - 允许 Admin 和管理 API 保存未分类站点，方便批量插入与后续补全；服务端拒绝未分类站点单条或批量发布及置顶。新增 `20260911_01` 迁移并同步 OpenAPI、生成客户端和回归测试源码；实际数据库迁移与重型验证未执行。
 
 - 将 Admin 页面与列表修复经验纳入工程标准：统一容器及间距、紧凑筛选与移动端布局、列宽分配、查询一致性和受控状态开关；应用规则保留简要约束与文档入口，具体业务宽度、断点和搜索字段继续由业务文档维护。
