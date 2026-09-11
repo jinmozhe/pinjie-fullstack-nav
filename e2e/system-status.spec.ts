@@ -13,7 +13,7 @@ test.describe("system status foundation", () => {
     const siteProfileResponse = await page.request.get("/api/v1/system/site-profile");
     expect(siteProfileResponse.ok()).toBe(true);
     const siteName = (await siteProfileResponse.json()).data.name as string;
-    await expect(page.getByRole("heading", { name: siteName, exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: `${siteName}首页`, exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "系统运行状态" })).toBeVisible();
     await expect(page.getByRole("link", { name: "登录" })).toBeVisible();
     await expect(page.getByRole("link", { name: "创建账户" })).toBeVisible();
