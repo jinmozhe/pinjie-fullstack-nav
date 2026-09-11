@@ -8,6 +8,16 @@ import { handlers } from "./server";
 
 expect.extend(matchers);
 
+const dialogElement = globalThis.HTMLDialogElement;
+if (dialogElement) {
+  if (!dialogElement.prototype.showModal) {
+    dialogElement.prototype.showModal = function showModal() { this.setAttribute("open", ""); };
+  }
+  if (!dialogElement.prototype.close) {
+    dialogElement.prototype.close = function close() { this.removeAttribute("open"); };
+  }
+}
+
 export const server = setupServer(...handlers);
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {

@@ -32,7 +32,7 @@ export function AccountsDrawer({ site, onClose }: { site: NavSiteRead; onClose: 
       message.success(active ? "已启用" : "已停用");
       await client.invalidateQueries({ queryKey: ["navigation-accounts", site.id] });
     },
-    onError: (error) => message.error(errorMessage(error)),
+    onError: (error) => { message.error(errorMessage(error)); status.reset(); },
   });
   const changing = useMutationState({
     filters: { mutationKey: ["navigation-account-status", site.id], status: "pending" },
@@ -58,7 +58,7 @@ export function AccountsDrawer({ site, onClose }: { site: NavSiteRead; onClose: 
     <ProTable<NavAccountRead> rowKey="id" headerTitle="帐号列表" dataSource={query.isError ? [] : query.data} columns={columns} loading={query.isPending} search={false} options={{ reload: () => void query.refetch() }} scroll={{ x: "max-content" }} onChange={() => setSelected([])} rowSelection={writable ? { selectedRowKeys: selected, onChange: setSelected, getCheckboxProps: (row) => ({ disabled: bulk.isPending || isChanging(row.id) }) } : false}
       toolBarRender={() => writable ? [<Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => edit(null)}>新增帐号</Button>] : []}
       tableAlertOptionRender={() => <Space><Button disabled={selectedChanging} icon={<CheckOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "enable" })}>启用</Button><Button disabled={selectedChanging} icon={<StopOutlined />} loading={bulk.isPending} onClick={() => bulk.mutate({ ids: selected.map(String), action: "disable" })}>停用</Button><Button danger disabled={bulk.isPending || selectedChanging} icon={<DeleteOutlined />} onClick={() => setDeleting(selected.map(String))}>删除</Button></Space>} />
-    <Modal title={editing ? "编辑帐号" : "新增帐号"} open={editing !== undefined} onCancel={() => { form.resetFields(); setEditing(undefined); }} onOk={() => form.submit()} confirmLoading={save.isPending} destroyOnHidden>
+    <Modal aria-label={editing ? "编辑帐号" : "新增帐号"} title={<span id="account-editor-title">{editing ? "编辑帐号" : "新增帐号"}</span>} open={editing !== undefined} onCancel={() => { form.resetFields(); setEditing(undefined); }} onOk={() => form.submit()} confirmLoading={save.isPending} destroyOnHidden>
       <Form form={form} layout="vertical" autoComplete="off" onFinish={(values) => save.mutate(values)}>
         <Form.Item name="label" label="名称"><Input maxLength={100} /></Form.Item>
         <Form.Item name="username" label="用户名"><Input maxLength={500} autoComplete="off" /></Form.Item>

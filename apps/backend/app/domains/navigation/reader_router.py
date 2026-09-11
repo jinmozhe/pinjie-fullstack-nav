@@ -27,7 +27,7 @@ from .reader_schemas import (
 router = APIRouter(tags=["导航查阅认证"])
 
 
-@router.get("/navigation/auth-config", response_model=ResponseModel[ReaderConfigRead])
+@router.get("/navigation/auth-config", response_model=ResponseModel[ReaderConfigRead], summary="获取导航查阅配置")
 async def reader_config(request: Request) -> ResponseModel[ReaderConfigRead]:
     return success_response(
         data=ReaderConfigRead(
@@ -40,6 +40,7 @@ async def reader_config(request: Request) -> ResponseModel[ReaderConfigRead]:
 @router.post(
     "/admin/nav-reader/authorize",
     response_model=ResponseModel[ReaderAuthorizationRead],
+    summary="授权导航查阅会话",
     dependencies=[Depends(require_admin_csrf), Depends(require_permission(PermissionCode.NAVIGATION_CREDENTIALS_READ))],
 )
 async def authorize_reader(
@@ -56,7 +57,10 @@ async def authorize_reader(
 
 
 @router.post(
-    "/nav-reader/exchange", response_model=ResponseModel[ReaderIdentityRead], dependencies=[Depends(require_web_origin)]
+    "/nav-reader/exchange",
+    response_model=ResponseModel[ReaderIdentityRead],
+    dependencies=[Depends(require_web_origin)],
+    summary="交换导航查阅凭证",
 )
 async def exchange_reader(
     payload: ReaderExchangeIn, service: ReaderServiceDependency, request: Request, response: Response
@@ -77,13 +81,18 @@ async def exchange_reader(
     return success_response(data=identity, request_id=current_request_id())
 
 
-@router.get("/nav-reader/me", response_model=ResponseModel[ReaderIdentityRead])
+@router.get("/nav-reader/me", response_model=ResponseModel[ReaderIdentityRead], summary="获取当前查阅身份")
 async def reader_me(current: CurrentReaderDependency, response: Response) -> ResponseModel[ReaderIdentityRead]:
     response.headers["Cache-Control"] = "no-store"
     return success_response(data=current, request_id=current_request_id())
 
 
-@router.post("/nav-reader/logout", response_model=ResponseModel[None], dependencies=[Depends(require_web_origin)])
+@router.post(
+    "/nav-reader/logout",
+    response_model=ResponseModel[None],
+    dependencies=[Depends(require_web_origin)],
+    summary="退出导航查阅会话",
+)
 async def logout_reader(service: ReaderServiceDependency, request: Request, response: Response) -> ResponseModel[None]:
     await service.logout(request.cookies.get(READER_COOKIE), request.headers.get("x-csrf-token"))
     for name in [READER_COOKIE, READER_CSRF_COOKIE]:

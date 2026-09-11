@@ -129,6 +129,7 @@ def _asset_delete_service(*, storage: AsyncMock, assets: list[SimpleNamespace]) 
         get_many=AsyncMock(return_value=assets),
         delete=AsyncMock(),
         is_referenced_by_avatar=AsyncMock(return_value=False),
+        is_referenced_by_navigation=AsyncMock(return_value=False),
     )
     return service
 
