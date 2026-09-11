@@ -1,4 +1,15 @@
-# ADR 0007 / NAV-004 / NAV-007: 允许导航站点分类为空，管理端站点列表及单站点响应中的分类字段扩展为 nullable
-.*GET /api/v1/admin/navigation/sites.*category.*
-.*POST /api/v1/admin/navigation/sites.*category.*
-.*PUT /api/v1/admin/navigation/sites.*category.*
+GET /api/v1/admin/navigation/sites response property `data/items/items/category_id` list-of-types was widened by adding types `null` to media type `application/json` of response `200`
+GET /api/v1/admin/navigation/sites the `data/items/items/category` response's property `type` changed from `object` to `any` for status `200`
+GET /api/v1/admin/navigation/sites removed the required property `data/items/items/category/id` from the response with the `200` status
+GET /api/v1/admin/navigation/sites removed the required property `data/items/items/category/name` from the response with the `200` status
+GET /api/v1/admin/navigation/sites removed the required property `data/items/items/category/requires_login` from the response with the `200` status
+POST /api/v1/admin/navigation/sites response property `data/category_id` list-of-types was widened by adding types `null` to media type `application/json` of response `200`
+POST /api/v1/admin/navigation/sites the `data/category` response's property `type` changed from `object` to `any` for status `200`
+POST /api/v1/admin/navigation/sites removed the required property `data/category/id` from the response with the `200` status
+POST /api/v1/admin/navigation/sites removed the required property `data/category/name` from the response with the `200` status
+POST /api/v1/admin/navigation/sites removed the required property `data/category/requires_login` from the response with the `200` status
+PUT /api/v1/admin/navigation/sites/{id} response property `data/category_id` list-of-types was widened by adding types `null` to media type `application/json` of response `200`
+PUT /api/v1/admin/navigation/sites/{id} the `data/category` response's property `type` changed from `object` to `any` for status `200`
+PUT /api/v1/admin/navigation/sites/{id} removed the required property `data/category/id` from the response with the `200` status
+PUT /api/v1/admin/navigation/sites/{id} removed the required property `data/category/name` from the response with the `200` status
+PUT /api/v1/admin/navigation/sites/{id} removed the required property `data/category/requires_login` from the response with the `200` status
