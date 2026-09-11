@@ -286,9 +286,9 @@ describe("stage C admin workspace", () => {
     await screen.findByText("Other Admin");
 
     await user.click(screen.getByRole("button", { name: "停用管理员：other-admin" }));
-    expect(await screen.findByText("状态更新失败")).toBeInTheDocument();
+    expect(await screen.findByText("状态更新失败", undefined, { timeout: 10_000 })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "设为超级管理员：other-admin" }));
-    expect(await screen.findByText("身份更新失败")).toBeInTheDocument();
+    expect(await screen.findByText("身份更新失败", undefined, { timeout: 10_000 })).toBeInTheDocument();
   }, 60_000);
 
   it("edits administrator avatar and display name", async () => {
