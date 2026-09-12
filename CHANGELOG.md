@@ -6,6 +6,8 @@
 
 ### Added
 
+- 修复 CNB 三端构建在 TCR 个人版缓存导出阶段被取消的问题：继续尝试读取已有 `buildcache-main`，移除可选缓存导出，确保候选镜像推送后可以进入扫描、不可变标签和发布证据阶段。
+
 - 增加 `Inspect CNB Release` 人工只读诊断入口，按完整源码 SHA 查询固定 Nav 仓库的构建与阶段状态，复用原受保护环境且不触发发布；诊断成功不能代替 TCR 镜像 digest 核验。
 
 - 将 Nav 生产镜像发布边界切换到 `pjwl/pinjie-fullstack-nav`、共享 `pjwl/pinjie-fullstack-base-secrets` 和 TCR `pinjie-fullstack-base` namespace 下的 `pinjie-nav-backend`、`pinjie-nav-web`、`pinjie-nav-admin`；同步 CNB/TCR 证据校验、扫描映射、Compose 项目名与 Backend 默认项目标识。CNB 构建、TCR 推送和 1Panel 部署未执行。
