@@ -169,7 +169,6 @@ build_candidate() {
     --label "org.opencontainers.image.created=$commit_time" \
     --label "org.opencontainers.image.source=$EXPECTED_SOURCE_REPOSITORY" \
     --cache-from "type=registry,ref=$cache_ref" \
-    --cache-to "type=registry,ref=$cache_ref,mode=max" \
     --output "type=image,name=$candidate_ref,push=true,name-canonical=true" \
     --metadata-file "$metadata_file" \
     .
