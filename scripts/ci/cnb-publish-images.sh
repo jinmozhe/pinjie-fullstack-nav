@@ -170,29 +170,37 @@ build_candidate() {
     --metadata-file "$metadata_file" \
     .
 
-  digest="$(jq -er '."containerimage.digest"' "$metadata_file")"
-  [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+  digest="$(jq -er '."containerimage.digest"' "$metadata_file")" ||
+    fail_validation "Build metadata does not contain containerimage.digest."
+  [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] ||
+    fail_validation "Build metadata digest has an invalid format."
   actual="$(docker buildx imagetools inspect "$candidate_ref" |
-    awk '$1 == "Digest:" { print $2; exit }')"
-  [[ "$actual" == "$digest" ]]
+    awk '$1 == "Digest:" { print $2; exit }')" || true
+  [[ "$actual" == "$digest" ]] ||
+    fail_validation "Candidate digest mismatch: metadata=$digest registry=$actual."
   jq -e \
     '(."buildx.build.provenance".buildType | type == "string" and length > 0)' \
-    "$metadata_file" >/dev/null
+    "$metadata_file" >/dev/null ||
+    fail_validation "Build metadata is missing provenance buildType."
 
-  docker buildx imagetools inspect "$image_ref@$digest" --raw > "$image_index_file"
+  docker buildx imagetools inspect "$image_ref@$digest" --raw > "$image_index_file" ||
+    fail_validation "Registry manifest inspection failed for digest $digest."
   jq -e \
     '(.manifests | type == "array") and (.manifests | any(.annotations["vnd.docker.reference.type"] == "attestation-manifest"))' \
-    "$image_index_file" >/dev/null
+    "$image_index_file" >/dev/null ||
+    fail_validation "Registry manifest is missing an attestation manifest."
   docker buildx imagetools inspect "$image_ref@$digest" \
-    --format '{{json .Image}}' > "$image_config_file"
+    --format '{{json .Image}}' > "$image_config_file" ||
+    fail_validation "Registry image config inspection failed for digest $digest."
   jq -e \
     --arg revision "$CNB_COMMIT" \
     --arg created "$commit_time" \
     --arg source "$EXPECTED_SOURCE_REPOSITORY" \
-    '.config.Labels["org.opencontainers.image.revision"] == $revision and
-     .config.Labels["org.opencontainers.image.created"] == $created and
-     .config.Labels["org.opencontainers.image.source"] == $source' \
-    "$image_config_file" >/dev/null
+     '.config.Labels["org.opencontainers.image.revision"] == $revision and
+      .config.Labels["org.opencontainers.image.created"] == $created and
+      .config.Labels["org.opencontainers.image.source"] == $source' \
+    "$image_config_file" >/dev/null ||
+    fail_validation "Registry image labels do not match the requested source commit."
   printf '%s\n' "$digest" > "$EVIDENCE_ROOT/$IMAGE_KEY-digest.txt"
 }
 
