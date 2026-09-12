@@ -58,13 +58,25 @@ jobs:
             }
             return response.json();
           }
+          function unwrap(payload) {
+            const candidates = [payload, payload?.data, payload?.result];
+            return candidates.find(candidate => candidate && typeof candidate === 'object') ?? payload;
+          }
+          function buildHistory(payload) {
+            const candidates = [payload, payload?.data, payload?.result, payload?.data?.data, payload?.result?.data];
+            for (const candidate of candidates) {
+              if (Array.isArray(candidate)) return { data: candidate, total: candidate.length };
+              if (candidate && Array.isArray(candidate.data) && Number.isInteger(candidate.total)) {
+                return { data: candidate.data, total: candidate.total };
+              }
+            }
+            throw new Error(`Invalid CNB build history response shape: ${JSON.stringify({ topLevel: Object.keys(payload ?? {}), dataType: typeof payload?.data, dataKeys: Object.keys(payload?.data ?? {}) })}`);
+          }
           const builds = [];
           for (let page = 1; ; page++) {
             if (page > 20) throw new Error('Build history exceeds bounded query limit.');
-            const result = await read(`logs?sha=${sha}&page=${page}&page_size=100`);
-            if (!Array.isArray(result.data) || !Number.isInteger(result.total) || result.total < 0) {
-              throw new Error('Invalid CNB build history response.');
-            }
+            const result = buildHistory(await read(`logs?sha=${sha}&page=${page}&page_size=100`));
+            if (result.total < 0) throw new Error('Invalid CNB build history total.');
             builds.push(...result.data);
             if (builds.length >= result.total) break;
             if (result.data.length === 0) throw new Error('Incomplete CNB build history.');
@@ -75,7 +87,7 @@ jobs:
             if (build.sha !== sha || build.slug !== repository || !/^[a-zA-Z0-9_-]+$/.test(build.sn)) {
               throw new Error('CNB build identity does not match the requested release.');
             }
-            const detail = await read(`status/${encodeURIComponent(build.sn)}`);
+            const detail = unwrap(await read(`status/${encodeURIComponent(build.sn)}`));
             if (!detail.pipelinesStatus || typeof detail.pipelinesStatus !== 'object') {
               throw new Error('Missing CNB pipeline status.');
             }

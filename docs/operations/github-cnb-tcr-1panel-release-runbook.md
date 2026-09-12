@@ -53,6 +53,137 @@ Git Commit SHA 用于追溯源码，TCR `sha-<Commit SHA>` 标签用于查找镜
 
 根 `.env` 保存 Compose 使用的三张镜像引用和 Web 公开 Origin。`apps/backend/.env` 保存 Backend 运行配置。真实密码、Token 和完整连接串不得进入 Git、GitHub 日志、CNB 日志或操作记录。
 
+### 2.1 CNB 与 TCR 访问配置操作顺序
+
+当 CNB 诊断返回 `403`、本机 TCR 查询返回 `unauthorized` 时，按下面顺序恢复查询能力。仅处理访问配置时，完成本节即可，后面的源码交接、镜像构建和 1Panel 部署各自按发布授权执行。
+
+1. 按第 2.2 节检查 CNB Token 的仓库范围和权限。
+2. Token 值发生变化时，按第 2.3 节更新 GitHub Environment Secret。
+3. 按第 2.4 节运行只读诊断，确认 CNB 查询权限。
+4. 按第 2.5 节完成本机 TCR 只读登录及三张镜像清单查询。
+5. 按第 2.6 节记录结果，交给后续发布核验。
+
+操作前核对以下目标，避免进入母版仓库或选错凭据：
+
+| 项目 | 应使用的值或入口 |
+| --- | --- |
+| CNB 源仓库 | [Nav 仓库](https://cnb.cool/pjwl/pinjie-fullstack-nav) |
+| CNB Token 管理 | [个人访问令牌](https://cnb.cool/profile/token) |
+| GitHub 仓库 | [Nav GitHub 仓库](https://github.com/jinmozhe/pinjie-fullstack-nav) |
+| GitHub Environment | `cnb-source-handoff` |
+| GitHub Environment Secret | `CNB_PUSH_TOKEN` |
+| TCR Registry | `ccr.ccs.tencentyun.com` |
+| TCR namespace | `pinjie-fullstack-base`，这是 Nav 当前沿用的命名空间 |
+| 三个镜像仓库 | `pinjie-nav-backend`、`pinjie-nav-web`、`pinjie-nav-admin` |
+| 本机拉取身份 | 有上述三仓只读权限的 `tcr-puller` CAM 子用户 |
+
+CNB Token 用于 GitHub 访问 CNB。TCR 固定密码用于 Docker 访问腾讯云镜像仓库。两者分别设置，不能互相代用，也无需写入项目 `.env`。
+
+### 2.2 配置 CNB 访问令牌
+
+#### 打开并核对原 Token
+
+1. 登录 [CNB](https://cnb.cool/)，使用对 Nav 仓库具有相应权限的账号。
+2. 打开 Nav 仓库，确认能看到 `pjwl/pinjie-fullstack-nav` 的代码和构建记录。
+3. 打开头像下的“个人设置”，进入“访问令牌”；也可使用第 2.1 节的直达链接。
+4. 找到此前供 GitHub 源码交接使用的 Token，查看名称、有效期、使用范围和授权范围。GitHub 无法显示已保存的 Secret 原值，不能通过 GitHub 反查 Token 内容。
+5. 核对该 Token 是否还供母版或其他工作流使用。不要直接撤销共享 Token，也不要删除其他仍在使用的仓库授权。
+
+需要满足的权限如下：
+
+| 用途 | 权限要求 | 为什么需要 |
+| --- | --- | --- |
+| 读取及推送源码 | 保留原交接 Token 对 Nav 仓库内容的读取、推送权限 | `Handoff Source to CNB` 仍使用同一个 Secret |
+| 查询构建列表 | `repo-cnb-history:r` | 按源码 SHA 查找构建记录 |
+| 查询构建和阶段状态 | `repo-cnb-trigger:r` | 读取每个 Pipeline 的状态及阶段详情 |
+| 私有资源访问 | 使用范围包含 Nav 所在的私有仓库类型，并授权 Nav 目标资源 | CNB Token 默认不具有私有仓库访问权限 |
+
+`repo-cnb-trigger:r` 是这里需要的读取权限。当前诊断入口只发送 GET 请求，不需要为它增加构建触发写权限、仓库管理权限或密钥仓库访问权限。
+
+#### 修改现有 Token 或创建替代 Token
+
+CNB 官方文档确认了“个人设置 → 访问令牌 → 添加访问令牌”的创建路径；已有 Token 的权限编辑按钮及中文分组名称未经过当前控制台实测，置信度较低。若页面没有明确的权限编辑入口，使用下面的替代 Token 流程，不依赖猜测的按钮。
+
+1. 点击“添加访问令牌”。
+2. 名称建议填写 `github-nav-handoff-inspect`，与旧 Token 区分。
+3. 设置有效期，例如 30 天，并在密码管理器记录到期日。实际期限按维护安排选择，不将永久有效作为默认。
+4. 在“使用范围”中确认覆盖 Nav 所属仓库类型；页面提供组织或仓库限制时，将新 Token 限定到 `pjwl/pinjie-fullstack-nav`。不要勾选与本次用途无关的组织或仓库。
+5. 在“授权范围”中保留源码交接需要的仓库内容读取、推送权限，再加入上表两项构建读取权限。可使用页面搜索查找权限标识；不要只选“公开仓库只读”或默认权限。
+6. 若通过“常见场景”初始化权限，继续展开核对最终权限清单，避免场景模板遗漏构建读取权限或加入多余权限。
+7. 核对名称、到期日、资源范围与权限后创建 Token。
+8. 将新 Token 保存到受控密码管理器，然后按第 2.3 节更新 GitHub。不要放入聊天、截图、文档、命令参数或代码仓库。
+9. 暂时保留旧 Token 以便恢复。只读诊断验证后，还需确认新 Token 保留源码交接能力、旧 Token 没有其他使用方，再按凭据轮换流程停用旧 Token。无需为了验证 Token 创建空提交或强行推送。
+
+如果页面支持直接修改原 Token 权限，按同一张权限表添加并保存。只有平台实际产生了新 Token 值时才需要更新 GitHub Secret；值没有变化时可以直接进入第 2.4 节。
+
+### 2.3 更新 GitHub Environment Secret
+
+1. 打开 [Nav 仓库设置](https://github.com/jinmozhe/pinjie-fullstack-nav/settings)。
+2. 在左侧选择 `Environments`，打开已有的 `cnb-source-handoff`。
+3. 找到 `Environment secrets` 区域中的 `CNB_PUSH_TOKEN`。
+4. 点击该 Secret 对应的编辑或更新入口。若确实没有该项，点击 `Add environment secret` 或 `Add secret`，名称填写 `CNB_PUSH_TOKEN`。
+5. 在值输入框粘贴刚创建的 CNB Token 原值，不加引号、不加 `Bearer` 前缀、不写 `CNB_PUSH_TOKEN=`，避免首尾空格和换行。
+6. 保存更新。预期能在 Environment secrets 列表看到 `CNB_PUSH_TOKEN`；界面不回显真实值属于正常行为。
+7. 核对现有 Environment 或仓库 Variables 中的下列配置。若 Environment 中没有对应项，检查 `Settings → Secrets and variables → Actions → Variables` 的仓库变量，不要盲目新建同名覆盖值。
+
+| Variable 名称 | 预期值 |
+| --- | --- |
+| `CNB_REPOSITORY_URL` | `https://cnb.cool/pjwl/pinjie-fullstack-nav` |
+| `CNB_RELEASE_BRANCH` | `main` |
+| `CNB_PUSH_USERNAME` | `cnb` |
+
+这里必须更新 `cnb-source-handoff` 的 Environment Secret。仅在仓库 Secrets 中添加同名项，可能仍被 Environment 中的旧值覆盖。Token 不能存入明文 Variables。
+
+若看不到 `Settings`、`Environments` 或更新按钮，先确认正在使用具有仓库管理权限的 GitHub 账号。不要通过新建公开变量、输出 Secret 或取消 Environment 保护来继续。
+
+### 2.4 验证 CNB 查询权限
+
+1. 打开 [Inspect CNB Release 工作流](https://github.com/jinmozhe/pinjie-fullstack-nav/actions/workflows/inspect-cnb-release.yml)。
+2. 点击 `Run workflow`，分支选择 `main`。
+3. 在 `commit_sha` 中填写需要核验的完整 40 位镜像源码 SHA。当前核验版本见 [CNB 镜像发布核验计划](../../plans/2026-09-12_CNB镜像发布核验计划.md)的“目标版本”。不要将仅修改文档的最新 GitHub SHA 自动当作已构建镜像的 SHA。
+4. 点击确认运行，打开刚生成的 Run。
+5. 如果出现 Environment 人工审批提示，由有权限的维护者按原审批流程处理，不删除保护规则。
+6. 打开 `Read CNB pipeline status` Job，检查 `Require default branch and fixed source repository` 和 `Query builds and pipeline stages`。
+7. 两步均成功且日志输出目标 SHA、构建号 `sn`、Pipeline 名称及阶段状态时，说明 CNB 查询入口已经可用。
+8. 继续查看输出 JSON 中每条 Pipeline 的 `status`。诊断 Run 绿色仅表示查询完成；Pipeline 中的 `error`、`pending` 或 `cancel` 仍需继续处理。
+
+| 结果 | 含义及下一步 |
+| --- | --- |
+| HTTP 401 | 核对 Token 是否过期、值是否完整、Environment Secret 是否更新正确 |
+| HTTP 403 | 核对 Token 本身的授权范围、Nav 私有仓库使用范围和账号对仓库的权限；不能仅凭 403 断定是哪一个选项缺失 |
+| `No CNB builds found` | API 已返回可读取的数据，但该 SHA 没有构建记录；核对输入 SHA 与 CNB 历史，暂不反复修改 Token |
+| 固定仓库校验失败 | 核对第 2.3 节 Variables、工作流分支和当前 GitHub 仓库 |
+| 网络或 DNS 错误 | 保存 Run 链接和错误；先检查网络或服务状态，不修改 Token 权限 |
+| 查询成功，Pipeline 失败 | 权限设置已能支持查询，转入对应构建失败阶段的诊断 |
+
+### 2.5 完成本机 TCR 只读登录
+
+在运行 Codex 的 Windows 电脑上，使用同一个 Windows 用户执行操作。只在云服务器登录 TCR，不会让这台电脑自动获得凭据；登录 Docker Hub 也不等于登录 TCR。
+
+按 [TCR 手册第 10.4 节：Windows 本机只读登录与镜像查询](tencent-tcr-personal-cam-accounts.md#104-windows-本机只读登录与镜像查询)完成以下三件事：
+
+1. 确认 `tcr-puller` 拥有 Nav 三仓只读权限，并取得其实际 Registry 用户名及 TCR 固定密码。
+2. 在普通 PowerShell 交互式运行 `docker login`，确认显示 `Login Succeeded`。
+3. 按目标源码 SHA 查询 Backend、Web 和 Admin 镜像清单，分别记录镜像引用、完整 digest 或准确错误。
+
+完整 CAM 策略、账号创建和凭据初始化继续由 TCR 手册维护，不在这里复制第二份策略。已有可用固定密码时直接使用；密码重置会影响同一 CAM 身份的其他使用位置。
+
+### 2.6 设置完成后提供哪些结果
+
+只需记录或反馈下面这些非秘密信息：
+
+```text
+CNB Token：已添加两项构建读取权限，原源码交接权限保留
+GitHub Secret：已更新 / Token 值未变，无需更新
+Inspect CNB Release：Run 链接及成功或失败状态
+本机 TCR 登录：Login Succeeded / 原始错误类型
+Backend、Web、Admin 镜像查询：各自 digest 或原始错误类型
+```
+
+无需提供 Token、TCR 密码、Docker 配置文件、密码管理器内容或包含凭据的截图。配置完成后由发布核验继续检查 CNB 失败阶段、镜像证据和 TCR digest；本节不要求启动应用容器或修改生产编排。
+
+本节的 Token 创建、GitHub Environment Secret 和 Docker 登录步骤依据 [CNB 访问令牌说明](https://docs.cnb.cool/en/guide/access-token.html)、[CNB Git 认证说明](https://docs.cnb.cool/en/guide/git-access.html)、[GitHub Secrets 官方说明](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)及 [Docker login 官方说明](https://docs.docker.com/reference/cli/docker/login/)，于 2026-09-12 查阅。两项构建读取权限依据同日读取的 [CNB OpenAPI 定义](https://api.cnb.cool/swagger.json)。控制台按钮如有差异，以官方当前页面为准。
+
 ## 3. 确认目标 Commit SHA
 
 在 GitHub 仓库中执行：
