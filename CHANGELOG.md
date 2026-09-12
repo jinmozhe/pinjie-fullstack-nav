@@ -6,6 +6,8 @@
 
 ### Added
 
+- 增加 `Inspect CNB Release` 人工只读诊断入口，按完整源码 SHA 查询固定 Nav 仓库的构建与阶段状态，复用原受保护环境且不触发发布；诊断成功不能代替 TCR 镜像 digest 核验。
+
 - 将 Nav 生产镜像发布边界切换到 `pjwl/pinjie-fullstack-nav`、共享 `pjwl/pinjie-fullstack-base-secrets` 和 TCR `pinjie-fullstack-base` namespace 下的 `pinjie-nav-backend`、`pinjie-nav-web`、`pinjie-nav-admin`；同步 CNB/TCR 证据校验、扫描映射、Compose 项目名与 Backend 默认项目标识。CNB 构建、TCR 推送和 1Panel 部署未执行。
 
 - 允许 Admin 和管理 API 保存未分类站点，方便批量插入与后续补全；服务端拒绝未分类站点单条或批量发布及置顶。新增 `20260911_01` 迁移并同步 OpenAPI、生成客户端和回归测试源码；实际数据库迁移与重型验证未执行。

@@ -1,0 +1,96 @@
+name: Inspect CNB Release
+
+run-name: Inspect CNB release ${{ inputs.commit_sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: Full 40-character source commit SHA to inspect
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    name: Read CNB pipeline status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: cnb-source-handoff
+    steps:
+      - name: Require default branch and fixed source repository
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CNB_REPOSITORY_URL: ${{ vars.CNB_REPOSITORY_URL }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "jinmozhe/pinjie-fullstack-nav"
+          test "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH"
+          test "$CNB_REPOSITORY_URL" = "https://cnb.cool/pjwl/pinjie-fullstack-nav"
+          [[ "$COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+
+      - name: Query builds and pipeline stages
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CNB_PUSH_TOKEN: ${{ secrets.CNB_PUSH_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+
+          const sha = process.env.COMMIT_SHA;
+          const token = process.env.CNB_PUSH_TOKEN;
+          const repository = 'pjwl/pinjie-fullstack-nav';
+          if (!token || !/^[0-9a-f]{40}$/.test(sha)) {
+            throw new Error('Missing CNB credential or invalid source SHA.');
+          }
+          async function read(path) {
+            const response = await fetch(`https://api.cnb.cool/${repository}/-/build/${path}`, {
+              method: 'GET',
+              headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.cnb.api+json' },
+              redirect: 'error',
+              signal: AbortSignal.timeout(30000),
+            });
+            if (!response.ok) {
+              throw new Error(`CNB query returned HTTP ${response.status}; requires repo-cnb-history:r and repo-cnb-trigger:r on ${repository}.`);
+            }
+            return response.json();
+          }
+          const builds = [];
+          for (let page = 1; ; page++) {
+            if (page > 20) throw new Error('Build history exceeds bounded query limit.');
+            const result = await read(`logs?sha=${sha}&page=${page}&page_size=100`);
+            if (!Array.isArray(result.data) || !Number.isInteger(result.total) || result.total < 0) {
+              throw new Error('Invalid CNB build history response.');
+            }
+            builds.push(...result.data);
+            if (builds.length >= result.total) break;
+            if (result.data.length === 0) throw new Error('Incomplete CNB build history.');
+          }
+          if (builds.length === 0) throw new Error('No CNB builds found for the requested source SHA.');
+          const reports = [];
+          for (const build of builds) {
+            if (build.sha !== sha || build.slug !== repository || !/^[a-zA-Z0-9_-]+$/.test(build.sn)) {
+              throw new Error('CNB build identity does not match the requested release.');
+            }
+            const detail = await read(`status/${encodeURIComponent(build.sn)}`);
+            if (!detail.pipelinesStatus || typeof detail.pipelinesStatus !== 'object') {
+              throw new Error('Missing CNB pipeline status.');
+            }
+            const pipelines = Object.values(detail.pipelinesStatus).map(pipeline => {
+              if (!Array.isArray(pipeline.stages)) throw new Error('Missing CNB stage status.');
+              return {
+                id: pipeline.id, name: pipeline.name, status: pipeline.status,
+                stages: pipeline.stages.map(({ id, name, status }) => ({ id, name, status })),
+              };
+            });
+            if (pipelines.length === 0) throw new Error('CNB returned no pipeline details.');
+            reports.push({ sha, sn: build.sn, event: build.event, status: detail.status, pipelines });
+          }
+          const output = JSON.stringify(reports, null, 2);
+          console.log(output);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `CNB status query completed for ${sha}. This does not verify TCR image existence.\n\n<pre>${output.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}</pre>\n`);
+          NODE
