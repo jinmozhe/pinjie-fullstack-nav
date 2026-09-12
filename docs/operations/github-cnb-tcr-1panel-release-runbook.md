@@ -119,6 +119,10 @@ GitHub Handoff 成功只代表 CNB 收到源码。此时镜像可能仍在构建
 
 ## 7. 在 CNB 核对三端构建
 
+无法使用 CNB 控制台时，可在 GitHub Actions 人工运行 `Inspect CNB Release`，输入本次镜像发布的完整 SHA。该入口只从默认分支运行，复用 `cnb-source-handoff` Environment 的 `CNB_PUSH_TOKEN`，以固定目标的只读 GET 查询构建和阶段状态，不推送源码、不触发构建、不修改凭据。Token 需具备当前 Nav 仓库的 `repo-cnb-history:r`、`repo-cnb-trigger:r`，缺权时显式失败，由维护者处理授权。接口依据为 [CNB 官方 OpenAPI](https://api.cnb.cool/)。
+
+诊断 Run 成功只说明查询完成，仍需读取输出中的各 Pipeline 状态，并按第 8 节确认实际镜像 digest。仅增加诊断入口或修改文档时，可以核验较早的已批准镜像 SHA，无需为这些提交重新构建镜像。
+
 打开 CNB 仓库 `pjwl/pinjie-fullstack-nav` 的构建记录。`main` 收到 GitHub 交接后，根据实际变更路径自动触发：
 
 | Pipeline | 产物 |
