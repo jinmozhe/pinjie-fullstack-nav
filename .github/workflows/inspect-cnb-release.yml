@@ -99,7 +99,18 @@ jobs:
               };
             });
             if (pipelines.length === 0) throw new Error('CNB returned no pipeline details.');
-            reports.push({ sha, sn: build.sn, event: build.event, status: detail.status, pipelines });
+            const failureDetails = [];
+            for (const pipeline of pipelines) {
+              for (const stage of pipeline.stages.filter(candidate => candidate.status === 'error')) {
+                const stageDetail = unwrap(await read(`logs/stage/${encodeURIComponent(build.sn)}/${encodeURIComponent(pipeline.id)}/${encodeURIComponent(stage.id)}`));
+                failureDetails.push({
+                  pipeline: pipeline.name,
+                  stage: stage.name,
+                  error: typeof stageDetail.error === 'string' ? stageDetail.error : 'CNB did not provide a structured stage error.',
+                });
+              }
+            }
+            reports.push({ sha, sn: build.sn, event: build.event, status: detail.status, pipelines, failureDetails });
           }
           const output = JSON.stringify(reports, null, 2);
           console.log(output);
