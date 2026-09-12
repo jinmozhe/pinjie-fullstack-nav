@@ -96,11 +96,11 @@
 | [codex-windows-config-acl-governance.md](operations/codex-windows-config-acl-governance.md) | Codex Windows `config.toml`、默认联网、Schannel、GitHub CLI Keyring、`elevated + Custom`、ACL 诊断、验证、最小修复和回滚标准 |
 | [uv使用指南.md](operations/uv使用指南.md) | uv 原理、纯 uv 环境方案、常用命令和 conda 对比 |
 | [pnpm使用指南.md](operations/pnpm使用指南.md) | pnpm 存储机制、workspace 共享包、Markdown 检查等常用命令和 npm 对比 |
-| [github-cnb-tcr-1panel-release-runbook.md](operations/github-cnb-tcr-1panel-release-runbook.md) | 操作人员从 GitHub Actions 经 CNB、TCR 到 1Panel 完成首次部署、日常更新、验证和回滚的端到端手册 |
+| [github-cnb-tcr-1panel-release-runbook.md](operations/github-cnb-tcr-1panel-release-runbook.md) | CNB Token、GitHub Secret 与本机 TCR 访问配置，以及 GitHub Actions 经 CNB、TCR 到 1Panel 的发布、验证和回滚手册 |
 | [github-actions-workflows.md](operations/github-actions-workflows.md) | GitHub Actions 自动 CI、仅线上执行的 Security 扫描、人工镜像发布和生产部署说明与排障入口 |
 | [release-and-rollback.md](operations/release-and-rollback.md) | CI、镜像发布、生产部署和按固定 digest 回滚的操作边界 |
 | [container-build-and-run.md](operations/container-build-and-run.md) | 三个应用镜像构建、迁移与权限初始化、请求日志 Profile、生产 Compose 和健康验证 |
-| [tencent-tcr-personal-cam-accounts.md](operations/tencent-tcr-personal-cam-accounts.md) | 腾讯云 TCR 个人版发布与生产拉取身份隔离、CAM 三仓最小权限、凭证初始化、服务器登录、验证、轮换和排障步骤 |
+| [tencent-tcr-personal-cam-accounts.md](operations/tencent-tcr-personal-cam-accounts.md) | TCR 个人版身份隔离、CAM 三仓最小权限、凭据初始化、Windows 本机与服务器登录、镜像查询、轮换和排障步骤 |
 | [1panel-production-runbook.md](operations/1panel-production-runbook.md) | 1Panel 单机生产配置、迁移、OpenResty、日志、备份、恢复和回滚步骤 |
 | [database-backup-restore.md](operations/database-backup-restore.md) | 备份参数、本地恢复演练、生产恢复和数据库迁移保护步骤 |
 | [incident-response.md](operations/incident-response.md) | 事故分级、角色、止损、恢复验证、状态沟通和复盘步骤 |

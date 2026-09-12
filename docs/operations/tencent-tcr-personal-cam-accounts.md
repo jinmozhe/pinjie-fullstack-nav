@@ -343,8 +343,8 @@ Docker Registry 登录不需要 `SecretId` 和 `SecretKey`。不要因为创建�
 3. 打开[TCR 控制台](https://console.cloud.tencent.com/tcr)。
 4. 进入个人版实例。
 5. 如果页面显示“登录实例”，按页面提示初始化。
-6. 如果已经初始化，选择个人版实例的“更多 > 重置登录密码”。
-7. 设置独立、高强度的 TCR 固定密码。
+6. 如果已经初始化且受控密码管理器中保存了可用固定密码，直接使用并跳到第 8 步。只有密码遗失、失效或计划轮换时，才选择个人版实例的“更多 > 重置登录密码”。
+7. 需要初始化或重置时，设置独立、高强度的 TCR 固定密码。重置前盘点同一 CAM 身份在其他地域、服务器和自动化中的使用位置，安排同步更新。
 8. 记录控制台展示的完整 `docker login` 命令中的实际用户名。
 9. 将 TCR 用户名和固定密码保存到受控密码管理器。
 
@@ -415,6 +415,92 @@ docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256
 ```
 
 每条命令必须显示拉取成功，最终 digest 必须与对应发布证据一致。
+
+### 10.4 Windows 本机只读登录与镜像查询
+
+本节用于让本机 Docker 和同机的授权工具查询 Nav 镜像。操作在运行 Codex 的 Windows 电脑上完成，不需要连接生产服务器，也不启动项目容器。Linux 服务器登录与本机登录分别保存凭据。
+
+#### 准备只读身份与正确密码
+
+1. 确认已有 `tcr-puller` CAM 子用户。没有时，由腾讯云主账号维护者按[第 8 节](#8-创建-tcr-puller-的完整步骤)创建，不把发布账号 `tcr-publisher` 用作本机只读账号。
+2. 在 [CAM 控制台](https://console.cloud.tencent.com/cam)进入“用户 → 用户列表”，找到 `tcr-puller`，检查已关联策略及用户组的有效权限。
+3. 按[第 7.2 节](#72-tcr-puller-三仓只读策略)核对三仓资源和 `tcr:PullRepositoryPersonal`、`tcr:DescribeImagePersonal`。仓库名必须为 `pinjie-nav-backend`、`pinjie-nav-web`、`pinjie-nav-admin`，命名空间保持 `pinjie-fullstack-base`。
+4. 如果账号也供其他项目使用，先盘点现有授权。保留其他项目已确认的只读权限，只补 Nav 的目标资源，不用整份模板覆盖共享策略。不要附加管理员权限或 `QcloudTCRFullAccess`。
+5. 使用独立浏览器会话登录 `tcr-puller`，打开 [TCR 控制台](https://console.cloud.tencent.com/tcr)，进入“实例管理”中的个人版实例，选择 Nav 镜像所在地域。
+6. 找到“登录实例”或页面提供的 Docker 登录指引，取得该身份对应的实际 Registry 用户名。页面入口如有调整，以当前个人版页面为准；不能把 CAM 用户名 `tcr-puller`、邮箱或猜测的账号 ID 直接填入命令。
+7. 从受控密码管理器取得该身份的 TCR 个人版固定密码。它与 CAM 网页登录密码不同，也不使用 `SecretId`、`SecretKey` 或 CNB Token。
+8. 尚未初始化或确需重置固定密码时，按[第 9 节](#9-初始化-tcr-个人版登录凭证)执行。已有可用密码时不重置，个人版密码全地域一致，重置会影响其他使用方。
+
+#### 在普通 PowerShell 中登录
+
+1. 打开 Docker Desktop，确认其正常启动。
+2. 从 Windows 开始菜单打开普通 PowerShell，使用运行 Codex 的同一个 Windows 用户。通常无需“以管理员身份运行”，也不要切换到另一账号。
+3. 执行以下命令，检查当前身份和 Docker CLI。输出不包含密码：
+
+   ```powershell
+   whoami
+   docker --version
+   ```
+
+4. 执行以下命令，在第一个提示中输入 TCR 控制台展示的 Registry 用户名：
+
+   ```powershell
+   $tcrReadOnlyUsername = Read-Host '请输入 TCR 控制台展示的 Registry 用户名'
+   docker login ccr.ccs.tencentyun.com --username "$tcrReadOnlyUsername"
+   ```
+
+5. 出现 `Password:` 时，粘贴 TCR 固定密码并按回车。密码不显示明文属于正常行为。不要使用 `--password 密码`，不要先将密码赋值到 PowerShell 明文变量，也不要把它发给 Codex。
+6. 预期输出为 `Login Succeeded`。登录会更新当前用户针对 `ccr.ccs.tencentyun.com` 的本机凭据；如果本机此前使用另一个 TCR 身份，后续本机 Registry 操作将改用这里的身份。
+7. 登录 Docker Hub 的网页账号不会替代这一步。Docker Desktop 默认通过操作系统凭据存储保存登录信息，保留现有 Credential Helper 配置，不读取或复制 `.docker/config.json` 内容。
+
+出现 `docker` 命令找不到时，确认 Docker Desktop 已安装并重新打开 PowerShell。登录返回 `unauthorized` 时先检查用户名、固定密码和身份，再检查权限，不重复重置密码或放开全部仓库权限。
+
+#### 查询三张镜像并记录完整 digest
+
+登录成功只能证明 Registry 接受该身份。接下来按目标源码 SHA 查询每个仓库，验证仓库权限及对应镜像是否存在。
+
+1. 从 [CNB 镜像发布核验计划](../../plans/2026-09-12_CNB镜像发布核验计划.md)的“目标版本”复制完整 40 位源码 SHA。
+2. 执行下面整段 PowerShell，在提示处粘贴 SHA。该脚本只查询镜像清单，不下载镜像层、不推送镜像，也不创建容器：
+
+   ```powershell
+   $releaseCommitSha = Read-Host '请输入本次镜像的完整 40 位源码 SHA'
+   if ($releaseCommitSha -cnotmatch '^[0-9a-f]{40}$') {
+     throw '源码 SHA 必须是 40 位小写十六进制字符。'
+   }
+   docker buildx version
+   if ($LASTEXITCODE -ne 0) {
+     throw 'Docker Buildx 不可用，请检查 Docker Desktop 安装。'
+   }
+   $failedImageRepositories = @()
+   foreach ($imageRepository in @('pinjie-nav-backend', 'pinjie-nav-web', 'pinjie-nav-admin')) {
+     $imageReference = "ccr.ccs.tencentyun.com/pinjie-fullstack-base/${imageRepository}:sha-${releaseCommitSha}"
+     Write-Host "查询镜像：$imageReference"
+     docker buildx imagetools inspect "$imageReference"
+     if ($LASTEXITCODE -ne 0) {
+       $failedImageRepositories += $imageRepository
+     }
+   }
+   if ($failedImageRepositories.Count -gt 0) {
+     throw "以下镜像查询失败：$($failedImageRepositories -join ', ')。请保留各自错误输出。"
+   }
+   ```
+
+3. 分别记录每次输出最上层的 `Name:`、`MediaType:` 和 `Digest:`。需要保存完整 `sha256:` 后的 64 位摘要，不截断，不把源码 SHA 当成 digest。
+4. 输出包含多个 `Manifests` 时，以最上层镜像索引的 `Digest:` 为主；子清单 digest 属于平台镜像或 attestation，不能随意代替发布清单中的顶层 digest。
+5. 后续与 CNB 单镜像发布清单的 `image.reference` 对照，要求同仓库、同源码版本且 digest 一致。正式部署使用 `仓库@sha256:完整摘要`，本节的 SHA 标签仅用于查询。
+
+| 查询结果 | 如何处理 |
+| --- | --- |
+| 三仓均输出完整 digest | 保存输出，与 CNB 发布证据继续交叉核验 |
+| `unauthorized` | 核对是否在同一 Windows 用户下登录、是否为同一 Registry，以及固定密码是否已轮换 |
+| `denied` 或提示无资源访问权 | 检查该 CAM 身份对失败的 Nav 仓库是否有第 7.2 节的只读权限 |
+| `manifest unknown` 或 `not found` | 在登录和资源权限确认后，核对源码 SHA、仓库名及 CNB 是否已发布 SHA 标签；不要用 `candidate-*` 或 `buildcache-main` 充当正式镜像 |
+| 网络、DNS 或超时错误 | 保存准确错误并检查网络，不据此判断密码或镜像不存在 |
+| 人工查询成功，但 Codex 沙箱报凭据拒绝 | 告知人工查询成功；按项目规则让 Codex 对准确只读命令申请宿主执行，不改文件 ACL 或导出凭据 |
+
+三仓查询失败时也保留每个仓库的结果，成功的查询不能覆盖其他仓库的失败。无需执行 `docker pull`、`docker run`、Compose 或生产更新来证明清单可读取。
+
+可反馈的信息仅包括 `Login Succeeded`、所用源码 SHA、三张镜像的完整引用与 digest、错误类型；不提供密码、Token、Credential Helper 内容或 Docker 配置文件。
 
 ## 11. 权限验收
 
