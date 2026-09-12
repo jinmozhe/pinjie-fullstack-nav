@@ -74,11 +74,10 @@ jobs:
           }
           function safeStageContent(stageDetail) {
             if (!Array.isArray(stageDetail.content)) return '';
-            const relevant = /build|buildx|docker|login|push|pull|registry|repository|denied|unauthorized|forbidden|error|fail|not found/i;
             const sensitive = /password|passwd|token|secret|authorization|bearer|credential/i;
             return stageDetail.content
-              .filter(line => typeof line === 'string' && relevant.test(line) && !sensitive.test(line))
-              .slice(-20)
+              .filter(line => typeof line === 'string' && !sensitive.test(line))
+              .slice(-40)
               .map(line => line.slice(0, 500))
               .join('\n');
           }
