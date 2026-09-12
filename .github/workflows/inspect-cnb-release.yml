@@ -72,6 +72,16 @@ jobs:
             }
             throw new Error(`Invalid CNB build history response shape: ${JSON.stringify({ topLevel: Object.keys(payload ?? {}), dataType: typeof payload?.data, dataKeys: Object.keys(payload?.data ?? {}) })}`);
           }
+          function safeStageContent(stageDetail) {
+            if (!Array.isArray(stageDetail.content)) return '';
+            const relevant = /build|buildx|docker|login|push|pull|registry|repository|denied|unauthorized|forbidden|error|fail|not found/i;
+            const sensitive = /password|passwd|token|secret|authorization|bearer|credential/i;
+            return stageDetail.content
+              .filter(line => typeof line === 'string' && relevant.test(line) && !sensitive.test(line))
+              .slice(-20)
+              .map(line => line.slice(0, 500))
+              .join('\n');
+          }
           const builds = [];
           for (let page = 1; ; page++) {
             if (page > 20) throw new Error('Build history exceeds bounded query limit.');
@@ -106,7 +116,10 @@ jobs:
                 failureDetails.push({
                   pipeline: pipeline.name,
                   stage: stage.name,
-                  error: typeof stageDetail.error === 'string' ? stageDetail.error : 'CNB did not provide a structured stage error.',
+                  error: [
+                    typeof stageDetail.error === 'string' ? stageDetail.error : 'CNB did not provide a structured stage error.',
+                    safeStageContent(stageDetail),
+                  ].filter(Boolean).join('\n'),
                 });
               }
             }
