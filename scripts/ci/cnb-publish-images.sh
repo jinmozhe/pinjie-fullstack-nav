@@ -128,7 +128,6 @@ login_tcr() {
 
 build_candidate() {
   local actual
-  local cache_ref
   local candidate_ref
   local commit_epoch
   local commit_time
@@ -148,7 +147,6 @@ build_candidate() {
 
   image_ref="$TCR_REGISTRY/$TCR_NAMESPACE/$IMAGE_NAME"
   candidate_ref="$image_ref:$(candidate_tag)"
-  cache_ref="$image_ref:buildcache-main"
   metadata_file="$EVIDENCE_ROOT/$IMAGE_KEY-metadata.json"
   image_index_file="$EVIDENCE_ROOT/$IMAGE_KEY-index.json"
   image_config_file="$EVIDENCE_ROOT/$IMAGE_KEY-image.json"
@@ -168,7 +166,6 @@ build_candidate() {
     --label "org.opencontainers.image.revision=$CNB_COMMIT" \
     --label "org.opencontainers.image.created=$commit_time" \
     --label "org.opencontainers.image.source=$EXPECTED_SOURCE_REPOSITORY" \
-    --cache-from "type=registry,ref=$cache_ref" \
     --output "type=image,name=$candidate_ref,push=true,name-canonical=true" \
     --metadata-file "$metadata_file" \
     .

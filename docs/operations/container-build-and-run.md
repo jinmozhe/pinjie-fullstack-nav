@@ -66,7 +66,7 @@ allow_branches:
   - "main"
 ```
 
-`.cnb.yml` 为 Backend、Web 和 Admin 声明三条按路径触发的独立 Pipeline。每张镜像按以下顺序处理：CNB 默认 Buildx `docker` 驱动从该应用的 TCR `buildcache-main` 尝试读取已有缓存，从 Git Commit 计算 `SOURCE_DATE_EPOCH` 并写入 OCI `revision`、`created` 与 `source` 标签，生成最大级别 provenance 和 SBOM attestation，以 `candidate-<CNB Build ID>` 唯一候选标签推送内容，从 metadata 读取 digest 并核对候选标签和 attestation manifest，再由固定 digest 的 Trivy 对精确候选 digest 执行 High 与 Critical 阻断并生成 CycloneDX JSON SBOM。TCR 个人版的缓存导出不参与发布，避免可选缓存写入阻断镜像推送。该端通过后创建 `sha-<完整 Commit SHA>` 标签，并保存 `pinjie-cnb-tcr-image-v1` 单镜像清单和原始证据附件。扫描失败时，CNB 日志会输出镜像引用、包名、CVE、已安装版本和修复版本，并将当前原始 JSON、digest、metadata 与精简摘要打包为失败附件；失败候选仍禁止部署。
+`.cnb.yml` 为 Backend、Web 和 Admin 声明三条按路径触发的独立 Pipeline。每张镜像按以下顺序处理：CNB 默认 Buildx `docker` 驱动从 Git Commit 计算 `SOURCE_DATE_EPOCH` 并写入 OCI `revision`、`created` 与 `source` 标签，生成最大级别 provenance 和 SBOM attestation，以 `candidate-<CNB Build ID>` 唯一候选标签推送内容，从 metadata 读取 digest 并核对候选标签和 attestation manifest，再由固定 digest 的 Trivy 对精确候选 digest 执行 High 与 Critical 阻断并生成 CycloneDX JSON SBOM。TCR 个人版缓存读写不参与发布，避免可选缓存操作阻断镜像推送。该端通过后创建 `sha-<完整 Commit SHA>` 标签，并保存 `pinjie-cnb-tcr-image-v1` 单镜像清单和原始证据附件。扫描失败时，CNB 日志会输出镜像引用、包名、CVE、已安装版本和修复版本，并将当前原始 JSON、digest、metadata 与精简摘要打包为失败附件；失败候选仍禁止部署。
 
 路径无法可靠判断、首次运行或一次变更超过 CNB 的 300 文件统计上限时，在 `main` 分支详情页使用 `.cnb/web_trigger.yml` 提供的“三端全量镜像构建”按钮。该人工入口复用三个固定应用 Pipeline。CNB 密钥仓库的 `allow_events` 必须同时允许 `push` 和准确事件名 `web_trigger_full_release`，否则人工全量构建会在导入 TCR 凭据时失败。
 
