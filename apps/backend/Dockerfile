@@ -21,6 +21,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 FROM python:3.14.7-slim-trixie@sha256:5b945726c4d7ffe6595dc7498ad17fd0397e373c5181c24819a7028e8b1276dc AS runtime
 
 RUN apt-get update \
+    && apt-get upgrade --yes \
     && apt-get install --yes --no-install-recommends \
         libssl3t64=3.5.7-1~deb13u2 \
         openssl=3.5.7-1~deb13u2 \
