@@ -47,6 +47,7 @@ describe("AuthorizePage", () => {
 
     render(<AuthorizePage />);
     await waitFor(() => expect(locationReplace).toHaveBeenCalledWith(expect.stringContaining("/login?redirect=")));
+    expect(mocks.me).toHaveBeenCalledWith({ retryAuth: false });
     expect(mocks.authorize).not.toHaveBeenCalled();
   });
 
@@ -57,6 +58,7 @@ describe("AuthorizePage", () => {
 
     render(<AuthorizePage />);
     await waitFor(() => expect(locationReplace).toHaveBeenCalledWith(expect.stringContaining("error=login_required")));
+    expect(mocks.me).toHaveBeenCalledWith({ retryAuth: false });
   });
 
   it("authorizes an authenticated request and returns its code", async () => {

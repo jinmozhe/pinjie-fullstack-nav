@@ -20,13 +20,12 @@ type Props = {
   initial?: { sites?: PageResultPublicNavSiteRead; groups?: PageResultNavSiteGroupRead; categories: NavCategoryRead[]; tags: NavTaxonomyRead[]; reader?: ReaderIdentityRead };
   initialLocation?: NavigationLocation;
   initialError?: string;
-  autoLogin: boolean;
   loginResult?: string;
 };
 
 const queryPolicy = { gcTime: 0, staleTime: 0, retry: false, refetchInterval: 30000, refetchOnWindowFocus: "always" as const };
 
-export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, initialError, autoLogin, loginResult }: Props) {
+export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, initialError, loginResult }: Props) {
   const client = useQueryClient();
   const [location, setLocation] = useState(initialLocation);
   const [draft, setDraft] = useState(initialLocation.search);
@@ -36,7 +35,6 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   const [loggedOut, setLoggedOut] = useState(false);
   const [initialAvailable, setInitialAvailable] = useState(true);
   const [blockedAt, setBlockedAt] = useState(0);
-  const probed = useRef(false);
   const heading = useRef<globalThis.HTMLHeadingElement>(null);
   const focusResults = useRef(false);
   const home = isNavigationHome(location);
@@ -138,12 +136,6 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
     window.addEventListener("pinjie:reader-expired", expire);
     return () => { channel.close(); document.removeEventListener("visibilitychange", visibility); window.removeEventListener("pinjie:reader-expired", expire); };
   }, [client, clearPrivate, resetSelection]);
-  useEffect(() => {
-    if (!loggedOut && autoLogin && !loginResult && !probed.current && identity.error instanceof ApiError && identity.error.status === 401) {
-      probed.current = true;
-      window.location.replace(`${loginHref}${location.top ? "&" : "?"}silent=1`);
-    }
-  }, [autoLogin, loginResult, identity.error, loggedOut, loginHref, location.top]);
   const sidebarProps = { profile, categories: categoryData ?? [], tags: tags.data ?? [], location, onNavigate: navigate, showTop: !reader };
   const closeDrawer = useCallback(() => setDrawer(false), []);
   const retry = () => { void results.refetch(); void categories.refetch(); void tags.refetch(); if (filterOptions) void filterOptions.refetch(); };

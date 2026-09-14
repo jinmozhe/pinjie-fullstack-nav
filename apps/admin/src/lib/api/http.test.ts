@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { server } from "@/test/setup";
 
 import { ApiError, apiRequest, errorMessage, jsonBody } from "./http";
+import { adminApi } from "./admin";
 
 const ok = <T>(data: T) => HttpResponse.json({ code: "OK", message: "操作成功", data, request_id: "request" });
 
@@ -24,9 +25,26 @@ describe("admin HTTP authentication boundary", () => {
       }),
     );
 
-    await expect(apiRequest<{ id: string }>("/api/v1/admin/auth/me")).resolves.toEqual({ id: "admin" });
+    await expect(adminApi.me()).resolves.toEqual({ id: "admin" });
     expect(protectedCalls).toBe(2);
     expect(refreshCalls).toBe(1);
+  });
+
+  it("preserves the unauthenticated response without refreshing when reader authorization checks identity", async () => {
+    let refreshCalls = 0;
+    document.cookie = "pinjie_admin_csrf=; Max-Age=0; Path=/";
+    server.use(
+      http.get("http://localhost:3000/api/v1/admin/auth/me", () =>
+        HttpResponse.json({ code: "AUTH_REQUIRED", message: "需要登录" }, { status: 401 }),
+      ),
+      http.post("http://localhost:3000/api/v1/admin/auth/refresh", () => {
+        refreshCalls += 1;
+        return HttpResponse.json({ code: "CSRF_REJECTED", message: "CSRF 校验失败" }, { status: 403 });
+      }),
+    );
+
+    await expect(adminApi.me({ retryAuth: false })).rejects.toMatchObject({ status: 401, code: "AUTH_REQUIRED" });
+    expect(refreshCalls).toBe(0);
   });
 
   it("does not recursively refresh excluded authentication endpoints", async () => {

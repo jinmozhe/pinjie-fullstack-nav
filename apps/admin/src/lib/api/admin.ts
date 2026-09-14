@@ -52,7 +52,7 @@ export const adminApi = {
       method: "POST",
       body: jsonBody(input),
     }, { retryAuth: false }),
-  me: () => apiRequest<AdminRead>("/api/v1/admin/auth/me"),
+  me: (options: { retryAuth?: boolean } = {}) => apiRequest<AdminRead>("/api/v1/admin/auth/me", {}, options),
   updateProfile: (input: AdminProfileUpdateIn) =>
     apiRequest<AdminRead>("/api/v1/admin/auth/profile", {
       method: "PATCH",
