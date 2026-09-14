@@ -49,20 +49,23 @@ apps/backend/app/services :: __init__.py, accounts.py, admin_management.py, auth
 apps/backend/scripts :: __init__.py, _database_target.py, backfill_session_device_names.py, cleanup_security_logs.py, consume_request_logs.py, create_initial_admin.py, export_openapi.py, sync_permissions.py, verify_local_database_recovery.py
 apps/backend/tests :: __init__.py, conftest.py, test_api.py, test_client_identity.py, test_config.py, test_core_coverage.py, test_database_recovery_script.py, test_identifiers.py, test_openapi_export.py, test_openapi_localization.py, test_password_policy.py, test_payload_sanitizer.py, test_postgres_integration.py, test_stage_b_coverage.py, test_stage_c_auth_api.py, test_stage_c_cookies.py, test_stage_c_integrations.py, test_stage_c_request_metadata.py, test_stage_c_security.py, test_transaction.py
 apps/web :: .env.example, AGENTS.md, Dockerfile, eslint.config.mjs, next.config.ts, package.json, README.md, tsconfig.json, vitest.config.ts
-apps/web/scripts :: prepare-standalone.mjs
+apps/web/scripts :: prepare-standalone.mjs, check-x-sites.mjs
 apps/web/src/app :: error.tsx, globals.css, icon.tsx, layout.tsx, loading.tsx, not-found.tsx, page.tsx, providers.tsx
 apps/web/src/app/account :: page.tsx
 apps/web/src/app/api/v1/[...path] :: route.test.ts, route.ts
 apps/web/src/app/api/v1/system/status :: route.ts
 apps/web/src/app/login :: page.tsx
 apps/web/src/app/register :: page.tsx
+apps/web/src/app/x :: page.tsx, error.tsx
 apps/web/src/features :: StageC.test.tsx
 apps/web/src/features/account :: AccountCenter.tsx, AccountSessionRecovery.tsx
 apps/web/src/features/auth :: api.ts, AuthForm.tsx, index.ts
 apps/web/src/features/system :: SystemStatusCard.test.tsx, SystemStatusCard.tsx
+apps/web/src/features/x-navigation :: index.ts, sites.ts, sites.server.ts, XNavigation.tsx, sites.test.ts, sites.server.test.ts, XNavigation.test.tsx
 apps/web/src/lib/api :: client.ts, http.ts, server.test.ts, server.ts
 apps/web/src/test :: server.ts, setup.ts
 docs :: PROJECT_REQUIREMENTS.md, README.md
+data :: x-sites.example.json（仅初始化模板入库，运行 JSON 与备份均忽略）
 docs/adr :: 0001-全栈Monorepo架构决策.md, 0002-Codex与Antigravity指令兼容决策.md, 0003-本地开发环境架构决策.md, 0004-全项目索引与计划生命周期决策.md, 0005-GitHub Wiki停用与文档单一来源决策.md, 0006-模块化单体与领域依赖边界决策.md, 0007-受控迁移兼容策略决策.md, 0008-不可变发布与生产追溯决策.md, 0009-Python运行时基线决策.md, 0010-浏览器认证会话RBAC与审计决策.md, 0011-Admin采用AntDesignProV6与UmiMax决策.md, 0012-统一文件资产采用可补偿本地存储决策.md, 0013-全局系统设置与配置媒体决策.md, 0014-共享PostgreSQL与Redis生产基础设施决策.md, 0015-派生项目计划基线重建决策.md
 docs/architecture :: 全栈Monorepo架构规划原始方案.md, admin-engineering-standard.md, authentication-authorization.md, backend-engineering-standard.md, error-model.md, file-asset-storage.md, module-boundaries.md, observability-reliability.md, project-structure.md, system-settings.md, testing-strategy.md
 docs/blueprints/commerce :: README.md

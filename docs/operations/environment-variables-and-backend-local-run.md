@@ -28,25 +28,27 @@ C:\path\to\pinjie-fullstack-nav\apps\backend
 
 | 层级 | 模板 | 本地真实文件 | 读取者 | 主要职责 |
 | --- | --- | --- | --- | --- |
-| 部署层 | 根 `.env.example` | 根 `.env` | Docker Compose、生产部署脚本 | 选择三端 TCR 不可变镜像 digest 并设置 Web 公开 Origin |
+| 部署层 | 根 `.env.example` | 根 `.env` | Docker Compose、生产部署脚本 | 三端 TCR 不可变镜像 digest、Web/Admin 公开 Origin 与 `/x` 宿主机数据目录 |
 | Backend | `apps/backend/.env.example` | `apps/backend/.env` | Backend 配置系统、Backend 容器与运维脚本 | 数据库、Redis、认证 Secret、Cookie、安全边界和日志保留 |
-| Web | `apps/web/.env.example` | `apps/web/.env.local` | Next.js 开发、构建及服务端运行过程 | 服务端 Backend 地址和浏览器公开 API 地址 |
+| Web | `apps/web/.env.example` | `apps/web/.env.local` | Next.js 开发、构建及服务端运行过程 | 服务端 Backend 地址、公开 Origin 与 `/x` JSON 绝对路径 |
 | Admin | `apps/admin/.env.example` | `apps/admin/.env.local` | Umi Max 开发与构建过程 | 浏览器公开 API 地址 |
 
 `.env.example` 只保存可公开模板值并提交到 Git。`.env` 和 `.env.local` 保存当前环境的真实值，禁止提交、写入日志或复制到文档。
 
 ### 3.1 根目录 `.env`
 
-根 `.env` 是部署控制文件，不是某个应用容器的通用运行配置。当前保存三张 TCR 镜像的完整不可变引用和 Web 公开 Origin：
+根 `.env` 是部署控制文件，当前保存三张 TCR 镜像的完整不可变引用、Web/Admin 公开 Origin 和 `/x` 宿主机数据目录：
 
 ```dotenv
 BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-backend@sha256:<64位十六进制摘要>
 WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-web@sha256:<64位十六进制摘要>
 ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<64位十六进制摘要>
 WEB_PUBLIC_ORIGIN=https://www.example.com
+ADMIN_PUBLIC_ORIGIN=https://admin.example.com
+X_DATA_DIR=/home/ubuntu/projects/pinjie-fullstack-nav/data
 ```
 
-`compose.prod.yml` 使用这些变量决定本次部署启动哪三个镜像及 Web 对外 Origin。根 `.env` 中的值不会自动进入应用容器；只有 Compose 通过 `environment` 或 `env_file` 明确声明的变量才会进入容器。PostgreSQL 和 Redis 连接串只保存在 `apps/backend/.env`。
+`compose.prod.yml` 使用这些变量决定三端镜像、公开 Origin 与 `/x` 宿主机数据目录。根 `.env` 中的值不会自动进入应用容器；只有 Compose 通过 `environment` 或 `env_file` 明确声明的变量才会进入容器。PostgreSQL 和 Redis 连接串只保存在 `apps/backend/.env`。
 
 本地 `compose.yml` 只启动 Redis，并不引用上述镜像变量，因此普通本地开发不需要创建根 `.env`。
 
@@ -96,7 +98,8 @@ Web 使用 Next.js：
 
 - `BACKEND_INTERNAL_URL` 供 Next.js 服务端和同域 Route Handler 使用，不应暴露给浏览器。
 - `WEB_PUBLIC_ORIGIN` 是 Metadata、canonical 和服务端认证恢复使用的 Web 对外 Origin，必须与 Backend 的 `WEB_ORIGINS` 对应。
-- Web 浏览器只使用同域 `/api/v1`，上述两个变量都不使用 `NEXT_PUBLIC_` 前缀。
+- `X_SITES_FILE` 是 `/x` 读取的 JSON 绝对文件路径，仅服务端使用。生产 Compose 固定为 `/app/runtime-data/x-sites.json`，对应宿主机 `X_DATA_DIR` 目录；本地配置为工作区内实际绝对路径。初始化与更新见[JSON 维护手册](x-navigation-json.md)。
+- Web 浏览器只使用同域 `/api/v1`，上述服务端变量都不使用 `NEXT_PUBLIC_` 前缀。
 
 Web 生产容器通过 Compose 的 `BACKEND_INTERNAL_URL=http://backend:8000` 连接 Backend，浏览器仍访问同域 `/api/v1`。
 

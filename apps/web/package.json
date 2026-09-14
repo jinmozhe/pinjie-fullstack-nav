@@ -8,6 +8,7 @@
     "start": "node .next/standalone/apps/web/server.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "check:x-sites": "node scripts/check-x-sites.mjs",
     "test": "vitest run --coverage"
   },
   "dependencies": {

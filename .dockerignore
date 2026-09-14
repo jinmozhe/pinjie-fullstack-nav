@@ -18,3 +18,5 @@ node_modules
 **/__pycache__
 playwright-report
 test-results
+# /x 数据从宿主机挂载，不进入镜像构建上下文（包括模板和备份）。
+/data/
