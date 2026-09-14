@@ -1,8 +1,14 @@
 // @vitest-environment node
 import * as fs from "node:fs/promises";
+import type * as fsPromises from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("node:fs/promises", async () => {
+  const actual = await vi.importActual<typeof fsPromises>("node:fs/promises");
+  return { ...actual, readFile: vi.fn(actual.readFile) };
+});
 
 import { loadXSites } from "./sites.server";
 
@@ -64,7 +70,7 @@ describe("loadXSites", () => {
   });
 
   it("propagates permission failure as a safe read error", async () => {
-    vi.spyOn(fs, "readFile").mockRejectedValueOnce(
+    vi.mocked(fs.readFile).mockRejectedValueOnce(
       Object.assign(new Error("EACCES: private path"), { code: "EACCES" }),
     );
     await expect(loadXSites(file)).rejects.toMatchObject({ code: "READ", field: "X_SITES_FILE" });
