@@ -24,6 +24,7 @@
 
 | 计划 | 状态 | 结果 | 影响范围 | 用途 |
 | --- | --- | --- | --- | --- |
+| `plans/2026-09-14_X页面运行时JSON数据计划.md` | 已结束 | 已完成；原始 40 站迁移、请求时读取、部署接线及轻量检查完成，重型验证和部署未执行 | Web、Deployment、Documentation | `/x` 请求时读取只读挂载 JSON，支持刷新生效、初始化与数据恢复 |
 | `plans/2026-09-14_导航查阅按需登录改造计划.md` | 已结束 | 已完成；Web 按需登录、Admin 授权页修复与两端轻量检查完成，重型验证和部署未执行 | Web、Admin、Documentation | 移除首页静默跳转探测，改为仅在用户主动点击时触发管理员登录 |
 | `plans/2026-09-12_CNB镜像发布核验计划.md` | 已结束 | 已完成；三端镜像及 digest 已核验，操作文档验证完成，按用户要求结束，生产部署未执行 | GitHub Actions、CNB、TCR、Documentation | 核验既有源码交接后的三端构建和镜像发布结果 |
 | `plans/2026-09-11_Nav生产镜像发布配置计划.md` | 已结束 | 已完成；CNB、TCR 镜像映射、发布证据、生产 Compose 模板和 Backend 项目标识已切换，实际云构建与部署未执行 | CNB、TCR、GitHub Actions、Deployment、Documentation | 将 Nav 镜像发布校验切换到已创建的 CNB 仓库和 TCR 镜像 |

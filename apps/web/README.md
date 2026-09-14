@@ -19,6 +19,8 @@ pnpm --filter @pinjie/web dev   # http://localhost:3000
 
 浏览器请求使用同域 `/api/v1`，Next.js Route Handler 在服务端转发到 `BACKEND_INTERNAL_URL`。
 
+独立 `/x` 页面需要先初始化根 `data/x-sites.json`，并在 `.env.local` 配置服务端绝对路径 `X_SITES_FILE`；后续修改 JSON 后刷新生效。完整步骤与文件校验命令见[JSON 维护手册](../../docs/operations/x-navigation-json.md)。
+
 ## 生产部署模式
 
 使用 `output: standalone` 容器模式。容器部署默认不依赖进程内 ISR 缓存；派生项目需要增量缓存时，必须先设计共享缓存、失效和恢复策略。

@@ -72,6 +72,21 @@ allow_branches:
 
 `buildcache-main` 是可变构建缓存，`candidate-<CNB Build ID>` 是单次运行候选，两者都不能作为部署来源。生产只使用发布清单中的完整 `ccr.ccs.tencentyun.com/pinjie-fullstack-base/<镜像>@sha256:<digest>` 引用。
 
+### TCR 远程构建缓存与排障边界
+
+当前发布脚本不配置 Registry 类型的 `--cache-from` 和 `--cache-to`，不读取或更新 `buildcache-main`。保留这一配置，无需每次发布手工关闭缓存，也无需为了发布创建或清理缓存标签。此限制只针对 TCR 远程构建缓存，不要求禁用 BuildKit 本身可用的缓存，也不影响 `.cnb.yml` 中的 Trivy 缓存。
+
+远程缓存用于复用构建中间结果，与最终应用镜像分别导入、导出。同一条 Buildx 命令包含缓存导出时，即使候选镜像已经推送，缓存导出失败仍可能导致命令失败，使后续扫描和正式标签发布无法执行。[Docker Registry 缓存官方文档](https://docs.docker.com/build/cache/backends/registry/)列出的缓存导出 `ignore-error` 默认值为 `false`，并对默认 `docker` 驱动使用该缓存的条件作出说明。不要据此直接认定本项目曾经发生驱动不兼容；定位具体底层原因仍需对应运行的完整错误证据。
+
+出现构建导出失败时按以下顺序处理：
+
+1. 保存目标源码 SHA、CNB Build ID、首个失败步骤和错误上下文，区分 `exporting cache`、候选镜像 `pushing`、Registry 鉴权及漏洞门禁错误。
+2. 核对该次 CNB 源码中的 `scripts/ci/cnb-publish-images.sh`。仍包含 TCR Registry 缓存参数时，先确认是否交接了旧版本或重新引入了缓存配置；按已授权流程交接经过验证的修复版本，再构建受影响端。
+3. 当前脚本已无远程缓存参数时，不再把导出错误笼统归为缓存问题。镜像推送鉴权失败继续检查 CNB 发布凭据和 TCR 目标仓库权限；网络、存储和运行取消按各自实际错误处理。
+4. 保留候选推送、扫描、漏洞门禁、正式标签和发布证据检查。禁止用整体忽略退出码、跳过扫描或直接部署候选标签恢复发布。
+
+禁用远程缓存可能增加重复构建时间和下载量，不降低镜像发布的验证要求。当前没有足够运行样本估算原故障频率，也没有证据把所有缓存异常归因于 TCR 服务。未来确需重新启用时，单独验证实际 CNB 驱动与存储配置、TCR 缓存格式和权限、冷启动与已有缓存场景，以及缓存失败对正式发布的影响；不得直接恢复旧参数。
+
 CNB 发布身份和生产服务器拉取身份必须分离。`tcr-publisher` 只保存在 CNB 密钥仓库；生产服务器使用只允许拉取指定三个仓库的 `tcr-puller`。完整 CAM JSON、账号创建、凭证初始化、服务器登录和轮换步骤见[腾讯云 CAM 子账号与 TCR 个人版最小权限操作手册](tencent-tcr-personal-cam-accounts.md)。
 
 ## 5. 生产 Compose 配置
@@ -129,6 +144,8 @@ SETTINGS_MEDIA_BASE_URL=/static/settings
 PostgreSQL 与 Redis 由 1Panel 作为服务器级共享服务管理，不属于项目 Compose。Backend 和请求日志消费者同时加入项目默认网络与外部 `1panel-network`，通过 `postgresql:5432` 和 `redis:6379` 连接；Web 与 Admin 只在项目默认网络，不能直接访问数据服务。每个项目必须使用独立 PostgreSQL 数据库与角色。当前生产 Redis 使用 `default` 用户和已分配的独立逻辑库 `/1`；该编号只隔离正常业务 Key，不构成权限边界。更高隔离要求使用独立 ACL 用户或独立 Redis 实例。
 
 Backend 的 `backend_uploads` 命名卷挂载到 `/app/storage`，Compose 固定 `UPLOAD_LOCAL_ROOT=/app/storage/uploads` 与 `SETTINGS_MEDIA_ROOT=/app/storage/settings-media`。镜像内的 UID `10001` 必须能写入该卷；统一资产与配置媒体使用独立目录和私有补偿区，静态路由只暴露各自公开根。生产备份必须同时覆盖 PostgreSQL 和完整 `backend_uploads` 卷，并记录同一备份窗口。
+
+Web 的 `/x` 从宿主机 `X_DATA_DIR` 目录只读挂载至 `/app/runtime-data`，并通过固定 `X_SITES_FILE` 读取 JSON。源目录必须预先存在且容器 UID/GID `10001` 可读；运行数据不进入镜像。Web 镜像携带复用页面规则的只读校验工具，初始化、原子更新与数据备份见[JSON 维护手册](x-navigation-json.md)。
 
 系统设置迁移会以关闭状态创建公开注册配置。部署完成后由具备权限的管理员在 `/settings` 明确开启；生产环境不通过环境变量自动继承旧状态。配置媒体本地驱动只适用于单实例，或所有 Backend 实例共享同一可靠文件系统并具备写入协调的部署。
 

@@ -36,13 +36,13 @@
 | 身份 | 使用位置 | 必要权限 | 禁止用途 |
 | --- | --- | --- | --- |
 | 腾讯云主账号 | 账号治理和紧急恢复 | 主账号固有权限 | 日常 Docker 登录、CNB 发布、生产拉取 |
-| `tcr-publisher` | CNB 密钥仓库 | 当前命名空间内构建缓存、推送和发布所需写权限 | 生产服务器拉取、日常人工登录 |
+| `tcr-publisher` | CNB 密钥仓库 | 当前命名空间内候选镜像推送和正式标签发布所需权限 | 生产服务器拉取、日常人工登录 |
 | `tcr-puller` | 生产服务器部署用户 | 指定三个仓库的查看和拉取权限 | 推送、删除、创建仓库、修改仓库属性 |
 | 后续测试环境拉取账号 | 测试服务器 | 仅测试环境实际需要的仓库 | 生产环境拉取和发布 |
 
 ## 3. 为什么要区分两个账号
 
-`tcr-publisher` 必须向 TCR 写入候选标签、构建缓存和最终 SHA 标签。它的凭证泄露后，攻击者可能推送或覆盖镜像标签，影响后续发布。
+`tcr-publisher` 向 TCR 写入候选标签和最终 SHA 标签；当前发布脚本不读取或写入远程构建缓存，具体规则见[构建手册的缓存边界](container-build-and-run.md#tcr-远程构建缓存与排障边界)。它的凭证泄露后，攻击者可能推送或覆盖镜像标签，影响后续发布。
 
 `tcr-puller` 只负责生产服务器拉取已经批准的固定 digest。它的凭证泄露后，影响范围被限制在读取三张镜像，不能向生产仓库写入内容。
 
@@ -418,7 +418,9 @@ docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256
 
 ### 10.4 Windows 本机只读登录与镜像查询
 
-本节用于让本机 Docker 和同机的授权工具查询 Nav 镜像。操作在运行 Codex 的 Windows 电脑上完成，不需要连接生产服务器，也不启动项目容器。Linux 服务器登录与本机登录分别保存凭据。
+本节是可选的本机核验入口，用于让 Docker CLI 和同机授权工具查询 Nav 私有镜像，不是云端发布的前置步骤。已有 CNB 发布证据，并能从已认证的 TCR 控制台或服务器核对完整镜像引用与 digest 时，可以跳过本机登录。本机核验不需要连接生产服务器，也不启动项目容器；本机、浏览器、CNB 和 Linux 服务器的认证状态彼此独立。
+
+已有 Docker CLI 时先运行本节的镜像清单查询。成功则复用当前登录态，无需每次发布先退出重登；仅在鉴权失败或需要切换身份时处理凭据。登录和查询失败的分流见本节末尾的结果表。
 
 #### 准备只读身份与正确密码
 
@@ -453,7 +455,9 @@ docker pull ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256
 6. 预期输出为 `Login Succeeded`。登录会更新当前用户针对 `ccr.ccs.tencentyun.com` 的本机凭据；如果本机此前使用另一个 TCR 身份，后续本机 Registry 操作将改用这里的身份。
 7. 登录 Docker Hub 的网页账号不会替代这一步。Docker Desktop 默认通过操作系统凭据存储保存登录信息，保留现有 Credential Helper 配置，不读取或复制 `.docker/config.json` 内容。
 
-出现 `docker` 命令找不到时，确认 Docker Desktop 已安装并重新打开 PowerShell。登录返回 `unauthorized` 时先检查用户名、固定密码和身份，再检查权限，不重复重置密码或放开全部仓库权限。
+出现 `docker` 命令找不到时，只有选择本机核验才需要准备 Docker CLI；也可改用已认证控制台或服务器完成相同的镜像核验。已安装 Docker Desktop 时重新打开 PowerShell 检查命令是否可用。登录返回 `unauthorized` 时先检查用户名、固定密码和身份，再检查权限，不重复重置密码或放开全部仓库权限。
+
+确认需要清除本机旧身份且已取得可用的正确凭据时，可执行 `docker logout ccr.ccs.tencentyun.com`，再按上面的交互步骤登录。该命令只清除当前 Docker 配置使用的这一 Registry 登录记录，不会重置 TCR 密码，也不会更新 CNB 或服务器的凭据。不要把退出重登当成鉴权错误的万能修复；重新登录后仍需查询目标仓库。凭据存储机制参见 [Docker login 官方说明](https://docs.docker.com/reference/cli/docker/login/)。
 
 #### 查询三张镜像并记录完整 digest
 

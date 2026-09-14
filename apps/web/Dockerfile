@@ -28,6 +28,9 @@ RUN apk upgrade --no-cache libcrypto3 libssl3 \
     && adduser --system --uid 10001 --ingroup app app
 COPY --from=build --chown=app:app /workspace/apps/web/.next/standalone ./
 COPY --from=build --chown=app:app /workspace/apps/web/.next/static ./apps/web/.next/static
+# 运维校验直接复用页面的纯校验模块，由 Node.js 24 原生擦除类型。
+COPY --from=build --chown=app:app /workspace/apps/web/scripts/check-x-sites.mjs ./apps/web/scripts/check-x-sites.mjs
+COPY --from=build --chown=app:app /workspace/apps/web/src/features/x-navigation/sites.ts ./apps/web/src/features/x-navigation/sites.ts
 USER app
 EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=6 CMD ["node", "-e", "fetch('http://127.0.0.1:3000/').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]

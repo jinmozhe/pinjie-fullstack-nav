@@ -24,12 +24,17 @@
 <DEPLOY_PATH>/
 ├── compose.prod.yml
 ├── .env
+├── data/
+│   ├── x-sites.example.json
+│   └── x-sites.json
 └── apps/
     └── backend/
         └── .env
 ```
 
 环境变量职责和最低配置见[环境变量分层与 Backend 本地运行手册](environment-variables-and-backend-local-run.md)。真实秘密不得写入仓库、命令日志、工单或聊天记录。
+
+Web 的 `/x` 数据目录必须在启动前初始化，根 `.env` 与 1Panel 编排环境变量均需配置 `X_DATA_DIR`；宿主机文件须允许容器 UID/GID `10001` 读取，运行数据应纳入备份。初始化、只读挂载、校验和原子更新统一按[JSON 维护手册](x-navigation-json.md)执行。
 
 ## 3. 配置检查
 
@@ -124,6 +129,8 @@ docker compose --env-file .env -f compose.prod.yml --profile request-logs up -d 
 | 独立 Backend 域名需要时 | `http://127.0.0.1:8000` |
 
 转发时保留 `Host`、`X-Real-IP`、`X-Forwarded-For` 和 `X-Forwarded-Proto`。Backend 只信任 `TRUSTED_PROXY_CIDRS` 中明确登记的代理地址，禁止用全网段或通配值绕过来源校验。
+
+`/x` 的 HTML 与 RSC 请求须尊重 Next.js 动态响应的禁止缓存头，不设置强制页面缓存；若已有 CDN 或代理缓存，移除该路径规则并清除旧缓存。文件更新后必须经实际域名刷新核对。
 
 ## 7. 日志与观测
 

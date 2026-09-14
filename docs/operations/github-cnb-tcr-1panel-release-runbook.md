@@ -60,7 +60,7 @@ Git Commit SHA 用于追溯源码，TCR `sha-<Commit SHA>` 标签用于查找镜
 1. 按第 2.2 节检查 CNB Token 的仓库范围和权限。
 2. Token 值发生变化时，按第 2.3 节更新 GitHub Environment Secret。
 3. 按第 2.4 节运行只读诊断，确认 CNB 查询权限。
-4. 按第 2.5 节完成本机 TCR 只读登录及三张镜像清单查询。
+4. 需要从本机独立核验私有镜像时，按第 2.5 节查询清单，并仅在鉴权失败时处理本机登录；使用其他已认证入口完成核验时跳过本机登录。
 5. 按第 2.6 节记录结果，交给后续发布核验。
 
 操作前核对以下目标，避免进入母版仓库或选错凭据：
@@ -158,13 +158,15 @@ CNB 官方文档确认了“个人设置 → 访问令牌 → 添加访问令牌
 
 ### 2.5 完成本机 TCR 只读登录
 
-在运行 Codex 的 Windows 电脑上，使用同一个 Windows 用户执行操作。只在云服务器登录 TCR，不会让这台电脑自动获得凭据；登录 Docker Hub 也不等于登录 TCR。
+本机登录仅用于从本机独立查询私有镜像，不是 GitHub → CNB → TCR 发布的前置条件。已有 CNB 发布证据，并能在已认证的 TCR 控制台或服务器核对完整镜像引用和 digest 时，无需为了发布在开发电脑安装或登录 Docker。本机无法查询时记录核验入口限制，不据此认定云端发布失败，也不省略镜像存在性核验。
 
-按 [TCR 手册第 10.4 节：Windows 本机只读登录与镜像查询](tencent-tcr-personal-cam-accounts.md#104-windows-本机只读登录与镜像查询)完成以下三件事：
+选择本机核验时，使用运行 Codex 的同一个 Windows 用户。CNB 发布环境、本机 CLI、浏览器和生产服务器各自持有认证状态，彼此不自动同步。
 
-1. 确认 `tcr-puller` 拥有 Nav 三仓只读权限，并取得其实际 Registry 用户名及 TCR 固定密码。
-2. 在普通 PowerShell 交互式运行 `docker login`，确认显示 `Login Succeeded`。
-3. 按目标源码 SHA 查询 Backend、Web 和 Admin 镜像清单，分别记录镜像引用、完整 digest 或准确错误。
+按 [TCR 手册第 10.4 节：Windows 本机只读登录与镜像查询](tencent-tcr-personal-cam-accounts.md#104-windows-本机只读登录与镜像查询)操作：
+
+1. 已有 Docker CLI 和登录态时，先按每个应用的目标源码 SHA 查询镜像清单；查询成功便复用现有登录态。
+2. 鉴权失败时，核对 `tcr-puller` 的实际 Registry 用户名、TCR 固定密码及目标仓库只读权限，再按手册交互式登录。退出重登只用于已确认的身份切换或旧凭据问题，不作为每次发布的固定步骤。
+3. 分别记录 Backend、Web 和 Admin 的镜像引用、完整 digest 或准确错误。三端独立发布时使用各自已验证版本，不要求未变化端产生最新 SHA 标签。
 
 完整 CAM 策略、账号创建和凭据初始化继续由 TCR 手册维护，不在这里复制第二份策略。已有可用固定密码时直接使用；密码重置会影响同一 CAM 身份的其他使用位置。
 
@@ -176,7 +178,8 @@ CNB 官方文档确认了“个人设置 → 访问令牌 → 添加访问令牌
 CNB Token：已添加两项构建读取权限，原源码交接权限保留
 GitHub Secret：已更新 / Token 值未变，无需更新
 Inspect CNB Release：Run 链接及成功或失败状态
-本机 TCR 登录：Login Succeeded / 原始错误类型
+TCR 核验入口：本机 CLI / 已认证控制台 / 服务器
+本机 TCR 登录：复用现有登录态 / Login Succeeded / 未使用本机核验 / 原始错误类型
 Backend、Web、Admin 镜像查询：各自 digest 或原始错误类型
 ```
 
@@ -324,17 +327,17 @@ ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<64位摘�
 
 ### 8.1 TCR 三类标签和时间
 
-每个应用仓库都使用以下标签。同一次成功发布通常可见两个应用镜像标签和一份构建缓存，不能按列表行数认定应用构建了三个版本。
+当前每次成功发布通常新增候选和正式两个标签，失败构建可能只留下候选标签；历史缓存标签也可能仍在仓库中。不能按列表行数认定应用构建了多个不同版本。
 
 | 标签 | 作用 | 生产使用方式 |
 | --- | --- | --- |
 | `sha-<完整 Commit SHA>` | 发布门禁通过后创建的正式源码版本标签 | 用于查找镜像，部署使用清单中的完整 `仓库@sha256:<digest>` |
 | `candidate-<CNB Build ID>` | 本次构建先推送的候选镜像，供扫描和来源核验 | 不使用该标签部署，失败候选不得上线 |
-| `buildcache-main` | 供后续构建读取和更新的 Registry 缓存 | 不属于生产应用镜像，不用于部署 |
+| `buildcache-main` | 历史 Registry 缓存，当前发布脚本不读取或更新 | 不属于生产应用镜像，不用于部署，无需为发布创建或删除 |
 
-发布顺序是“构建并推送候选镜像，同时更新缓存 → 扫描和证据门禁 → 创建正式 SHA 标签”。正式标签引用通过核验的同一候选 digest，不重新构建应用；发布脚本会再次核对正式标签的完整 digest。因此同次成功发布的 `candidate-*` 与 `sha-*` 应指向相同镜像内容，缓存拥有独立用途和摘要。控制台截断显示的摘要前缀不能代替完整 digest 核对。
+发布顺序是“构建并推送候选镜像 → 扫描和证据门禁 → 创建正式 SHA 标签”。正式标签引用通过核验的同一候选 digest，不重新构建应用；发布脚本会再次核对正式标签的完整 digest。因此同次成功发布的 `candidate-*` 与 `sha-*` 应指向相同镜像内容。控制台截断显示的摘要前缀不能代替完整 digest 核对。远程缓存的现行配置和排障步骤见[构建手册的缓存边界](container-build-and-run.md#tcr-远程构建缓存与排障边界)。
 
-候选标签较早推送，正式标签在门禁通过后创建，时间通常更晚；`buildcache-main` 会被后续构建更新，其创建时间可以早于本次发布，修改时间反映后续写入。TCR 列表时间、镜像内 OCI 创建时间和服务器容器启动时间属于不同记录，不能仅凭“最新修改时间”判断线上版本。
+候选标签较早推送，正式标签在门禁通过后创建，时间通常更晚；历史 `buildcache-main` 的时间不代表当前发布进度。TCR 列表时间、镜像内 OCI 创建时间和服务器容器启动时间属于不同记录，不能仅凭“最新修改时间”判断线上版本。
 
 CNB 的 `candidate-*` 标签属于现有单镜像构建发布步骤，继续承担候选推送、扫描和正式标签发布前核验。它与本次未迁入 Nav 的 GitHub 候选镜像组合验收工具分别承担不同职责。
 
@@ -359,9 +362,13 @@ BACKEND_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-backend@sh
 WEB_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-web@sha256:<64位摘要>
 ADMIN_IMAGE=ccr.ccs.tencentyun.com/pinjie-fullstack-base/pinjie-nav-admin@sha256:<64位摘要>
 WEB_PUBLIC_ORIGIN=https://<Web正式域名>
+ADMIN_PUBLIC_ORIGIN=https://<Admin正式域名>
+X_DATA_DIR=/home/ubuntu/projects/pinjie-fullstack-nav/data
 ```
 
-只更新本次受影响端，保留其他端当前已经验证的 digest。通过 1Panel 编辑既有编排时，还要把这四项同步到编排的“环境变量”页面；1Panel 更新编排时使用该页面的变量完成镜像预拉取和 Compose 插值。根 `.env` 继续作为服务器命令行操作的变量来源，两处必须保持一致。
+只更新本次受影响端，保留其他端当前已经验证的 digest。通过 1Panel 编辑既有编排时，还要把上述变量同步到编排的“环境变量”页面；1Panel 更新编排时使用该页面的变量完成镜像预拉取和 Compose 插值。根 `.env` 继续作为服务器命令行操作的变量来源，两处必须保持一致。
+
+首次部署支持 `/x` JSON 的 Web 镜像前，按[JSON 维护手册](x-navigation-json.md)初始化宿主机数据目录与读取权限。后续发布保留运行文件，不从模板覆盖；单独修改 JSON 无需重新发布或重启容器。
 
 `apps/backend/.env` 使用共享基础设施。当前生产方案的关键格式是：
 
