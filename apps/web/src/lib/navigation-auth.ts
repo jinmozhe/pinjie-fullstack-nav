@@ -112,8 +112,3 @@ export async function logoutReader(request: Request) {
     return failure("退出服务不可用，请重试");
   }
 }
-
-export async function shouldProbeReader(): Promise<boolean> {
-  const jar = await cookies();
-  return Boolean(process.env.ADMIN_PUBLIC_ORIGIN && !jar.has(SUPPRESSED) && !jar.has(ATTEMPTED));
-}

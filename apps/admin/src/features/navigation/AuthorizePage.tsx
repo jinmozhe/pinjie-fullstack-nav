@@ -24,7 +24,7 @@ export default function AuthorizePage() {
         window.location.replace(`${callbackOrigin}/navigation/callback#${new URLSearchParams(fragment)}`);
       };
       try {
-        await adminApi.me();
+        await adminApi.me({ retryAuth: false });
       } catch (cause) {
         if (cause instanceof ApiError && cause.status === 401 && params.get("silent") !== "1") {
           window.location.replace(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);

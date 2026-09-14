@@ -101,8 +101,8 @@ Admin 使用现有 Ant Design Select 按中文标签或英文标识搜索，选�
 
 ## 跨端登录
 
-1. Web `/api/navigation/start` 在 HttpOnly Cookie 中保存五分钟的随机 state/verifier，将 S256 challenge 和精确回调地址带到 Admin `/navigation/authorize`。
-2. Admin 复用现有登录或 Refresh。显式登录缺少会话时进入原登录页，并在成功后返回授权页。自动探测缺少身份或权限时返回 Web，不强制访客登录。
+1. Web 首页和 `/top` 的普通打开、刷新及查阅会话失效均不触发跨端授权跳转；无有效查阅会话时公开浏览，已有有效查阅会话继续用于只读查询。只有用户点击“管理员登录”才进入 `/api/navigation/start`，Top 页携带 `return_to=/top`；该入口在 HttpOnly Cookie 中保存五分钟的随机 state/verifier，将 S256 challenge 和精确回调地址带到 Admin `/navigation/authorize`。
+2. Admin 授权页通过 `adminApi.me({ retryAuth: false })` 检查现有会话，401 直接进入原登录页并保留完整授权返回路径，不自动请求 Refresh，避免无 CSRF Cookie 的访客收到刷新错误。已有有效 Admin 会话可直接授权；Access 已失效时需要重新登录。其他管理页面继续沿用原刷新策略。
 3. 管理员通过 `/api/v1/admin/nav-reader/authorize` 获得 60 秒一次性授权码。码只通过 Web `/navigation/callback` 的 URL fragment 返回，fragment 不发送给服务器访问日志；页面立即清除 fragment，用 POST 发送到同源 `/api/navigation/callback`。
 4. Web 服务端验证 Origin、state、Cookie 期限，并携带隐藏 verifier 调用 Backend `/api/v1/nav-reader/exchange`。后端精确校验回调、S256、管理员版本和权限，行锁单次消费，签发独立查阅 Cookie。
 5. 会话原值仅进入 `pinjie_reader_session` HttpOnly Cookie；数据库只保存带 `nav-reader:` 用途前缀的 HMAC。`pinjie_reader_csrf` 为可读 CSRF Cookie。默认固定七天有效，通过 `NAV_READER_TTL_SECONDS` 配置，无滑动 Refresh。
@@ -113,7 +113,7 @@ Admin 使用现有 Ant Design Select 按中文标签或英文标识搜索，选�
 
 - Web 退出只撤销当前 reader Session，清除其 Cookie 并写入一年有效的 HttpOnly 自动登录抑制标记；主动登录成功后解除。
 - Admin Logout 沿用原行为，不修改 reader Session。管理员停用、凭据版本或当前权限变化仍影响下一次查阅资格。
-- 自动探测每次页面挂载最多一次，同一浏览器另有 60 秒尝试标记，返回结果页面不重复探测。
+- Web 页面不再调用静默探测。登录入口仍保留显式 `silent=1` 请求的抑制与 60 秒尝试标记处理，Admin 对此类请求的无身份或无权限结果仍返回 Web；普通页面和“管理员登录”链接均不发起该类请求。
 - Web 关闭详情、切换到后台、会话失效或退出时隐藏帐号并移除查询缓存；同源标签通过 BroadcastChannel 同步 Web 退出。会话和打开的凭据每 30 秒重新核验，重新核验期间隐藏旧凭据。
 - Web SSR 只读取并透传 reader Session Cookie，校验成功后请求查阅分类和站点。缺少会话或明确 401 使用公开入口；403、网络及服务故障展示加载失败，不把故障当作认证成功。
 - 分类、分组、站点列表和详情使用独立的公开与管理员标识查询缓存，查阅数据只存内存。身份重新核验、退出请求期间隐藏授权内容；退出、身份失效、后台切换取消请求并清除查阅缓存，禁止旧响应恢复内容。身份失效时回到全部站点第一页；身份有效但当前筛选不再可见时显示错误。分类、分组、站点和详情每 30 秒刷新，后台配置在后续请求生效，不承诺实时推送。

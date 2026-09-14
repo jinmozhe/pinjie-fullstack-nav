@@ -25,6 +25,7 @@ describe("independent reader login", () => {
     const cookie = response.cookies.get("pinjie_reader_flow");
     const flow = JSON.parse(cookie?.value ?? "{}");
     expect(target.origin).toBe("http://localhost:3001");
+    expect(target.searchParams.has("silent")).toBe(false);
     expect(target.searchParams.get("state")).toBe(flow.state);
     expect(target.toString()).not.toContain(flow.verifier);
     expect(target.searchParams.get("challenge")).toHaveLength(43);

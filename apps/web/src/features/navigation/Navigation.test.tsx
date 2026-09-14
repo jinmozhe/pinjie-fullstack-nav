@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_SITE_PROFILE } from "@/features/site";
 import { server } from "@/test/setup";
-import { TOP_LOCATION } from "@/lib/navigation-location";
+import { HOME_LOCATION, TOP_LOCATION } from "@/lib/navigation-location";
 import { Navigation } from "./Navigation";
 
 const category: NavCategoryRead = { id: "01900000-0000-7000-8000-000000000001", name: "Private category", description: "", sort_order: 0, is_active: true, requires_login: true, icon_key: "tool" };
@@ -27,7 +27,7 @@ class TestChannel {
 
 function mount() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} autoLogin={false} initial={{ reader, groups, categories: [category], tags: [] }} /></QueryClientProvider>);
+  render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} initial={{ reader, groups, categories: [category], tags: [] }} /></QueryClientProvider>);
   return client;
 }
 
@@ -46,7 +46,7 @@ describe("navigation category access", () => {
       return response(empty);
     }));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} autoLogin={false} initialLocation={TOP_LOCATION} initial={{ reader, sites: privateSites, categories: [category], tags: [] }} /></QueryClientProvider>);
+    render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} initialLocation={TOP_LOCATION} initial={{ reader, sites: privateSites, categories: [category], tags: [] }} /></QueryClientProvider>);
     await screen.findByRole("heading", { name: "Private site" });
     await waitFor(() => expect(screen.getByRole("button", { name: "下一页" })).toBeEnabled());
     await userEvent.click(screen.getByRole("button", { name: "下一页" }));
@@ -100,6 +100,37 @@ describe("navigation category access", () => {
     );
   });
   afterEach(() => { TestChannel.channels = []; vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+  it.each([HOME_LOCATION, TOP_LOCATION])("keeps guests on $top navigation across remounts until explicit login", async (location) => {
+    const path = location.top ? "/top" : "/";
+    const loginHref = location.top ? "/api/navigation/start?return_to=/top" : "/api/navigation/start";
+    const realWindow = window;
+    const replace = vi.fn();
+    const assign = vi.fn();
+    realWindow.history.replaceState(null, "", path);
+    vi.stubGlobal("window", new Proxy(realWindow, {
+      get(target, property) {
+        if (property === "location") return { replace, assign, origin: realWindow.location.origin, pathname: path, search: "" };
+        return Reflect.get(target, property);
+      },
+    }));
+    server.use(http.get("http://localhost:3000/api/v1/nav-reader/me", () =>
+      HttpResponse.json({ code: "AUTH_REQUIRED", message: "未登录" }, { status: 401 }),
+    ));
+
+    for (let visit = 0; visit < 2; visit += 1) {
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const view = render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} initialLocation={location} /></QueryClientProvider>);
+      await waitFor(() => expect(client.getQueryState(["reader-identity"])?.status).toBe("error"));
+      await screen.findByText(location.top ? "暂无可见的置顶站点，可在后台编辑站点并开启置顶" : "暂无已发布站点");
+      expect(screen.getByRole("link", { name: "管理员登录" })).toHaveAttribute("href", loginHref);
+      expect(replace).not.toHaveBeenCalled();
+      expect(assign).not.toHaveBeenCalled();
+      expect(realWindow.location.pathname).toBe(path);
+      view.unmount();
+      client.clear();
+    }
+  });
 
   it("clears restricted categories and sites after logout", async () => {
     const client = mount();
@@ -178,7 +209,7 @@ describe("navigation category access", () => {
       http.get("http://localhost:3000/api/v1/navigation/sites/:id/accounts", () => { accountsRequested = true; return response([]); }),
     );
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} autoLogin={false} /></QueryClientProvider>);
+    render(<QueryClientProvider client={client}><Navigation profile={DEFAULT_SITE_PROFILE} /></QueryClientProvider>);
     await userEvent.click(await screen.findByRole("button", { name: "查看 Private site 详情" }));
     const dialog = await screen.findByRole("dialog");
     await within(dialog).findByRole("heading", { name: site.name });
