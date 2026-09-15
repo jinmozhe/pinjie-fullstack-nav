@@ -189,7 +189,7 @@ class HtmlMetadataSource:
                             await asyncio.gather(worker, return_exceptions=True)
                             raise
                         break
-                    except PublicFetchError, TimeoutError:
+                    except (PublicFetchError, TimeoutError):  # fmt: skip
                         continue
                 if not result.icon_base64:
                     result.warnings.append("图标未获取成功或格式不支持，已保留原图标，可手动上传 PNG、JPG 或 WebP")
