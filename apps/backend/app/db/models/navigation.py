@@ -62,7 +62,7 @@ class NavSite(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         ForeignKey("nav_categories.id", ondelete="RESTRICT"), index=True
     )
     icon_asset_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("assets.id", ondelete="RESTRICT"), index=True)
-    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    sort_order: Mapped[int] = mapped_column(Integer, default=1000000)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
     is_pinned: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default=false(), comment="在独立置顶页面展示，不影响首页排序"

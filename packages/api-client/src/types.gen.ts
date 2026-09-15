@@ -1220,7 +1220,7 @@ export type NavSiteIn = {
     /**
      * Sort Order
      *
-     * 显示排序值，数值越小越靠前
+     * 显示排序值，数值越小越靠前；未设置时排在手动排序站点之后
      */
     sort_order?: number;
     /**
@@ -1292,7 +1292,7 @@ export type NavSiteRead = {
     /**
      * Sort Order
      *
-     * 显示排序值，数值越小越靠前
+     * 显示排序值，数值越小越靠前；未设置时排在手动排序站点之后
      */
     sort_order?: number;
     /**
