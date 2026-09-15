@@ -102,7 +102,7 @@ export function SitesManager({ deleted }: { deleted: boolean }) {
       setSelected([]);
     }
   }, [page, query.isSuccess, query.isFetching, query.data]);
-  const edit = (row: NavSiteRead | null) => { cancelFetch(); formVersion.current += 1; iconVersion.current += 1; setIconUploading(false); setFetchedIcon(undefined); form.resetFields(); form.setFieldsValue(row ?? { name: "", url: "", description: "", category_id: null, tag_ids: [], icon_asset_id: null, sort_order: 0, is_published: false, is_pinned: false }); setIcon(row?.icon_url ?? undefined); setEditing(row); };
+  const edit = (row: NavSiteRead | null) => { cancelFetch(); formVersion.current += 1; iconVersion.current += 1; setIconUploading(false); setFetchedIcon(undefined); form.resetFields(); form.setFieldsValue(row ?? { name: "", url: "", description: "", category_id: null, tag_ids: [], icon_asset_id: null, sort_order: 1000000, is_published: false, is_pinned: false }); setIcon(row?.icon_url ?? undefined); setEditing(row); };
   const fetchMetadata = async () => {
     if (metadata.isPending || save.isPending || iconUploading) return;
     try { await form.validateFields(["url"]); } catch { return; }

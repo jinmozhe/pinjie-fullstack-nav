@@ -7910,8 +7910,8 @@
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
-            "description": "显示排序值，数值越小越靠前",
-            "default": 0
+            "description": "显示排序值，数值越小越靠前；未设置时排在手动排序站点之后",
+            "default": 1000000
           },
           "is_published": {
             "type": "boolean",
@@ -8019,8 +8019,8 @@
             "maximum": 1000000.0,
             "minimum": -1000000.0,
             "title": "Sort Order",
-            "description": "显示排序值，数值越小越靠前",
-            "default": 0
+            "description": "显示排序值，数值越小越靠前；未设置时排在手动排序站点之后",
+            "default": 1000000
           },
           "is_published": {
             "type": "boolean",

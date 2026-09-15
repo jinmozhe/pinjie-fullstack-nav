@@ -52,7 +52,7 @@ class NavigationRepository:
                 NavSite.id,
                 func.count().over(partition_by=NavSite.category_id).label("site_total"),
                 func.row_number()
-                .over(partition_by=NavSite.category_id, order_by=(NavSite.sort_order, NavSite.id))
+                .over(partition_by=NavSite.category_id, order_by=(NavSite.sort_order, NavSite.id.desc()))
                 .label("position"),
             )
             .join(NavCategory)
@@ -65,7 +65,7 @@ class NavigationRepository:
             .join(NavCategory)
             .where(ranked.c.position <= 8)
             .options(selectinload(NavSite.category), selectinload(NavSite.tags))
-            .order_by(NavCategory.sort_order, NavCategory.id, NavSite.sort_order, NavSite.id)
+            .order_by(NavCategory.sort_order, NavCategory.id, NavSite.sort_order, NavSite.id.desc())
         )
         rows = await self.session.execute(query)
         return [(row, int(count)) for row, count in rows], int(total or 0)
@@ -164,7 +164,7 @@ class NavigationRepository:
             query = query.where(NavSite.tags.any(NavTag.id == tag_id))
         total = await self.session.scalar(select(func.count()).select_from(query.subquery()))
         rows = await self.session.scalars(
-            query.order_by(NavSite.sort_order, NavSite.id).offset((page - 1) * page_size).limit(page_size)
+            query.order_by(NavSite.sort_order, NavSite.id.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(rows), int(total or 0)
 

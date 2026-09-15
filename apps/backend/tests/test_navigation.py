@@ -86,6 +86,11 @@ def test_site_category_is_optional() -> None:
     assert site.category_id is None
 
 
+def test_site_sort_order_defaults_after_manual_values() -> None:
+    site = NavSiteIn(name="Default order", url="https://example.com")
+    assert site.sort_order == 1_000_000
+
+
 @pytest.mark.parametrize(
     "url",
     [

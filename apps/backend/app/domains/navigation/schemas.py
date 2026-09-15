@@ -83,7 +83,9 @@ class NavSiteIn(BaseModel):
     category_id: uuid.UUID | None = Field(default=None, description="所属分类唯一标识，未分类时为空")
     tag_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100, description="关联标签唯一标识列表")
     icon_asset_id: uuid.UUID | None = Field(default=None, description="站点图标资产唯一标识")
-    sort_order: int = Field(default=0, ge=-1000000, le=1000000, description="显示排序值，数值越小越靠前")
+    sort_order: int = Field(
+        default=1000000, ge=-1000000, le=1000000, description="显示排序值，数值越小越靠前；未设置时排在手动排序站点之后"
+    )
     is_published: bool = Field(default=False, description="是否在公开导航中发布")
     is_pinned: bool = Field(default=False, description="是否在独立置顶页面展示，不影响首页排序")
 
