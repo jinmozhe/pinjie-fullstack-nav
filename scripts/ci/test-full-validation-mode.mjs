@@ -6,6 +6,7 @@ function requireCondition(condition, message) {
 }
 
 const workflow = YAML.parse(await readFile(new URL("../../.github/workflows/ci-e2e.yml", import.meta.url), "utf8"));
+const stageC = await readFile(new URL("../../e2e/stage-c.spec.ts", import.meta.url), "utf8");
 const inputs = workflow.on?.workflow_dispatch?.inputs;
 const source = workflow.jobs?.source;
 const frontend = workflow.jobs?.frontend;
@@ -61,8 +62,21 @@ requireCondition(
 
 const fullEvidenceWriter = validationSteps.find((step) => step.name === "Write full validation evidence");
 const smokeEvidenceWriter = validationSteps.find((step) => step.name === "Write smoke validation evidence");
+const e2eStep = validationSteps.find((step) => String(step.run ?? "").includes("pnpm test:e2e"));
 requireCondition(fullEvidenceWriter?.run?.includes("pinjie-full-validation-v2"), "Full mode must write the v2 evidence schema.");
 requireCondition(smokeEvidenceWriter?.run?.includes("pinjie-smoke-validation-v1"), "Smoke mode must write a distinct evidence schema.");
 requireCondition(smokeEvidenceWriter?.run?.includes("frontend_unit_tests=skipped"), "Smoke evidence must record skipped frontend tests.");
+requireCondition(
+  e2eStep?.env?.E2E_PROFILE === "${{ needs.source.outputs.validation_mode }}",
+  "E2E must receive the selected Full Validation profile.",
+);
+requireCondition(
+  smokeEvidenceWriter?.run?.includes("e2e_scope=all-quality-pages,desktop-stage-c"),
+  "Smoke evidence must record its reduced browser scope.",
+);
+requireCondition(
+  stageC.includes('process.env.E2E_PROFILE === "smoke"') && stageC.includes('!projectName.endsWith("-desktop")'),
+  "Stage C must restrict smoke mode to desktop projects.",
+);
 
-console.log("Full Validation mode fixtures passed: full default, smoke gating, production builds, and evidence separation.");
+console.log("Full Validation mode fixtures passed: full default, smoke gating, reduced E2E scope, production builds, and evidence separation.");

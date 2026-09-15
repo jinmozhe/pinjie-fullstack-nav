@@ -18,7 +18,12 @@ const avatarPng = Buffer.from(
 
 test.describe("stage C cross-stack journeys", () => {
   test("Web registers a user, manages the account, and signs out without exposing tokens", async ({ page }) => {
-    test.skip(!test.info().project.name.startsWith("web"), "Web journey runs in Web projects");
+    const projectName = test.info().project.name;
+    test.skip(!projectName.startsWith("web"), "Web journey runs in Web projects");
+    test.skip(
+      process.env.E2E_PROFILE === "smoke" && !projectName.endsWith("-desktop"),
+      "Smoke profile keeps Stage C on desktop projects",
+    );
     const username = uniqueUsername("web", test.info().project.name);
     await page.goto("/register");
     await page.getByLabel("用户名").fill(username);
@@ -70,7 +75,12 @@ test.describe("stage C cross-stack journeys", () => {
   });
 
   test("Admin records privileged work and rejects an administrator without permissions", async ({ page, request }) => {
-    test.skip(!test.info().project.name.startsWith("admin"), "Admin journey runs in Admin projects");
+    const projectName = test.info().project.name;
+    test.skip(!projectName.startsWith("admin"), "Admin journey runs in Admin projects");
+    test.skip(
+      process.env.E2E_PROFILE === "smoke" && !projectName.endsWith("-desktop"),
+      "Smoke profile keeps Stage C on desktop projects",
+    );
     const limitedUsername = uniqueUsername("limited", test.info().project.name);
     await page.goto("/login");
     const origin = new URL(page.url()).origin;

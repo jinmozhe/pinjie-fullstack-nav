@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       validation_mode:
-        description: Full runs frontend Vitest; smoke skips frontend Vitest but keeps builds and browser E2E
+        description: Full runs all frontend tests and browser journeys; smoke keeps quality pages and desktop Stage C journeys
         required: true
         default: full
         type: choice
@@ -302,6 +302,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run browser E2E
+        env:
+          E2E_PROFILE: ${{ needs.source.outputs.validation_mode }}
         run: node scripts/ci/run-timed.mjs playwright pnpm test:e2e
 
       - name: Write full validation evidence
@@ -350,7 +352,8 @@ jobs:
             printf 'admin=production-build,nginx-dist\n'
             printf 'web=production-build,standalone\n'
             printf 'frontend_unit_tests=skipped\n'
-            printf 'browser=playwright-chromium\n'
+            printf 'browser=playwright-chromium-smoke\n'
+            printf 'e2e_scope=all-quality-pages,desktop-stage-c\n'
             printf 'database=postgresql-18.4-alpine\n'
             printf 'cache=redis-8.10.0-alpine\n'
           } > "$RUNNER_TEMP/smoke-validation-evidence/smoke-validation.env"

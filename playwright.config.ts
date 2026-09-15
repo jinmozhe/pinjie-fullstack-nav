@@ -1,7 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const backendURL = process.env.E2E_BACKEND_URL ?? "http://127.0.0.1:8000";
+const e2eProfile = process.env.E2E_PROFILE ?? "full";
 const reuseExistingServer = false;
+
+if (e2eProfile !== "full" && e2eProfile !== "smoke") {
+  throw new Error(`Unsupported E2E_PROFILE: ${e2eProfile}. Expected full or smoke.`);
+}
 
 export default defineConfig({
   testDir: "./e2e",

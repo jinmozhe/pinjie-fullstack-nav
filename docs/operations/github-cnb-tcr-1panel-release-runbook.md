@@ -232,9 +232,9 @@ Backend、Web、Admin 镜像查询：各自 digest 或原始错误类型
 
 ### 5.1 低风险 smoke 验证
 
-`CI - Full Validation` 的 `smoke` 模式适用于低风险配置、文档或部署接线核验。它仍执行 Backend pytest、Admin/Web 生产构建和 Chromium 浏览器 E2E，但跳过 Admin/Web Vitest 与 coverage。
+`CI - Full Validation` 的 `smoke` 模式适用于低风险配置、文档或部署接线核验。它仍执行 Backend pytest、Admin/Web 生产构建和 Chromium 浏览器冒烟，保留四个项目的页面质量基线，并将 Stage C 认证和权限旅程限制在桌面项目，同时跳过 Admin/Web Vitest 与 coverage。
 
-执行时在第 5 节第 6 步将 `validation_mode` 选择为 `smoke`。成功后只会生成 `smoke-validation-<完整 SHA>` Artifact，不能用于 `strict` 模式源码交接，也不能记录为完整 Full Validation 通过。涉及数据库、迁移、认证授权、权限、公开 API、共享包、依赖或跨端业务变化时必须选择 `full`。
+执行时在第 5 节第 6 步将 `validation_mode` 选择为 `smoke`。成功后只会生成 `smoke-validation-<完整 SHA>` Artifact，记录 `all-quality-pages,desktop-stage-c` 的浏览器范围，不能用于 `strict` 模式源码交接，也不能记录为完整 Full Validation 通过。涉及数据库、迁移、认证授权、权限、公开 API、共享包、依赖或跨端业务变化时必须选择 `full`。
 
 ## 6. GitHub 交接源码到 CNB
 

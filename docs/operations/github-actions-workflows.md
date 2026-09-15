@@ -63,7 +63,7 @@ flowchart TD
 
 四个自动工作流统一限制为目标为 `main` 的 Pull Request 和 push 到 `main`。功能分支 push 不再重复运行整套检查；PR 在合并前运行轻量门禁，合并后的 `main` push 再为精确 Commit SHA 生成镜像发布所需的四项成功记录。当前未配置路径过滤，也不自动运行 Backend pytest、前端 Vitest、前端 production build 或 Playwright。
 
-`CI - Full Validation` 只支持从 GitHub Actions 页面人工触发，必须从默认分支选择工作流并输入属于默认分支历史的完整 40 位 Commit SHA。`validation_mode=full` 是默认完整验证，`validation_mode=smoke` 只用于低风险核验，不能产生 `strict` 交接所需的 Full Validation Artifact。普通开发和 Git 交付不自动运行它；`Handoff Source to CNB` 的 `strict` 模式要求同一 SHA 的成功完整 Artifact，`fast` 模式会明确记录该验证未执行或未作为门禁。
+`CI - Full Validation` 只支持从 GitHub Actions 页面人工触发，必须从默认分支选择工作流并输入属于默认分支历史的完整 40 位 Commit SHA。`validation_mode=full` 是默认完整验证，`validation_mode=smoke` 只用于低风险核验，跳过前端 Vitest 并缩减 Stage C 浏览器旅程到桌面端，但保留四个项目的页面质量基线，不能产生 `strict` 交接所需的 Full Validation Artifact。普通开发和 Git 交付不自动运行它；`Handoff Source to CNB` 的 `strict` 模式要求同一 SHA 的成功完整 Artifact，`fast` 模式会明确记录该验证未执行或未作为门禁。
 
 `Security` 的定时表达式是 `23 3 * * 1`，即每周一 `03:23 UTC`。在中国标准时间下对应每周一 `11:23`。
 
@@ -238,7 +238,7 @@ Web 和 Admin 当前均为 `ready`，两个质量 Job 可以并行执行。
 
 ### 8.1 作用和使用场景
 
-`CI - Full Validation` 只支持 `workflow_dispatch` 人工触发。操作人员必须从默认分支启动工作流并输入待验证的完整 Commit SHA。默认 `full` 模式会执行 Backend pytest、Admin/Web Vitest、两端 production build 和 Chromium 跨栈 E2E；低风险核验可以选择 `smoke` 模式，跳过 Admin/Web Vitest 和 coverage，但保留 Backend pytest、两端 production build 和 Chromium 跨栈 E2E。
+`CI - Full Validation` 只支持 `workflow_dispatch` 人工触发。操作人员必须从默认分支启动工作流并输入待验证的完整 Commit SHA。默认 `full` 模式会执行 Backend pytest、Admin/Web Vitest、两端 production build 和完整 Chromium 跨栈 E2E；低风险核验可以选择 `smoke` 模式，跳过 Admin/Web Vitest 和 coverage，保留 Backend pytest、两端 production build、四个项目的页面质量基线，并将 Stage C 认证和权限旅程限制在桌面项目。
 
 完整验证环境同时允许 `127.0.0.1` 与 `localhost` 两组 Web/Admin 测试 Origin。真实服务和 Playwright 使用 `127.0.0.1`，Backend 既有 API 测试夹具使用 `localhost`；两组仅用于隔离 Runner 的本机回环地址，不能扩展为通配 Origin。
 
@@ -260,8 +260,8 @@ Web 和 Admin 当前均为 `ready`，两个质量 Job 可以并行执行。
 2. Backend Job 启动独立 PostgreSQL 18.4、Redis 8.10.0，使用固定 uv `0.11.32` 与 CPython 3.14 同步依赖、迁移并执行 90% 覆盖率门禁的 pytest。
 3. 与 Backend 并行的 Admin、Web 矩阵 Job 各自安装固定 pnpm 11.17.0、Node.js 24 和锁定依赖。`full` 模式执行 80% 覆盖率门禁的 Vitest，`smoke` 模式明确跳过 Vitest；两种模式都会构建并上传生产产物。
 4. 三端成功后，E2E Job 在自己的独立数据库中准备权限、注册设置和管理员，启动 Uvicorn，并下载同一 Run 的前端产物。
-5. 安装 Chromium，执行 `pnpm test:e2e`。Web 运行 standalone，Admin 用固定 Nginx 镜像挂载 dist 和生产 nginx.conf，端口已占用时拒绝复用未知服务。
-6. `full` 模式全部成功后上传 `full-validation-<完整 SHA>`，内容为 `pinjie-full-validation-v2`，保留 30 天；`smoke` 模式上传独立的 `smoke-validation-<完整 SHA>`，不产生可供 `strict` 交接核验的 Full Validation Artifact。旧 v1 不再作为修正后的生产产物证明。
+5. 安装 Chromium，执行 `pnpm test:e2e`。Web 运行 standalone，Admin 用固定 Nginx 镜像挂载 dist 和生产 nginx.conf，端口已占用时拒绝复用未知服务。`full` 执行全部四个 Chromium 项目；`smoke` 保留四个项目的 system-status 页面质量基线，只在桌面项目执行 Stage C 认证和权限旅程。
+6. `full` 模式全部成功后上传 `full-validation-<完整 SHA>`，内容为 `pinjie-full-validation-v2`，保留 30 天；`smoke` 模式上传独立的 `smoke-validation-<完整 SHA>`，记录缩减的浏览器范围，不产生可供 `strict` 交接核验的 Full Validation Artifact。旧 v1 不再作为修正后的生产产物证明。
 7. 成功或失败均保留可用的阶段耗时、退出码与脱敏浏览器结果 14 天。前端传递产物保留 3 天，CI 不上传会话、Trace、Video、HTML 或原始服务日志。
 
 ### 8.3 资源特征
