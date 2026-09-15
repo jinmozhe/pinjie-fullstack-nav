@@ -217,8 +217,9 @@ Backend、Web、Admin 镜像查询：各自 digest 或原始错误类型
 3. 点击 `Run workflow`。
 4. 分支选择 `main`。
 5. `commit_sha` 填写第 3 节取得的完整 40 位 SHA。
-6. 点击确认运行。
-7. 打开新 Run，等待并行的 Backend pytest、Admin/Web 验证构建和最终 `Production browser E2E and aggregate evidence` 全部完成。
+6. `validation_mode` 选择 `full`。
+7. 点击确认运行。
+8. 打开新 Run，等待并行的 Backend pytest、Admin/Web 验证构建和最终 `Production browser E2E and aggregate evidence` 全部完成。
 
 成功结果应满足：
 
@@ -228,6 +229,12 @@ Backend、Web、Admin 镜像查询：各自 digest 或原始错误类型
 - 清单 schema 为 `pinjie-full-validation-v2`，Admin 验证运行 Nginx dist，Web 验证运行 standalone，旧 v1 不能替代。
 
 任一步失败时停止发布。修复代码后会产生新的 Commit SHA，必须从第 3 节重新开始，不能继续使用旧 SHA 的 Artifact。
+
+### 5.1 低风险 smoke 验证
+
+`CI - Full Validation` 的 `smoke` 模式适用于低风险配置、文档或部署接线核验。它仍执行 Backend pytest、Admin/Web 生产构建和 Chromium 浏览器 E2E，但跳过 Admin/Web Vitest 与 coverage。
+
+执行时在第 5 节第 6 步将 `validation_mode` 选择为 `smoke`。成功后只会生成 `smoke-validation-<完整 SHA>` Artifact，不能用于 `strict` 模式源码交接，也不能记录为完整 Full Validation 通过。涉及数据库、迁移、认证授权、权限、公开 API、共享包、依赖或跨端业务变化时必须选择 `full`。
 
 ## 6. GitHub 交接源码到 CNB
 
