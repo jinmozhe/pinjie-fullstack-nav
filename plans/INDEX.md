@@ -24,6 +24,7 @@
 
 | 计划 | 状态 | 结果 | 影响范围 | 用途 |
 | --- | --- | --- | --- | --- |
+| `plans/2026-09-15_Admin测试并发优化计划.md` | 实施中 | 不适用 | Admin、Documentation | 保留 Admin 全量测试和 coverage，优化 Vitest 并发并增加 Full Validation smoke 模式 |
 | `plans/2026-09-15_站点排序默认值调整计划.md` | 已结束 | 已完成；排序、默认值、OpenAPI 及轻量门禁完成；Backend 编译和应用导入受既有语法错误阻断，重型验证未执行 | Backend、Admin、Web、API Client、Documentation | 统一站点排序为手动排序升序及 ID 倒序，调整新建站点默认排序值 |
 | `plans/2026-09-14_X页面运行时JSON数据计划.md` | 已结束 | 已完成；原始 40 站迁移、请求时读取、部署接线及轻量检查完成，重型验证和部署未执行 | Web、Deployment、Documentation | `/x` 请求时读取只读挂载 JSON，支持刷新生效、初始化与数据恢复 |
 | `plans/2026-09-14_导航查阅按需登录改造计划.md` | 已结束 | 已完成；Web 按需登录、Admin 授权页修复与两端轻量检查完成，重型验证和部署未执行 | Web、Admin、Documentation | 移除首页静默跳转探测，改为仅在用户主动点击时触发管理员登录 |

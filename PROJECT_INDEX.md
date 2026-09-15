@@ -35,6 +35,6 @@
 
 ## 活动计划
 
-当前无活动计划。
+当前活动计划：[plans/2026-09-15_Admin测试并发优化计划.md](plans/2026-09-15_Admin测试并发优化计划.md)。
 
 已结束计划见 [plans/INDEX.md](plans/INDEX.md)。

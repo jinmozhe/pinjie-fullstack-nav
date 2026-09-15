@@ -1,6 +1,6 @@
 name: CI - Full Validation
 
-run-name: Full validation ${{ inputs.commit_sha }}
+run-name: ${{ inputs.validation_mode }} validation ${{ inputs.commit_sha }}
 
 on:
   workflow_dispatch:
@@ -9,12 +9,20 @@ on:
         description: Full 40-character commit SHA to validate
         required: true
         type: string
+      validation_mode:
+        description: Full runs frontend Vitest; smoke skips frontend Vitest but keeps builds and browser E2E
+        required: true
+        default: full
+        type: choice
+        options:
+          - full
+          - smoke
 
 permissions:
   contents: read
 
 concurrency:
-  group: full-validation-${{ inputs.commit_sha }}
+  group: full-validation-${{ inputs.commit_sha }}-${{ inputs.validation_mode }}
   cancel-in-progress: false
 
 jobs:
@@ -22,16 +30,23 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       commit_sha: ${{ steps.input.outputs.commit_sha }}
+      validation_mode: ${{ steps.input.outputs.validation_mode }}
     steps:
       - name: Validate immutable input
         id: input
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
+          VALIDATION_MODE: ${{ inputs.validation_mode }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           [[ "$COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+          case "$VALIDATION_MODE" in
+            full|smoke) ;;
+            *) echo "validation_mode must be full or smoke."; exit 1 ;;
+          esac
           test "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH"
           echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "validation_mode=$VALIDATION_MODE" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
@@ -65,7 +80,14 @@ jobs:
           node-version: "24"
           cache: pnpm
       - run: node scripts/ci/run-timed.mjs install pnpm install --frozen-lockfile
-      - run: node scripts/ci/run-timed.mjs unit pnpm --filter "@pinjie/$APP" test
+      - name: Run frontend unit tests
+        if: ${{ needs.source.outputs.validation_mode == 'full' }}
+        run: node scripts/ci/run-timed.mjs unit pnpm --filter "@pinjie/$APP" test
+        env:
+          APP: ${{ matrix.app }}
+      - name: Record skipped frontend unit tests
+        if: ${{ needs.source.outputs.validation_mode == 'smoke' }}
+        run: echo "Smoke validation skips $APP Vitest and coverage by design."
         env:
           APP: ${{ matrix.app }}
       - run: node scripts/ci/run-timed.mjs build pnpm --filter "@pinjie/$APP" build
@@ -283,6 +305,7 @@ jobs:
         run: node scripts/ci/run-timed.mjs playwright pnpm test:e2e
 
       - name: Write full validation evidence
+        if: ${{ needs.source.outputs.validation_mode == 'full' }}
         shell: bash
         env:
           COMMIT_SHA: ${{ needs.source.outputs.commit_sha }}
@@ -302,6 +325,7 @@ jobs:
           } > "$RUNNER_TEMP/full-validation-evidence/full-validation.env"
 
       - name: Upload full validation evidence
+        if: ${{ needs.source.outputs.validation_mode == 'full' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: full-validation-${{ needs.source.outputs.commit_sha }}
@@ -309,6 +333,37 @@ jobs:
           path: ${{ runner.temp }}/full-validation-evidence/full-validation.env
           if-no-files-found: error
           retention-days: 30
+
+      - name: Write smoke validation evidence
+        if: ${{ needs.source.outputs.validation_mode == 'smoke' }}
+        shell: bash
+        env:
+          COMMIT_SHA: ${{ needs.source.outputs.commit_sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/smoke-validation-evidence"
+          {
+            printf 'schema=pinjie-smoke-validation-v1\n'
+            printf 'commit_sha=%s\n' "$COMMIT_SHA"
+            printf 'workflow_run_id=%s\n' "$GITHUB_RUN_ID"
+            printf 'workflow_run_attempt=%s\n' "$GITHUB_RUN_ATTEMPT"
+            printf 'backend=pytest\n'
+            printf 'admin=production-build,nginx-dist\n'
+            printf 'web=production-build,standalone\n'
+            printf 'frontend_unit_tests=skipped\n'
+            printf 'browser=playwright-chromium\n'
+            printf 'database=postgresql-18.4-alpine\n'
+            printf 'cache=redis-8.10.0-alpine\n'
+          } > "$RUNNER_TEMP/smoke-validation-evidence/smoke-validation.env"
+
+      - name: Upload smoke validation evidence
+        if: ${{ needs.source.outputs.validation_mode == 'smoke' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: smoke-validation-${{ needs.source.outputs.commit_sha }}
+          overwrite: true
+          path: ${{ runner.temp }}/smoke-validation-evidence/smoke-validation.env
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Save sanitized diagnostics on success or failure
         if: ${{ always() }}
