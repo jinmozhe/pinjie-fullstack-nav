@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [client] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 15_000 } } }));
+  const [client] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 15_000, refetchInterval: false, refetchOnWindowFocus: false } } }));
   useEffect(() => {
     const expired = () => {
       if (window.location.pathname === "/login") return;

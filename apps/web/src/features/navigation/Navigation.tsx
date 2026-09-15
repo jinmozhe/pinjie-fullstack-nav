@@ -23,7 +23,7 @@ type Props = {
   loginResult?: string;
 };
 
-const queryPolicy = { gcTime: 0, staleTime: 0, retry: false, refetchInterval: 30000, refetchOnWindowFocus: "always" as const };
+const queryPolicy = { gcTime: 0, staleTime: 0, retry: false, refetchInterval: false as const, refetchOnWindowFocus: false as const };
 
 export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, initialError, loginResult }: Props) {
   const client = useQueryClient();
@@ -31,7 +31,7 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   const [draft, setDraft] = useState(initialLocation.search);
   const [detailId, setDetailId] = useState<string>();
   const [drawer, setDrawer] = useState(false);
-  const [visible, setVisible] = useState(true);
+
   const [loggedOut, setLoggedOut] = useState(false);
   const [initialAvailable, setInitialAvailable] = useState(true);
   const [blockedAt, setBlockedAt] = useState(0);
@@ -42,7 +42,7 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   const reader = !loggedOut && identity.isSuccess && identity.dataUpdatedAt > blockedAt && Date.parse(identity.data.expires_at) > Date.now();
   const lastReader = useRef(reader);
   const scope = reader ? ["reader-navigation", identity.data.admin_id] : ["public-navigation"];
-  const suspended = reader && (!visible || identity.isLoading);
+  const suspended = reader && identity.isLoading;
   const useInitial = initialAvailable && Boolean(initial?.reader) === reader;
   const sameInitialLocation = navigationHref(location) === navigationHref(initialLocation);
   const closeDetail = useCallback(() => {
@@ -125,16 +125,11 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
   }, [closeDetail]);
   useEffect(() => {
     const expire = () => { setBlockedAt(Date.now()); clearPrivate(); };
-    const visibility = () => {
-      setVisible(document.visibilityState === "visible");
-      if (document.visibilityState !== "visible") clearPrivate();
-      else void client.invalidateQueries({ queryKey: ["reader-identity"] });
-    };
     const channel = new window.BroadcastChannel("pinjie-reader");
     channel.onmessage = () => { expire(); setLoggedOut(true); resetSelection(); void client.cancelQueries({ queryKey: ["reader-identity"] }); client.removeQueries({ queryKey: ["reader-identity"] }); };
-    document.addEventListener("visibilitychange", visibility);
+
     window.addEventListener("pinjie:reader-expired", expire);
-    return () => { channel.close(); document.removeEventListener("visibilitychange", visibility); window.removeEventListener("pinjie:reader-expired", expire); };
+    return () => { channel.close(); window.removeEventListener("pinjie:reader-expired", expire); };
   }, [client, clearPrivate, resetSelection]);
   const sidebarProps = { profile, categories: categoryData ?? [], tags: tags.data ?? [], location, onNavigate: navigate, showTop: !reader };
   const closeDrawer = useCallback(() => setDrawer(false), []);
@@ -184,6 +179,6 @@ export function Navigation({ profile, initial, initialLocation = HOME_LOCATION, 
       </nav>}
     </section>
     {drawer && <NavigationDrawer {...sidebarProps} onClose={closeDrawer} />}
-    {detailId && visible && <SiteDetail key={`${scope.join(":")}:${detailId}`} siteId={detailId} reader={reader} scope={scope} suspended={blocked || (reader && identity.isFetching)} onClose={closeDetail} onNavigate={navigate} />}
+    {detailId && <SiteDetail key={`${scope.join(":")}:${detailId}`} siteId={detailId} reader={reader} scope={scope} suspended={blocked || (reader && identity.isFetching)} onClose={closeDetail} onNavigate={navigate} />}
   </main>;
 }

@@ -15,7 +15,7 @@ import { useModal } from "./useModal";
 function Accounts({ siteId }: { siteId: string }) {
   const client = useQueryClient();
   const [notice, setNotice] = useState("");
-  const query = useQuery({ queryKey: ["reader-accounts", siteId], queryFn: ({ signal }) => navigationApi.accounts(siteId, signal), gcTime: 0, staleTime: 0, retry: false, refetchOnWindowFocus: "always", refetchInterval: 30000 });
+  const query = useQuery({ queryKey: ["reader-accounts", siteId], queryFn: ({ signal }) => navigationApi.accounts(siteId, signal), gcTime: 0, staleTime: 0, retry: false, refetchInterval: false, refetchOnWindowFocus: false });
   const denied = query.error instanceof ApiError && [401, 403].includes(query.error.status);
   useEffect(() => {
     if (denied) void client.invalidateQueries({ queryKey: ["reader-identity"] });
@@ -56,7 +56,7 @@ export function SiteDetail({ siteId, reader, scope, suspended, onClose, onNaviga
   onNavigate: (location: NavigationLocation) => void;
 }) {
   const dialog = useModal();
-  const query = useQuery({ queryKey: [...scope, "detail", siteId], queryFn: ({ signal }) => navigationApi.site(siteId, reader, signal), enabled: !suspended, gcTime: 0, staleTime: 0, retry: false, refetchOnWindowFocus: "always", refetchInterval: 30000 });
+  const query = useQuery({ queryKey: [...scope, "detail", siteId], queryFn: ({ signal }) => navigationApi.site(siteId, reader, signal), enabled: !suspended, gcTime: 0, staleTime: 0, retry: false, refetchInterval: false, refetchOnWindowFocus: false });
   const site: PublicNavSiteRead | undefined = !suspended && !query.isError ? query.data : undefined;
   return <dialog ref={dialog} className="nav-dialog" onCancel={onClose} onClick={(event) => { if (event.target === event.currentTarget) onClose(); }} aria-labelledby="nav-detail-title">
     <div className="nav-dialog-close"><IconButton title="关闭详情" onClick={onClose}><X size={20} /></IconButton></div>
